@@ -312,28 +312,30 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
               </div>
 
               {/* Price Tier Filters */}
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {tierButtons.map((tier) => {
-                    const isActive = priceTier === tier.key;
-                    return (
-                      <button
-                        key={tier.key}
-                        type="button"
-                        onClick={() => setPriceTier(tier.key)}
-                        className={`btn-press rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                          isActive
-                            ? 'bg-primary text-primary-foreground shadow-[0_6px_16px_-4px_rgba(27,122,109,0.45)]'
-                            : 'border border-white/60 bg-white/60 text-foreground backdrop-blur-xl hover:bg-white/90 hover:border-primary/40 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-                        }`}
-                      >
-                        {tier.label}
-                      </button>
-                    );
-                  })}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
+                <div className="no-scrollbar -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0 md:overflow-visible">
+                  <div className="flex items-center gap-2 min-w-max md:min-w-0 md:flex-wrap">
+                    {tierButtons.map((tier) => {
+                      const isActive = priceTier === tier.key;
+                      return (
+                        <button
+                          key={tier.key}
+                          type="button"
+                          onClick={() => setPriceTier(tier.key)}
+                          className={`btn-press shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[13.5px] font-semibold transition ${
+                            isActive
+                              ? 'bg-[#eef8f6] text-[#2f855a] dark:bg-[#1b7a6d]/25 dark:text-[#35b7a5]'
+                              : 'bg-[#f4f6f8] text-foreground hover:bg-[#e4ebef] dark:bg-white/5 dark:text-foreground dark:hover:bg-white/10'
+                          }`}
+                        >
+                          {tier.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                <div className="text-[11px] font-bold text-muted-foreground">
+                <div className="shrink-0 text-[11px] font-bold text-muted-foreground">
                   {labels.liveResult} <strong className="text-foreground">{filteredServices.length}</strong> {labels.servicesCount}
                 </div>
               </div>
