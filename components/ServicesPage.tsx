@@ -456,7 +456,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
                           </div>
                         )}
 
-                        <div className="mt-auto flex items-end justify-between gap-4 border-t border-border/50 pt-6">
+                        <div className="mt-auto flex items-end justify-between gap-4 pt-6">
                           <div>
                             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
                               {labels.fromPrice}
@@ -527,7 +527,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
                         </div>
                       )}
 
-                      <div className="mt-auto flex items-end justify-between gap-3 border-t border-border/50 pt-5">
+                      <div className="mt-auto flex items-end justify-between gap-3 pt-5">
                         <div>
                           <p className="text-[11px] font-black uppercase tracking-[0.18em] text-muted-foreground">
                             {labels.fromPrice}
