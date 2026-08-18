@@ -201,15 +201,28 @@ const BOT_USER_AGENTS = [
     'facebookexternalhit', 'Facebot', 'Twitterbot', 'LinkedInBot',
     'WhatsApp', 'TelegramBot', 'Slackbot', 'Discordbot',
     'Googlebot', 'bingbot', 'yandex', 'Baiduspider',
-    'ZaloBot', 'Zalo-Scraper', 'kakaotalk-scrap', 'PinterestBot', 'Viber',
+    'ZaloBot', 'ZaloPlatform', 'Zalo-OpenGraph', 'Zalo-Scraper', 'ZaloImage', 'ZaloPreview',
+    'kakaotalk-scrap', 'PinterestBot', 'Viber',
     'redditbot', 'Embedly', 'Quora Link Preview',
     'Showyoubot', 'outbrain', 'Applebot', 'Sogou', 'ia_archiver',
     'MJ12bot', 'Semrushbot', 'DotBot', 'PetalBot'
 ];
 
 function isBot(userAgent) {
-    const ua = userAgent.toLowerCase();
-    return BOT_USER_AGENTS.some(bot => ua.includes(bot.toLowerCase()));
+    const ua = String(userAgent || '').toLowerCase();
+    if (!ua) return false;
+
+    // Direct match against known scraper / crawler bots
+    if (BOT_USER_AGENTS.some(bot => ua.includes(bot.toLowerCase()))) {
+        return true;
+    }
+
+    // Specific Zalo crawler bots (excluding real human users browsing inside the Zalo in-app browser)
+    if (ua.includes('zalo') && (ua.includes('bot') || ua.includes('crawler') || ua.includes('scraper') || ua.includes('platform') || ua.includes('preview') || ua.includes('opengraph'))) {
+        return true;
+    }
+
+    return false;
 }
 
 function applyRuntimeConfig(env = {}) {
