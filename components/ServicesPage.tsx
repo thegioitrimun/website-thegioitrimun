@@ -231,13 +231,23 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
     });
   }, [services, normalizedQuery, priceTier, i18n.language]);
 
-  const tierButtons: Array<{ key: PriceTier; label: string }> = [
-    { key: 'all', label: labels.all },
-    { key: 'starter', label: labels.starter },
-    { key: 'core', label: labels.core },
-    { key: 'advanced', label: labels.advanced },
-    { key: 'contact', label: labels.contact },
-  ];
+  const tierButtons: Array<{ key: PriceTier; label: string; count: number }> = useMemo(() => {
+    const counts = {
+      all: services.length,
+      contact: services.filter(s => Number(s.price || 0) <= 0).length,
+      starter: services.filter(s => Number(s.price || 0) > 0 && Number(s.price || 0) < 1000000).length,
+      core: services.filter(s => Number(s.price || 0) >= 1000000 && Number(s.price || 0) < 3000000).length,
+      advanced: services.filter(s => Number(s.price || 0) >= 3000000).length,
+    };
+    const allTiers: Array<{ key: PriceTier; label: string; count: number }> = [
+      { key: 'all', label: labels.all, count: counts.all },
+      { key: 'contact', label: labels.contact, count: counts.contact },
+      { key: 'starter', label: labels.starter, count: counts.starter },
+      { key: 'core', label: labels.core, count: counts.core },
+      { key: 'advanced', label: labels.advanced, count: counts.advanced },
+    ];
+    return allTiers.filter(t => t.key === 'all' || t.count > 0);
+  }, [services, labels]);
 
   const formatCurrency = (amount: number) => {
     if (!amount) return labels.contact;
@@ -322,13 +332,18 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
                           key={tier.key}
                           type="button"
                           onClick={() => setPriceTier(tier.key)}
-                          className={`btn-press shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[13.5px] font-semibold transition ${
+                          className={`btn-press inline-flex items-center gap-2 shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[13.5px] font-semibold transition ${
                             isActive
                               ? 'bg-[#eef8f6] text-[#2f855a] dark:bg-[#1b7a6d]/25 dark:text-[#35b7a5]'
                               : 'bg-[#f4f6f8] text-foreground hover:bg-[#e4ebef] dark:bg-white/5 dark:text-foreground dark:hover:bg-white/10'
                           }`}
                         >
-                          {tier.label}
+                          <span>{tier.label}</span>
+                          <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold ${
+                            isActive ? 'bg-[#2f855a]/15 text-[#2f855a] dark:bg-[#35b7a5]/20 dark:text-[#35b7a5]' : 'bg-black/5 text-muted-foreground dark:bg-white/10'
+                          }`}>
+                            {tier.count}
+                          </span>
                         </button>
                       );
                     })}
@@ -345,7 +360,17 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
 
         {/* Services Listing Section */}
         <section className="mt-10">
-          {filteredServices.length === 0 ? (
+          {services.length === 0 ? (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse rounded-[32px] border border-white/60 bg-white/70 p-6 backdrop-blur-2xl dark:border-white/10 dark:bg-white/5">
+                  <div className="aspect-[16/10] w-full rounded-2xl bg-muted/60" />
+                  <div className="mt-4 h-6 w-3/4 rounded-lg bg-muted/60" />
+                  <div className="mt-2 h-4 w-full rounded-lg bg-muted/40" />
+                </div>
+              ))}
+            </div>
+          ) : filteredServices.length === 0 ? (
             <div className="rounded-[32px] border border-white/60 bg-white/70 px-6 py-14 text-center shadow-[0_24px_60px_-24px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.68)] dark:shadow-[0_28px_64px_-24px_rgba(0,0,0,0.55)] md:px-10">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary backdrop-blur-md dark:bg-primary/20">
                 <SearchIcon className="h-8 w-8" />
