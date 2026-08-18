@@ -201,8 +201,8 @@ const BOT_USER_AGENTS = [
     'facebookexternalhit', 'Facebot', 'Twitterbot', 'LinkedInBot',
     'WhatsApp', 'TelegramBot', 'Slackbot', 'Discordbot',
     'Googlebot', 'bingbot', 'yandex', 'Baiduspider',
-    'ZaloBot', 'zalo', 'kakaotalk-scrap', 'PinterestBot', 'Viber',
-    'Line', 'redditbot', 'Embedly', 'Quora Link Preview',
+    'ZaloBot', 'Zalo-Scraper', 'kakaotalk-scrap', 'PinterestBot', 'Viber',
+    'redditbot', 'Embedly', 'Quora Link Preview',
     'Showyoubot', 'outbrain', 'Applebot', 'Sogou', 'ia_archiver',
     'MJ12bot', 'Semrushbot', 'DotBot', 'PetalBot'
 ];
