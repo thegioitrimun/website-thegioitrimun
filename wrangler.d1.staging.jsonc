@@ -1,0 +1,133 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "iskin-clinic-d1-staging",
+  "main": "dist/_worker.js",
+  "compatibility_date": "2025-09-27",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "APP_DB",
+      "database_name": "thegioitrimun-app-staging",
+      "database_id": "01e5d00c-f29c-4eb6-a1e2-0e1cc09f7207"
+    },
+    {
+      "binding": "INCI_DB_0",
+      "database_name": "thegioitrimun-inci-staging-shard-00",
+      "database_id": "1903783e-be2f-4919-bb12-04429b38e161"
+    },
+    {
+      "binding": "INCI_DB_1",
+      "database_name": "thegioitrimun-inci-staging-shard-01",
+      "database_id": "43b94020-d46d-4c55-bcb2-91f8b3a88b6d"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_IMAGES",
+      "bucket_name": "thegioitrimun-images"
+    },
+    {
+      "binding": "PRIVATE_RECORDS",
+      "bucket_name": "thegioitrimun-private-staging"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "NOTIFICATION_QUEUE",
+        "queue": "thegioitrimun-notifications-staging"
+      },
+      {
+        "binding": "SHIPPING_QUEUE",
+        "queue": "thegioitrimun-shipping-staging"
+      },
+      {
+        "binding": "PANCAKE_QUEUE",
+        "queue": "thegioitrimun-pancake-staging"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "thegioitrimun-notifications-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-notifications-staging-dlq"
+      },
+      {
+        "queue": "thegioitrimun-shipping-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-shipping-staging-dlq"
+      },
+      {
+        "queue": "thegioitrimun-pancake-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 8,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-pancake-staging-dlq"
+      }
+    ]
+  },
+  "images": {
+    "binding": "IMAGES"
+  },
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "2101",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
+      "name": "ORDER_LOOKUP_RATE_LIMITER",
+      "namespace_id": "2102",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "DATA_BACKEND": "d1",
+    "INCI_SHARD_COUNT": "2",
+    "D1_SHADOW_READ": "false",
+    "R2_PUBLIC_BASE_URL": "https://iskin-clinic-d1-staging.thegioitrimun.workers.dev/r2",
+    "ORDER_LOOKUP_SMS_ENABLED": "false",
+    "PRODUCT_SOURCE_PROJECT": "thegioitrimun.vn",
+    "EMAIL_MAX_ATTEMPTS": "6",
+    "PANCAKE_ENABLED": "true",
+    "PANCAKE_SHOP_ID": "101066893",
+    "PANCAKE_WAREHOUSE_ID": "c97ee7ba-282d-4b71-9673-07610972f1f9",
+    "PANCAKE_API_BASE_URL": "https://pos.pages.fm/api/v1",
+    "PANCAKE_TIMEOUT_MS": "12000",
+    "PANCAKE_MAX_ATTEMPTS": "8",
+    "PANCAKE_DEFAULT_WEIGHT_GRAMS": "100",
+    "OAUTH_BASE_URL": "https://iskin-clinic-d1-staging.thegioitrimun.workers.dev",
+    "OAUTH_PROVIDERS": "google",
+    "GHTK_ENABLED": "false"
+  },
+  "triggers": {
+    "crons": [
+      "*/2 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

@@ -1,0 +1,2549 @@
+
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+
+COMMENT ON SCHEMA "public" IS 'standard public schema';
+
+
+
+CREATE EXTENSION IF NOT EXISTS "pg_graphql" WITH SCHEMA "graphql";
+
+
+
+
+
+
+CREATE EXTENSION IF NOT EXISTS "pg_stat_statements" WITH SCHEMA "extensions";
+
+
+
+
+
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA "extensions";
+
+
+
+
+
+
+CREATE EXTENSION IF NOT EXISTS "supabase_vault" WITH SCHEMA "vault";
+
+
+
+
+
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
+
+
+
+
+
+
+CREATE TYPE "public"."appointment_status" AS ENUM (
+    'pending',
+    'confirmed',
+    'completed',
+    'cancelled'
+);
+
+
+ALTER TYPE "public"."appointment_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."dispensed_status" AS ENUM (
+    'dispensed',
+    'pending'
+);
+
+
+ALTER TYPE "public"."dispensed_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."gender" AS ENUM (
+    'male',
+    'female',
+    'other'
+);
+
+
+ALTER TYPE "public"."gender" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."invoice_payment_status" AS ENUM (
+    'paid',
+    'unpaid',
+    'partial'
+);
+
+
+ALTER TYPE "public"."invoice_payment_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."medical_record_status" AS ENUM (
+    'open',
+    'closed',
+    'draft',
+    'reviewed'
+);
+
+
+ALTER TYPE "public"."medical_record_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."order_status" AS ENUM (
+    'pending',
+    'processing',
+    'shipped',
+    'completed',
+    'cancelled',
+    'refunded'
+);
+
+
+ALTER TYPE "public"."order_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."service_record_status" AS ENUM (
+    'completed',
+    'pending'
+);
+
+
+ALTER TYPE "public"."service_record_status" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."system_role" AS ENUM (
+    'customer',
+    'doctor',
+    'admin',
+    'master_admin'
+);
+
+
+ALTER TYPE "public"."system_role" OWNER TO "postgres";
+
+
+CREATE TYPE "public"."user_role" AS ENUM (
+    'doctor',
+    'admin',
+    'master_admin'
+);
+
+
+ALTER TYPE "public"."user_role" OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."can_manage_medical_record"("p_medical_record_id" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  is_allowed boolean;
+BEGIN
+  IF auth.role() != 'authenticated' THEN
+    RETURN FALSE;
+  END IF;
+  
+  -- For INSERT checks where the record doesn't exist yet, we can't check its properties.
+  -- In this case, we rely on the broader 'is_content_creator' role check in the policy itself.
+  -- For UPDATE/DELETE, we can check the existing record.
+  IF TG_OP = 'INSERT' THEN
+     RETURN public.is_content_creator();
+  END IF;
+
+  SELECT (
+    public.is_admin() OR
+    (p.examining_doctor_id = auth.uid()) -- The examining doctor
+  ) INTO is_allowed
+  FROM public.medical_records p
+  WHERE p.id = p_medical_record_id;
+
+  RETURN COALESCE(is_allowed, FALSE);
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."can_manage_medical_record"("p_medical_record_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."can_view_medical_record"("record_id" "uuid") RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+DECLARE
+  is_allowed boolean;
+BEGIN
+  IF auth.role() != 'authenticated' THEN
+    RETURN FALSE;
+  END IF;
+
+  SELECT (
+    public.is_admin() OR
+    (p.patient_id = auth.uid()) OR -- The patient themselves
+    (p.examining_doctor_id = auth.uid()) -- The examining doctor
+  ) INTO is_allowed
+  FROM public.medical_records p
+  WHERE p.id = record_id;
+
+  RETURN COALESCE(is_allowed, FALSE);
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."can_view_medical_record"("record_id" "uuid") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."demote_role_on_doctor_delete"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  UPDATE public.patients
+  SET role = 'customer'
+  WHERE id = OLD.id;
+  RETURN OLD;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."demote_role_on_doctor_delete"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."demote_user_on_doctor_delete"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  UPDATE public.patients
+  SET role = 'customer'
+  WHERE id = OLD.id AND role = 'doctor'; -- Only demote if their current role is 'doctor'
+  RETURN OLD;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."demote_user_on_doctor_delete"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  INSERT INTO public.patients (
+    id,
+    name,
+    dob,
+    phone,
+    role,
+    avatar_path
+  )
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.raw_user_meta_data->>'name', 'Người dùng mới'),
+    COALESCE(NEW.raw_user_meta_data->>'dob', '1990-01-01'),
+    COALESCE(NEW.raw_user_meta_data->>'phone', '0000000000'),
+    'customer',
+    NEW.raw_user_meta_data->>'avatar_url'
+  );
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."handle_new_user"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+    IF auth.role() = 'authenticated' THEN
+        RETURN EXISTS (SELECT 1 FROM public.patients WHERE id = auth.uid() AND role IN ('admin', 'master_admin'));
+    END IF;
+    RETURN FALSE;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."is_admin"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."is_content_creator"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+    IF auth.role() = 'authenticated' THEN
+        RETURN EXISTS (SELECT 1 FROM public.patients WHERE id = auth.uid() AND role IN ('doctor', 'admin', 'master_admin'));
+    END IF;
+    RETURN FALSE;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."is_content_creator"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."is_master_admin"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  IF auth.role() = 'authenticated' THEN
+    RETURN EXISTS (SELECT 1 FROM public.patients WHERE id = auth.uid() AND role = 'master_admin');
+  END IF;
+  RETURN FALSE;
+EXCEPTION
+  WHEN OTHERS THEN
+    RETURN FALSE;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."is_master_admin"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."promote_user_to_doctor_role"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  UPDATE public.patients
+  SET role = 'doctor'
+  WHERE id = NEW.id AND role = 'customer'; -- Only promote if they are currently a customer
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."promote_user_to_doctor_role"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."sync_doctor_role_to_patient"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    AS $$
+BEGIN
+  UPDATE public.patients
+  SET role = NEW.role::text::public.system_role
+  WHERE id = NEW.id;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."sync_doctor_role_to_patient"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+   NEW.updated_at = now();
+   RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_updated_at_column"() OWNER TO "postgres";
+
+SET default_tablespace = '';
+
+SET default_table_access_method = "heap";
+
+
+CREATE TABLE IF NOT EXISTS "public"."about_features" (
+    "id" "text" NOT NULL,
+    "icon" "text",
+    "title" "text",
+    "description" "text",
+    "display_order" smallint DEFAULT 0,
+    "title_ru" "text",
+    "description_ru" "text",
+    "title_en" "text",
+    "description_en" "text",
+    "title_cn" "text",
+    "description_cn" "text"
+);
+
+
+ALTER TABLE "public"."about_features" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."about_page_content" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "header_title" "text",
+    "header_subtitle" "text",
+    "image_path" "text",
+    "mission_title" "text",
+    "mission_text" "text",
+    "vision_text" "text",
+    "values_title" "text",
+    "values_subtitle" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "header_title_ru" "text",
+    "header_subtitle_ru" "text",
+    "mission_title_ru" "text",
+    "mission_text_ru" "text",
+    "vision_text_ru" "text",
+    "values_title_ru" "text",
+    "values_subtitle_ru" "text",
+    "header_title_en" "text",
+    "header_subtitle_en" "text",
+    "mission_title_en" "text",
+    "mission_text_en" "text",
+    "vision_text_en" "text",
+    "values_title_en" "text",
+    "values_subtitle_en" "text",
+    "header_title_cn" "text",
+    "header_subtitle_cn" "text",
+    "mission_title_cn" "text",
+    "mission_text_cn" "text",
+    "vision_text_cn" "text",
+    "values_title_cn" "text",
+    "values_subtitle_cn" "text",
+    CONSTRAINT "about_page_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."about_page_content" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."about_values" (
+    "id" "text" NOT NULL,
+    "title" "text" NOT NULL,
+    "description" "text" NOT NULL,
+    "icon" "text" NOT NULL,
+    "display_order" smallint DEFAULT 0,
+    "title_ru" "text",
+    "description_ru" "text",
+    "title_en" "text",
+    "description_en" "text",
+    "title_cn" "text",
+    "description_cn" "text"
+);
+
+
+ALTER TABLE "public"."about_values" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."appointments" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "patient_id" "uuid" NOT NULL,
+    "doctor_id" "uuid" NOT NULL,
+    "service_id" integer NOT NULL,
+    "date" "date" NOT NULL,
+    "time" time without time zone NOT NULL,
+    "notes" "text",
+    "status" "public"."appointment_status" DEFAULT 'pending'::"public"."appointment_status" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."appointments" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."auth_page_images" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "login_image_path" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "auth_page_images_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."auth_page_images" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."blog_categories" (
+    "slug" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "name_en" "text",
+    "name_ru" "text",
+    "name_cn" "text"
+);
+
+
+ALTER TABLE "public"."blog_categories" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."blog_posts" (
+    "slug" "text" NOT NULL,
+    "title" "text" NOT NULL,
+    "summary" "text" NOT NULL,
+    "content" "text" NOT NULL,
+    "author_id" "uuid" NOT NULL,
+    "date" "date" DEFAULT CURRENT_DATE NOT NULL,
+    "category_slug" "text" NOT NULL,
+    "image_path" "text",
+    "meta_description" "text",
+    "meta_keywords" "text",
+    "canonical_url" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "title_en" "text",
+    "title_ru" "text",
+    "title_cn" "text",
+    "summary_en" "text",
+    "summary_ru" "text",
+    "summary_cn" "text"
+);
+
+
+ALTER TABLE "public"."blog_posts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."contact_page_content" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "header_title" "text",
+    "header_subtitle" "text",
+    "form_title" "text",
+    "map_placeholder" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "contact_page_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."contact_page_content" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."doctors" (
+    "id" "uuid" NOT NULL,
+    "username" "text" NOT NULL,
+    "job_title" "text",
+    "specialization" "text",
+    "qualification" "text",
+    "homepage_description" "text",
+    "practice_license_code" "text",
+    "base_salary" numeric(12,2) DEFAULT 0,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "job_title_en" "text",
+    "job_title_ru" "text",
+    "job_title_cn" "text",
+    "specialization_en" "text",
+    "specialization_ru" "text",
+    "specialization_cn" "text",
+    "homepage_description_en" "text",
+    "homepage_description_ru" "text",
+    "homepage_description_cn" "text"
+);
+
+
+ALTER TABLE "public"."doctors" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."faq_items" (
+    "id" integer NOT NULL,
+    "question" "text" NOT NULL,
+    "answer" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "question_en" "text",
+    "question_ru" "text",
+    "question_cn" "text",
+    "answer_en" "text",
+    "answer_ru" "text",
+    "answer_cn" "text"
+);
+
+
+ALTER TABLE "public"."faq_items" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."faq_items" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."faq_items_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."featured_doctors" (
+    "doctor_id" "uuid" NOT NULL
+);
+
+
+ALTER TABLE "public"."featured_doctors" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."featured_posts" (
+    "post_slug" "text" NOT NULL
+);
+
+
+ALTER TABLE "public"."featured_posts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."featured_services" (
+    "service_id" integer NOT NULL
+);
+
+
+ALTER TABLE "public"."featured_services" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."footer_content" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "about_text" "text",
+    "address" "text",
+    "phone" "text",
+    "email" "text",
+    "working_hours_weekday" "text",
+    "working_hours_weekend" "text",
+    "copyright_text" "text",
+    "facebook_url" "text",
+    "instagram_url" "text",
+    "youtube_url" "text",
+    "tiktok_url" "text",
+    "zalo_url" "text",
+    "messenger_url" "text",
+    "floating_contact_enabled" boolean DEFAULT true NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "footer_content_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."footer_content" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."homepage_hero" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "title" "text",
+    "subtitle" "text",
+    "image_path" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "homepage_hero_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."homepage_hero" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."invoices" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "medical_record_id" "uuid" NOT NULL,
+    "total_amount" numeric(12,2),
+    "payment_status" "public"."invoice_payment_status",
+    "payment_date" "date",
+    "payment_method" "text",
+    "notes" "text"
+);
+
+
+ALTER TABLE "public"."invoices" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."medical_records" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "patient_id" "uuid" NOT NULL,
+    "appointment_id" "uuid",
+    "encounter_date" "date" NOT NULL,
+    "examining_doctor_id" "uuid" NOT NULL,
+    "department" "text",
+    "reason_for_visit" "text",
+    "illness_history" "text",
+    "past_history" "text",
+    "symptoms" "text",
+    "preliminary_diagnoses_icd_codes" "text"[],
+    "definitive_diagnoses_icd_codes" "text"[],
+    "clinical_notes" "text",
+    "status" "public"."medical_record_status" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."medical_records" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."patient_uploaded_documents" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "patient_id" "uuid" NOT NULL,
+    "file_path" "text" NOT NULL,
+    "file_name" "text" NOT NULL,
+    "mime_type" "text" NOT NULL,
+    "ai_summary" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."patient_uploaded_documents" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."patients" (
+    "id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "dob" "date" NOT NULL,
+    "phone" "text" NOT NULL,
+    "email" "text",
+    "address_street" "text",
+    "address_ward" "text",
+    "address_district" "text",
+    "address_province" "text",
+    "medical_history" "text",
+    "skin_type" "text",
+    "allergies" "text",
+    "gender" "public"."gender",
+    "avatar_path" "text",
+    "citizen_id_number" "text",
+    "nationality" "text",
+    "place_of_origin" "text",
+    "date_of_issue" "date",
+    "place_of_issue" "text",
+    "expiry_date" "date",
+    "role" "public"."system_role" DEFAULT 'customer'::"public"."system_role" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."patients" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."payment_settings" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "bank_bin" "text",
+    "account_number" "text",
+    "account_holder_name" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "payment_settings_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."payment_settings" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."performed_services" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "medical_record_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "date_performed" "date",
+    "performer_id" "uuid",
+    "notes" "text",
+    "status" "public"."service_record_status",
+    "price" numeric(10,2)
+);
+
+
+ALTER TABLE "public"."performed_services" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."prescribed_medications" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "medical_record_id" "uuid" NOT NULL,
+    "name" "text" NOT NULL,
+    "dosage" "text",
+    "duration_days" integer,
+    "unit" "text",
+    "route" "text",
+    "total_quantity" integer,
+    "dispensed_status" "public"."dispensed_status",
+    "notes" "text",
+    "price" numeric(10,2)
+);
+
+
+ALTER TABLE "public"."prescribed_medications" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."procedure_steps" (
+    "id" integer NOT NULL,
+    "service_id" integer NOT NULL,
+    "step_number" integer NOT NULL,
+    "title" "text" NOT NULL,
+    "description" "text" NOT NULL,
+    "image_path" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "title_en" "text",
+    "description_en" "text",
+    "title_ru" "text",
+    "description_ru" "text",
+    "title_cn" "text",
+    "description_cn" "text"
+);
+
+
+ALTER TABLE "public"."procedure_steps" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."procedure_steps" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."procedure_steps_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."product_brands" (
+    "id" bigint NOT NULL,
+    "name" "text" NOT NULL,
+    "slug" "text" NOT NULL,
+    "description" "text",
+    "logo_path" "text",
+    "created_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "timezone"('utc'::"text", "now"()) NOT NULL
+);
+
+
+ALTER TABLE "public"."product_brands" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."product_brands" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."product_brands_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."product_categories" (
+    "id" integer NOT NULL,
+    "name" "text" NOT NULL,
+    "slug" "text" NOT NULL,
+    "description" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "name_en" "text",
+    "name_ru" "text",
+    "name_cn" "text",
+    "is_featured" boolean DEFAULT false
+);
+
+
+ALTER TABLE "public"."product_categories" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."product_categories" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."product_categories_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."product_images" (
+    "id" integer NOT NULL,
+    "product_id" integer NOT NULL,
+    "image_path" "text" NOT NULL,
+    "display_order" smallint DEFAULT 0,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "is_primary" boolean DEFAULT false
+);
+
+
+ALTER TABLE "public"."product_images" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."product_images" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."product_images_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."product_order_items" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "order_id" "uuid" NOT NULL,
+    "product_id" integer NOT NULL,
+    "quantity" integer NOT NULL,
+    "price_at_purchase" numeric(12,2) NOT NULL
+);
+
+
+ALTER TABLE "public"."product_order_items" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."product_orders" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "user_id" "uuid",
+    "order_code" "text",
+    "total_price" numeric(12,2) NOT NULL,
+    "status" "public"."order_status" DEFAULT 'pending'::"public"."order_status" NOT NULL,
+    "customer_name" "text" NOT NULL,
+    "customer_phone" "text" NOT NULL,
+    "shipping_street" "text" NOT NULL,
+    "shipping_ward" "text" NOT NULL,
+    "shipping_district" "text" NOT NULL,
+    "shipping_province" "text" NOT NULL,
+    "notes" "text",
+    "shipping_provider" "text",
+    "shipping_fee" numeric(12,2) DEFAULT 0,
+    "shipping_code" "text",
+    "ghtk_label" "text",
+    "ghtk_status_text" "text",
+    "estimated_delivery_time" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."product_orders" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."product_reviews" (
+    "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
+    "product_id" integer NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "rating" smallint NOT NULL,
+    "title" "text",
+    "comment" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "product_reviews_rating_check" CHECK ((("rating" >= 1) AND ("rating" <= 5)))
+);
+
+
+ALTER TABLE "public"."product_reviews" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."products" (
+    "id" integer NOT NULL,
+    "name" "text" NOT NULL,
+    "slug" "text" NOT NULL,
+    "description" "text" NOT NULL,
+    "long_description" "jsonb" DEFAULT '[]'::"jsonb",
+    "price" numeric(12,2) NOT NULL,
+    "stock_quantity" integer DEFAULT 0 NOT NULL,
+    "category_id" integer,
+    "sku" "text",
+    "expiry_date" "date",
+    "low_stock_threshold" integer DEFAULT 5 NOT NULL,
+    "usage_instructions" "text",
+    "ingredients" "text",
+    "is_published" boolean DEFAULT true,
+    "key_benefits" "text"[],
+    "skin_types" "text"[],
+    "volume" "text",
+    "texture" "text",
+    "origin" "text",
+    "precautions" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "is_featured" boolean DEFAULT false,
+    "sold_count" integer DEFAULT 0,
+    "brand" "text",
+    "name_en" "text",
+    "name_ru" "text",
+    "name_cn" "text",
+    "description_en" "text",
+    "description_ru" "text",
+    "description_cn" "text",
+    "usage_instructions_en" "text",
+    "usage_instructions_ru" "text",
+    "usage_instructions_cn" "text",
+    "ingredients_en" "text",
+    "ingredients_ru" "text",
+    "ingredients_cn" "text",
+    "key_benefits_en" "text"[],
+    "key_benefits_ru" "text"[],
+    "key_benefits_cn" "text"[],
+    "precautions_en" "text",
+    "precautions_ru" "text",
+    "precautions_cn" "text",
+    "texture_en" "text",
+    "texture_ru" "text",
+    "texture_cn" "text",
+    "origin_en" "text",
+    "origin_ru" "text",
+    "origin_cn" "text"
+);
+
+
+ALTER TABLE "public"."products" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."products" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."products_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."services" (
+    "id" integer NOT NULL,
+    "name" "text" NOT NULL,
+    "description" "text" NOT NULL,
+    "long_description" "text" NOT NULL,
+    "benefits" "text"[] NOT NULL,
+    "icon" "text" NOT NULL,
+    "price" numeric(10,2) DEFAULT 0,
+    "image_path" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "name_en" "text",
+    "name_ru" "text",
+    "name_cn" "text",
+    "description_en" "text",
+    "description_ru" "text",
+    "description_cn" "text",
+    "long_description_en" "text",
+    "long_description_ru" "text",
+    "long_description_cn" "text",
+    "benefits_en" "text"[],
+    "benefits_ru" "text"[],
+    "benefits_cn" "text"[]
+);
+
+
+ALTER TABLE "public"."services" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."services" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."services_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."site_info" (
+    "id" integer DEFAULT 1 NOT NULL,
+    "clinic_name" "text",
+    "logo_light_path" "text",
+    "logo_dark_path" "text",
+    "favicon_path" "text",
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "site_info_singleton" CHECK (("id" = 1))
+);
+
+
+ALTER TABLE "public"."site_info" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."testimonials" (
+    "id" integer NOT NULL,
+    "name" "text" NOT NULL,
+    "text" "text" NOT NULL,
+    "image_path" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."testimonials" OWNER TO "postgres";
+
+
+ALTER TABLE "public"."testimonials" ALTER COLUMN "id" ADD GENERATED BY DEFAULT AS IDENTITY (
+    SEQUENCE NAME "public"."testimonials_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."user_wishlist" (
+    "user_id" "uuid" NOT NULL,
+    "product_id" integer NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."user_wishlist" OWNER TO "postgres";
+
+
+ALTER TABLE ONLY "public"."about_features"
+    ADD CONSTRAINT "about_features_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."about_page_content"
+    ADD CONSTRAINT "about_page_content_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."about_values"
+    ADD CONSTRAINT "about_values_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."auth_page_images"
+    ADD CONSTRAINT "auth_page_images_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."blog_categories"
+    ADD CONSTRAINT "blog_categories_name_key" UNIQUE ("name");
+
+
+
+ALTER TABLE ONLY "public"."blog_categories"
+    ADD CONSTRAINT "blog_categories_pkey" PRIMARY KEY ("slug");
+
+
+
+ALTER TABLE ONLY "public"."blog_posts"
+    ADD CONSTRAINT "blog_posts_pkey" PRIMARY KEY ("slug");
+
+
+
+ALTER TABLE ONLY "public"."contact_page_content"
+    ADD CONSTRAINT "contact_page_content_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."doctors"
+    ADD CONSTRAINT "doctors_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."doctors"
+    ADD CONSTRAINT "doctors_username_key" UNIQUE ("username");
+
+
+
+ALTER TABLE ONLY "public"."faq_items"
+    ADD CONSTRAINT "faq_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."featured_doctors"
+    ADD CONSTRAINT "featured_doctors_pkey" PRIMARY KEY ("doctor_id");
+
+
+
+ALTER TABLE ONLY "public"."featured_posts"
+    ADD CONSTRAINT "featured_posts_pkey" PRIMARY KEY ("post_slug");
+
+
+
+ALTER TABLE ONLY "public"."featured_services"
+    ADD CONSTRAINT "featured_services_pkey" PRIMARY KEY ("service_id");
+
+
+
+ALTER TABLE ONLY "public"."footer_content"
+    ADD CONSTRAINT "footer_content_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."homepage_hero"
+    ADD CONSTRAINT "homepage_hero_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."invoices"
+    ADD CONSTRAINT "invoices_medical_record_id_key" UNIQUE ("medical_record_id");
+
+
+
+ALTER TABLE ONLY "public"."invoices"
+    ADD CONSTRAINT "invoices_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."medical_records"
+    ADD CONSTRAINT "medical_records_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."patient_uploaded_documents"
+    ADD CONSTRAINT "patient_uploaded_documents_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."patients"
+    ADD CONSTRAINT "patients_email_key" UNIQUE ("email");
+
+
+
+ALTER TABLE ONLY "public"."patients"
+    ADD CONSTRAINT "patients_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."payment_settings"
+    ADD CONSTRAINT "payment_settings_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."performed_services"
+    ADD CONSTRAINT "performed_services_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."prescribed_medications"
+    ADD CONSTRAINT "prescribed_medications_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."procedure_steps"
+    ADD CONSTRAINT "procedure_steps_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_brands"
+    ADD CONSTRAINT "product_brands_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_brands"
+    ADD CONSTRAINT "product_brands_slug_key" UNIQUE ("slug");
+
+
+
+ALTER TABLE ONLY "public"."product_categories"
+    ADD CONSTRAINT "product_categories_name_key" UNIQUE ("name");
+
+
+
+ALTER TABLE ONLY "public"."product_categories"
+    ADD CONSTRAINT "product_categories_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_categories"
+    ADD CONSTRAINT "product_categories_slug_key" UNIQUE ("slug");
+
+
+
+ALTER TABLE ONLY "public"."product_images"
+    ADD CONSTRAINT "product_images_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_order_items"
+    ADD CONSTRAINT "product_order_items_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_orders"
+    ADD CONSTRAINT "product_orders_order_code_key" UNIQUE ("order_code");
+
+
+
+ALTER TABLE ONLY "public"."product_orders"
+    ADD CONSTRAINT "product_orders_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_reviews"
+    ADD CONSTRAINT "product_reviews_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."product_reviews"
+    ADD CONSTRAINT "product_reviews_product_id_user_id_key" UNIQUE ("product_id", "user_id");
+
+
+
+ALTER TABLE ONLY "public"."products"
+    ADD CONSTRAINT "products_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."products"
+    ADD CONSTRAINT "products_sku_key" UNIQUE ("sku");
+
+
+
+ALTER TABLE ONLY "public"."products"
+    ADD CONSTRAINT "products_slug_key" UNIQUE ("slug");
+
+
+
+ALTER TABLE ONLY "public"."services"
+    ADD CONSTRAINT "services_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."site_info"
+    ADD CONSTRAINT "site_info_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."testimonials"
+    ADD CONSTRAINT "testimonials_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."user_wishlist"
+    ADD CONSTRAINT "user_wishlist_pkey" PRIMARY KEY ("user_id", "product_id");
+
+
+
+CREATE INDEX "product_categories_is_featured_idx" ON "public"."product_categories" USING "btree" ("is_featured");
+
+
+
+CREATE INDEX "products_is_featured_idx" ON "public"."products" USING "btree" ("is_featured");
+
+
+
+CREATE INDEX "products_sold_count_idx" ON "public"."products" USING "btree" ("sold_count" DESC);
+
+
+
+CREATE OR REPLACE TRIGGER "on_doctor_delete_demote_role" AFTER DELETE ON "public"."doctors" FOR EACH ROW EXECUTE FUNCTION "public"."demote_user_on_doctor_delete"();
+
+
+
+CREATE OR REPLACE TRIGGER "on_doctor_insert_promote_role" AFTER INSERT ON "public"."doctors" FOR EACH ROW EXECUTE FUNCTION "public"."promote_user_to_doctor_role"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_about_page_content_updated_at" BEFORE UPDATE ON "public"."about_page_content" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_appointments_updated_at" BEFORE UPDATE ON "public"."appointments" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_auth_page_images_updated_at" BEFORE UPDATE ON "public"."auth_page_images" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_blog_posts_updated_at" BEFORE UPDATE ON "public"."blog_posts" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_contact_page_content_updated_at" BEFORE UPDATE ON "public"."contact_page_content" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_doctors_updated_at" BEFORE UPDATE ON "public"."doctors" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_footer_content_updated_at" BEFORE UPDATE ON "public"."footer_content" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_homepage_hero_updated_at" BEFORE UPDATE ON "public"."homepage_hero" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_medical_records_updated_at" BEFORE UPDATE ON "public"."medical_records" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_patients_updated_at" BEFORE UPDATE ON "public"."patients" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_payment_settings_updated_at" BEFORE UPDATE ON "public"."payment_settings" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_procedure_steps_updated_at" BEFORE UPDATE ON "public"."procedure_steps" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_product_orders_updated_at" BEFORE UPDATE ON "public"."product_orders" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_products_updated_at" BEFORE UPDATE ON "public"."products" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_services_updated_at" BEFORE UPDATE ON "public"."services" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+CREATE OR REPLACE TRIGGER "update_site_info_updated_at" BEFORE UPDATE ON "public"."site_info" FOR EACH ROW EXECUTE FUNCTION "public"."update_updated_at_column"();
+
+
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "public"."doctors"("id") ON DELETE RESTRICT;
+
+
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."appointments"
+    ADD CONSTRAINT "appointments_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE RESTRICT;
+
+
+
+ALTER TABLE ONLY "public"."blog_posts"
+    ADD CONSTRAINT "blog_posts_author_id_fkey" FOREIGN KEY ("author_id") REFERENCES "public"."patients"("id");
+
+
+
+ALTER TABLE ONLY "public"."blog_posts"
+    ADD CONSTRAINT "blog_posts_category_slug_fkey" FOREIGN KEY ("category_slug") REFERENCES "public"."blog_categories"("slug") ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+
+ALTER TABLE ONLY "public"."doctors"
+    ADD CONSTRAINT "doctors_id_fkey" FOREIGN KEY ("id") REFERENCES "public"."patients"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."featured_doctors"
+    ADD CONSTRAINT "featured_doctors_doctor_id_fkey" FOREIGN KEY ("doctor_id") REFERENCES "public"."doctors"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."featured_posts"
+    ADD CONSTRAINT "featured_posts_post_slug_fkey" FOREIGN KEY ("post_slug") REFERENCES "public"."blog_posts"("slug") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."featured_services"
+    ADD CONSTRAINT "featured_services_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."invoices"
+    ADD CONSTRAINT "invoices_medical_record_id_fkey" FOREIGN KEY ("medical_record_id") REFERENCES "public"."medical_records"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."medical_records"
+    ADD CONSTRAINT "medical_records_appointment_id_fkey" FOREIGN KEY ("appointment_id") REFERENCES "public"."appointments"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."medical_records"
+    ADD CONSTRAINT "medical_records_examining_doctor_id_fkey" FOREIGN KEY ("examining_doctor_id") REFERENCES "public"."doctors"("id") ON DELETE RESTRICT;
+
+
+
+ALTER TABLE ONLY "public"."medical_records"
+    ADD CONSTRAINT "medical_records_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."patient_uploaded_documents"
+    ADD CONSTRAINT "patient_uploaded_documents_patient_id_fkey" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."patients"
+    ADD CONSTRAINT "patients_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."performed_services"
+    ADD CONSTRAINT "performed_services_medical_record_id_fkey" FOREIGN KEY ("medical_record_id") REFERENCES "public"."medical_records"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."performed_services"
+    ADD CONSTRAINT "performed_services_performer_id_fkey" FOREIGN KEY ("performer_id") REFERENCES "public"."doctors"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."prescribed_medications"
+    ADD CONSTRAINT "prescribed_medications_medical_record_id_fkey" FOREIGN KEY ("medical_record_id") REFERENCES "public"."medical_records"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."procedure_steps"
+    ADD CONSTRAINT "procedure_steps_service_id_fkey" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."product_images"
+    ADD CONSTRAINT "product_images_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."product_order_items"
+    ADD CONSTRAINT "product_order_items_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "public"."product_orders"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."product_order_items"
+    ADD CONSTRAINT "product_order_items_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE RESTRICT;
+
+
+
+ALTER TABLE ONLY "public"."product_orders"
+    ADD CONSTRAINT "product_orders_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."patients"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."product_reviews"
+    ADD CONSTRAINT "product_reviews_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."product_reviews"
+    ADD CONSTRAINT "product_reviews_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."patients"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."products"
+    ADD CONSTRAINT "products_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "public"."product_categories"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."user_wishlist"
+    ADD CONSTRAINT "user_wishlist_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "public"."products"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."user_wishlist"
+    ADD CONSTRAINT "user_wishlist_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."patients"("id") ON DELETE CASCADE;
+
+
+
+CREATE POLICY "Admins can delete all appointments" ON "public"."appointments" FOR DELETE USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can delete medical records" ON "public"."medical_records" FOR DELETE USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can delete patients" ON "public"."patients" FOR DELETE USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."about_features" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."about_page_content" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."about_values" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."auth_page_images" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."blog_categories" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."contact_page_content" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."doctors" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."faq_items" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."featured_doctors" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."featured_posts" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."featured_services" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."footer_content" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."homepage_hero" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."procedure_steps" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."services" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."site_info" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all" ON "public"."testimonials" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all blog posts" ON "public"."blog_posts" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all order items" ON "public"."product_order_items" USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all orders" ON "public"."product_orders" USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage all reviews" ON "public"."product_reviews" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage linked invoice data" ON "public"."invoices" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage payment settings" ON "public"."payment_settings" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage product categories" ON "public"."product_categories" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage product images" ON "public"."product_images" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can manage products" ON "public"."products" USING ("public"."is_admin"()) WITH CHECK ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can update all appointments" ON "public"."appointments" FOR UPDATE USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can update all profiles" ON "public"."patients" FOR UPDATE USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can view all appointments" ON "public"."appointments" FOR SELECT USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Admins can view all patient data" ON "public"."patients" FOR SELECT USING ("public"."is_admin"());
+
+
+
+CREATE POLICY "Allow user creation via signup and admin actions" ON "public"."patients" FOR INSERT WITH CHECK ((("auth"."uid"() = "id") OR "public"."is_admin"()));
+
+
+
+CREATE POLICY "Anyone can view doctor and admin profiles" ON "public"."patients" FOR SELECT USING (("role" = ANY (ARRAY['doctor'::"public"."system_role", 'admin'::"public"."system_role", 'master_admin'::"public"."system_role"])));
+
+
+
+CREATE POLICY "Authenticated users can insert reviews" ON "public"."product_reviews" FOR INSERT WITH CHECK ((("auth"."role"() = 'authenticated'::"text") AND ("auth"."uid"() = "user_id")));
+
+
+
+CREATE POLICY "Content Creators can create medical records" ON "public"."medical_records" FOR INSERT WITH CHECK ("public"."is_content_creator"());
+
+
+
+CREATE POLICY "Content creators can insert their own posts" ON "public"."blog_posts" FOR INSERT WITH CHECK (("public"."is_content_creator"() AND ("author_id" = "auth"."uid"())));
+
+
+
+CREATE POLICY "Content creators can update their own posts" ON "public"."blog_posts" FOR UPDATE USING (("auth"."uid"() = "author_id")) WITH CHECK (("auth"."uid"() = "author_id"));
+
+
+
+CREATE POLICY "Doctors can update their assigned appointments" ON "public"."appointments" FOR UPDATE USING (("auth"."uid"() = "doctor_id")) WITH CHECK (("auth"."uid"() = "doctor_id"));
+
+
+
+CREATE POLICY "Doctors can view their assigned appointments" ON "public"."appointments" FOR SELECT USING (("auth"."uid"() = "doctor_id"));
+
+
+
+CREATE POLICY "Enable delete for authenticated users only" ON "public"."product_brands" FOR DELETE USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "Enable insert for authenticated users only" ON "public"."product_brands" FOR INSERT WITH CHECK (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "Enable read access for all users" ON "public"."product_brands" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Enable update for authenticated users only" ON "public"."product_brands" FOR UPDATE USING (("auth"."role"() = 'authenticated'::"text"));
+
+
+
+CREATE POLICY "Patients can delete their own appointments" ON "public"."appointments" FOR DELETE USING (("auth"."uid"() = "patient_id"));
+
+
+
+CREATE POLICY "Patients can manage their own documents" ON "public"."patient_uploaded_documents" USING (("auth"."uid"() = "patient_id")) WITH CHECK (("auth"."uid"() = "patient_id"));
+
+
+
+CREATE POLICY "Patients can update their own appointments" ON "public"."appointments" FOR UPDATE USING (("auth"."uid"() = "patient_id")) WITH CHECK (("auth"."uid"() = "patient_id"));
+
+
+
+CREATE POLICY "Patients can view their own appointments" ON "public"."appointments" FOR SELECT USING (("auth"."uid"() = "patient_id"));
+
+
+
+CREATE POLICY "Public can view all" ON "public"."about_features" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."about_page_content" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."about_values" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."auth_page_images" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."blog_categories" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."contact_page_content" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."doctors" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."faq_items" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."featured_doctors" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."featured_posts" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."featured_services" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."footer_content" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."homepage_hero" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."procedure_steps" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."services" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."site_info" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all" ON "public"."testimonials" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all blog posts" ON "public"."blog_posts" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all product categories" ON "public"."product_categories" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all product images" ON "public"."product_images" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view all reviews" ON "public"."product_reviews" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view payment settings" ON "public"."payment_settings" FOR SELECT USING (true);
+
+
+
+CREATE POLICY "Public can view published products" ON "public"."products" FOR SELECT USING (("is_published" = true));
+
+
+
+CREATE POLICY "Staff can create appointments for others" ON "public"."appointments" FOR INSERT WITH CHECK ("public"."is_content_creator"());
+
+
+
+CREATE POLICY "Staff can manage linked prescription data" ON "public"."prescribed_medications" USING ("public"."can_manage_medical_record"("medical_record_id")) WITH CHECK ("public"."can_manage_medical_record"("medical_record_id"));
+
+
+
+CREATE POLICY "Staff can manage linked service data" ON "public"."performed_services" USING ("public"."can_manage_medical_record"("medical_record_id")) WITH CHECK ("public"."can_manage_medical_record"("medical_record_id"));
+
+
+
+CREATE POLICY "Staff can update relevant medical records" ON "public"."medical_records" FOR UPDATE USING ("public"."can_manage_medical_record"("id")) WITH CHECK ("public"."can_manage_medical_record"("id"));
+
+
+
+CREATE POLICY "Staff can view patient documents" ON "public"."patient_uploaded_documents" FOR SELECT USING ("public"."is_content_creator"());
+
+
+
+CREATE POLICY "Users and staff can view relevant medical records" ON "public"."medical_records" FOR SELECT USING ("public"."can_view_medical_record"("id"));
+
+
+
+CREATE POLICY "Users can create their own appointments" ON "public"."appointments" FOR INSERT WITH CHECK (("auth"."uid"() = "patient_id"));
+
+
+
+CREATE POLICY "Users can create their own orders" ON "public"."product_orders" FOR INSERT WITH CHECK ((("auth"."uid"() = "user_id") OR ("user_id" IS NULL)));
+
+
+
+CREATE POLICY "Users can delete their own reviews" ON "public"."product_reviews" FOR DELETE USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Users can manage their own wishlist items" ON "public"."user_wishlist" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Users can update their own profile" ON "public"."patients" FOR UPDATE USING (("auth"."uid"() = "id")) WITH CHECK (("auth"."uid"() = "id"));
+
+
+
+CREATE POLICY "Users can view items in their own orders" ON "public"."product_order_items" FOR SELECT USING ((( SELECT "product_orders"."user_id"
+   FROM "public"."product_orders"
+  WHERE ("product_orders"."id" = "product_order_items"."order_id")) = "auth"."uid"()));
+
+
+
+CREATE POLICY "Users can view linked invoice data" ON "public"."invoices" FOR SELECT USING ("public"."can_view_medical_record"("medical_record_id"));
+
+
+
+CREATE POLICY "Users can view linked prescription data" ON "public"."prescribed_medications" FOR SELECT USING ("public"."can_view_medical_record"("medical_record_id"));
+
+
+
+CREATE POLICY "Users can view linked service data" ON "public"."performed_services" FOR SELECT USING ("public"."can_view_medical_record"("medical_record_id"));
+
+
+
+CREATE POLICY "Users can view their own orders" ON "public"."product_orders" FOR SELECT USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Users can view their own profile" ON "public"."patients" FOR SELECT USING (("auth"."uid"() = "id"));
+
+
+
+ALTER TABLE "public"."about_features" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."about_page_content" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."about_values" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."appointments" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."auth_page_images" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."blog_categories" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."blog_posts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."contact_page_content" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."doctors" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."faq_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."featured_doctors" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."featured_posts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."featured_services" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."footer_content" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."homepage_hero" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."invoices" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."medical_records" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."patient_uploaded_documents" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."patients" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."payment_settings" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."performed_services" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."prescribed_medications" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."procedure_steps" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."product_brands" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."product_categories" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."product_images" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."product_order_items" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."product_orders" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."product_reviews" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."products" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."services" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."site_info" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."testimonials" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."user_wishlist" ENABLE ROW LEVEL SECURITY;
+
+
+
+
+ALTER PUBLICATION "supabase_realtime" OWNER TO "postgres";
+
+
+GRANT USAGE ON SCHEMA "public" TO "postgres";
+GRANT USAGE ON SCHEMA "public" TO "anon";
+GRANT USAGE ON SCHEMA "public" TO "authenticated";
+GRANT USAGE ON SCHEMA "public" TO "service_role";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GRANT ALL ON FUNCTION "public"."can_manage_medical_record"("p_medical_record_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."can_manage_medical_record"("p_medical_record_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."can_manage_medical_record"("p_medical_record_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."can_view_medical_record"("record_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."can_view_medical_record"("record_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."can_view_medical_record"("record_id" "uuid") TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."demote_role_on_doctor_delete"() TO "anon";
+GRANT ALL ON FUNCTION "public"."demote_role_on_doctor_delete"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."demote_role_on_doctor_delete"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."demote_user_on_doctor_delete"() TO "anon";
+GRANT ALL ON FUNCTION "public"."demote_user_on_doctor_delete"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."demote_user_on_doctor_delete"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "anon";
+GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_admin"() TO "anon";
+GRANT ALL ON FUNCTION "public"."is_admin"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_admin"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_content_creator"() TO "anon";
+GRANT ALL ON FUNCTION "public"."is_content_creator"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_content_creator"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."is_master_admin"() TO "anon";
+GRANT ALL ON FUNCTION "public"."is_master_admin"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."is_master_admin"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."promote_user_to_doctor_role"() TO "anon";
+GRANT ALL ON FUNCTION "public"."promote_user_to_doctor_role"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."promote_user_to_doctor_role"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."sync_doctor_role_to_patient"() TO "anon";
+GRANT ALL ON FUNCTION "public"."sync_doctor_role_to_patient"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."sync_doctor_role_to_patient"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_updated_at_column"() TO "service_role";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GRANT ALL ON TABLE "public"."about_features" TO "anon";
+GRANT ALL ON TABLE "public"."about_features" TO "authenticated";
+GRANT ALL ON TABLE "public"."about_features" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."about_page_content" TO "anon";
+GRANT ALL ON TABLE "public"."about_page_content" TO "authenticated";
+GRANT ALL ON TABLE "public"."about_page_content" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."about_values" TO "anon";
+GRANT ALL ON TABLE "public"."about_values" TO "authenticated";
+GRANT ALL ON TABLE "public"."about_values" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."appointments" TO "anon";
+GRANT ALL ON TABLE "public"."appointments" TO "authenticated";
+GRANT ALL ON TABLE "public"."appointments" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."auth_page_images" TO "anon";
+GRANT ALL ON TABLE "public"."auth_page_images" TO "authenticated";
+GRANT ALL ON TABLE "public"."auth_page_images" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."blog_categories" TO "anon";
+GRANT ALL ON TABLE "public"."blog_categories" TO "authenticated";
+GRANT ALL ON TABLE "public"."blog_categories" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."blog_posts" TO "anon";
+GRANT ALL ON TABLE "public"."blog_posts" TO "authenticated";
+GRANT ALL ON TABLE "public"."blog_posts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."contact_page_content" TO "anon";
+GRANT ALL ON TABLE "public"."contact_page_content" TO "authenticated";
+GRANT ALL ON TABLE "public"."contact_page_content" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."doctors" TO "anon";
+GRANT ALL ON TABLE "public"."doctors" TO "authenticated";
+GRANT ALL ON TABLE "public"."doctors" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."faq_items" TO "anon";
+GRANT ALL ON TABLE "public"."faq_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."faq_items" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."faq_items_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."faq_items_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."faq_items_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."featured_doctors" TO "anon";
+GRANT ALL ON TABLE "public"."featured_doctors" TO "authenticated";
+GRANT ALL ON TABLE "public"."featured_doctors" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."featured_posts" TO "anon";
+GRANT ALL ON TABLE "public"."featured_posts" TO "authenticated";
+GRANT ALL ON TABLE "public"."featured_posts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."featured_services" TO "anon";
+GRANT ALL ON TABLE "public"."featured_services" TO "authenticated";
+GRANT ALL ON TABLE "public"."featured_services" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."footer_content" TO "anon";
+GRANT ALL ON TABLE "public"."footer_content" TO "authenticated";
+GRANT ALL ON TABLE "public"."footer_content" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."homepage_hero" TO "anon";
+GRANT ALL ON TABLE "public"."homepage_hero" TO "authenticated";
+GRANT ALL ON TABLE "public"."homepage_hero" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."invoices" TO "anon";
+GRANT ALL ON TABLE "public"."invoices" TO "authenticated";
+GRANT ALL ON TABLE "public"."invoices" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."medical_records" TO "anon";
+GRANT ALL ON TABLE "public"."medical_records" TO "authenticated";
+GRANT ALL ON TABLE "public"."medical_records" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."patient_uploaded_documents" TO "anon";
+GRANT ALL ON TABLE "public"."patient_uploaded_documents" TO "authenticated";
+GRANT ALL ON TABLE "public"."patient_uploaded_documents" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."patients" TO "anon";
+GRANT ALL ON TABLE "public"."patients" TO "authenticated";
+GRANT ALL ON TABLE "public"."patients" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."payment_settings" TO "anon";
+GRANT ALL ON TABLE "public"."payment_settings" TO "authenticated";
+GRANT ALL ON TABLE "public"."payment_settings" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."performed_services" TO "anon";
+GRANT ALL ON TABLE "public"."performed_services" TO "authenticated";
+GRANT ALL ON TABLE "public"."performed_services" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."prescribed_medications" TO "anon";
+GRANT ALL ON TABLE "public"."prescribed_medications" TO "authenticated";
+GRANT ALL ON TABLE "public"."prescribed_medications" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."procedure_steps" TO "anon";
+GRANT ALL ON TABLE "public"."procedure_steps" TO "authenticated";
+GRANT ALL ON TABLE "public"."procedure_steps" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."procedure_steps_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."procedure_steps_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."procedure_steps_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."product_brands" TO "anon";
+GRANT ALL ON TABLE "public"."product_brands" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_brands" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."product_brands_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."product_brands_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."product_brands_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."product_categories" TO "anon";
+GRANT ALL ON TABLE "public"."product_categories" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_categories" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."product_categories_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."product_categories_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."product_categories_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."product_images" TO "anon";
+GRANT ALL ON TABLE "public"."product_images" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_images" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."product_images_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."product_images_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."product_images_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."product_order_items" TO "anon";
+GRANT ALL ON TABLE "public"."product_order_items" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_order_items" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."product_orders" TO "anon";
+GRANT ALL ON TABLE "public"."product_orders" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_orders" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."product_reviews" TO "anon";
+GRANT ALL ON TABLE "public"."product_reviews" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_reviews" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."products" TO "anon";
+GRANT ALL ON TABLE "public"."products" TO "authenticated";
+GRANT ALL ON TABLE "public"."products" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."products_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."products_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."products_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."services" TO "anon";
+GRANT ALL ON TABLE "public"."services" TO "authenticated";
+GRANT ALL ON TABLE "public"."services" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."services_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."services_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."services_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."site_info" TO "anon";
+GRANT ALL ON TABLE "public"."site_info" TO "authenticated";
+GRANT ALL ON TABLE "public"."site_info" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."testimonials" TO "anon";
+GRANT ALL ON TABLE "public"."testimonials" TO "authenticated";
+GRANT ALL ON TABLE "public"."testimonials" TO "service_role";
+
+
+
+GRANT ALL ON SEQUENCE "public"."testimonials_id_seq" TO "anon";
+GRANT ALL ON SEQUENCE "public"."testimonials_id_seq" TO "authenticated";
+GRANT ALL ON SEQUENCE "public"."testimonials_id_seq" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."user_wishlist" TO "anon";
+GRANT ALL ON TABLE "public"."user_wishlist" TO "authenticated";
+GRANT ALL ON TABLE "public"."user_wishlist" TO "service_role";
+
+
+
+
+
+
+
+
+
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "postgres";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "anon";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "authenticated";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON SEQUENCES TO "service_role";
+
+
+
+
+
+
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "postgres";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "anon";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "authenticated";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON FUNCTIONS TO "service_role";
+
+
+
+
+
+
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "postgres";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
+ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

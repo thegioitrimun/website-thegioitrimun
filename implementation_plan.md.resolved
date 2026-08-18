@@ -1,0 +1,157 @@
+# 🚀 Kế Hoạch Nâng Cấp SEO Toàn Diện — thegioitrimun.vn
+
+## 📊 Kết Quả Audit Hiện Tại
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|:---:|---|
+| Title tag | ✅ | Vừa triển khai dynamic title |
+| Meta description | ⚠️ | Chỉ có default, chưa dynamic per-page |
+| Heading H1/H2/H3 | ✅ | ProductDetailPage có H1 (tên SP), H2 (related), H3 |
+| OG tags (social preview) | ✅ | Vừa triển khai [_worker.js](file:///Users/PHUC/Downloads/32-ki%E1%BA%BFn-tr%C3%BAc-m%E1%BB%9Bi-fullstack-iskin-clinic-+-supabase-%E1%BB%9F-account-hovidaiphuc@gmail.com---website-project%20%281%29/_worker.js) |
+| HTTPS | ✅ | Cloudflare auto |
+| Mobile responsive | ✅ | Tailwind responsive design |
+| CDN + WebP | ✅ | Cloudflare + client-side WebP convert |
+| Lazy loading | ✅ | Ảnh related products có `loading="lazy"` |
+| **sitemap.xml** | ❌ | **Không có** |
+| **robots.txt** | ❌ | **Không có** |
+| **JSON-LD Schema** | ❌ | **Không có structured data** |
+| **Canonical URL** | ⚠️ | Chỉ BlogPostPage có, thiếu ProductDetail |
+| **URL slug (SEO-friendly)** | ❌ | Sản phẩm dùng `/san-pham/225` (ID) thay vì slug |
+| **Alt text ảnh** | ⚠️ | Có nhưng chưa tối ưu (dùng ID thay vì mô tả) |
+| **Internal linking** | ⚠️ | Có related products, thiếu breadcrumb + cross-link blog |
+| **E-E-A-T signals** | ⚠️ | Có profile bác sĩ, thiếu author schema |
+
+---
+
+## 📋 5 Giai Đoạn Nâng Cấp
+
+### Phase 1: Foundation (Ưu tiên cao nhất) ⭐
+
+> Những thay đổi có tác động lớn nhất, rủi ro thấp nhất.
+
+#### 1.1 — Tạo `robots.txt`
+```
+[NEW] public/robots.txt
+```
+Cho phép Google crawl toàn bộ site, chặn trang admin.
+
+#### 1.2 — Tạo Dynamic `sitemap.xml` (trong [_worker.js](file:///Users/PHUC/Downloads/32-ki%E1%BA%BFn-tr%C3%BAc-m%E1%BB%9Bi-fullstack-iskin-clinic-+-supabase-%E1%BB%9F-account-hovidaiphuc@gmail.com---website-project%20%281%29/_worker.js))
+```
+[MODIFY] _worker.js
+```
+Worker tự động tạo sitemap.xml từ Supabase data (products, blogs, services).
+
+#### 1.3 — Thêm JSON-LD Structured Data
+```
+[MODIFY] components/ProductDetailPage.tsx — Product Schema
+[MODIFY] components/BlogPostPage.tsx — Article Schema
+[MODIFY] components/ServiceDetailPage.tsx — Service Schema
+[MODIFY] App.tsx — Organization Schema (global)
+```
+Google Rich Results: ⭐ rating, 💰 giá, 📦 tình trạng hàng.
+
+#### 1.4 — Canonical URL cho tất cả trang
+```
+[MODIFY] App.tsx — Thêm <link rel="canonical"> dynamic
+```
+
+---
+
+### Phase 2: URL SEO-friendly (Impact cao, effort trung bình)
+
+#### 2.1 — Chuyển URL sản phẩm từ ID sang Slug
+```
+Hiện tại:  /san-pham/225
+Mục tiêu: /san-pham/kem-chong-nang-dermeden
+
+[MODIFY] App.tsx — viewToPath + pathToView hỗ trợ slug
+[MODIFY] _worker.js — OG handler hỗ trợ slug
+[MODIFY] types.ts — View productDetail dùng slug thay vì id
+```
+Products đã có field `slug` trong DB, chỉ cần chuyển sang dùng nó.
+
+#### 2.2 — Chuyển URL dịch vụ từ ID sang Slug
+```
+Hiện tại:  /dich-vu/5
+Mục tiêu: /dich-vu/tri-mun-chuyen-sau
+```
+Cần thêm field `slug` vào bảng `services` (migration mới).
+
+---
+
+### Phase 3: On-page Content Optimization
+
+#### 3.1 — Tối ưu Alt Text ảnh sản phẩm
+```
+[MODIFY] components/ProductDetailPage.tsx
+```
+Alt text = tên sản phẩm + mô tả ngắn, không dùng ID.
+
+#### 3.2 — Thêm Breadcrumb chuẩn SEO
+```
+[MODIFY] components/ProductDetailPage.tsx
+[MODIFY] components/BlogPostPage.tsx
+[MODIFY] components/ServiceDetailPage.tsx
+```
+Breadcrumb schema: `Trang chủ > Nhà thuốc > [Category] > [Tên SP]`
+
+#### 3.3 — Dynamic meta description per-page
+```
+[MODIFY] App.tsx — Cập nhật <meta name="description"> khi view thay đổi
+```
+
+---
+
+### Phase 4: E-E-A-T & Trust Signals
+
+#### 4.1 — Author Schema cho Blog
+```
+[MODIFY] components/BlogPostPage.tsx — Thêm Person schema cho tác giả
+```
+"Reviewed by: Dr. XXX – Dermatologist" + schema markup.
+
+#### 4.2 — Organization Schema
+```
+[MODIFY] App.tsx hoặc index.html — Thêm Organization JSON-LD
+```
+Schema gồm: tên clinic, logo, địa chỉ, SĐT, social links.
+
+---
+
+### Phase 5: Advanced SEO
+
+#### 5.1 — Internal Linking Strategy
+- Trang sản phẩm → link tới bài blog liên quan
+- Trang blog → link tới sản phẩm được nhắc đến
+- Related products → dùng cùng category
+
+#### 5.2 — Blog Content Strategy
+- Target keywords: "cách trị mụn", "retinol", "skincare routine"
+- Mỗi bài ≥ 1500 từ
+- Có FAQ section cuối bài
+
+---
+
+## 🎯 Ưu Tiên Triển Khai
+
+| # | Task | Impact | Effort | Phase |
+|---|---|---|---|---|
+| 1 | `robots.txt` | ⭐⭐⭐ | 🟢 Dễ | 1 |
+| 2 | Dynamic `sitemap.xml` | ⭐⭐⭐⭐⭐ | 🟡 TB | 1 |
+| 3 | JSON-LD Product Schema | ⭐⭐⭐⭐⭐ | 🟡 TB | 1 |
+| 4 | Canonical URL | ⭐⭐⭐ | 🟢 Dễ | 1 |
+| 5 | URL slug cho sản phẩm | ⭐⭐⭐⭐ | 🟡 TB | 2 |
+| 6 | Alt text tối ưu | ⭐⭐⭐ | 🟢 Dễ | 3 |
+| 7 | Breadcrumb schema | ⭐⭐⭐⭐ | 🟡 TB | 3 |
+| 8 | Dynamic meta description | ⭐⭐⭐ | 🟢 Dễ | 3 |
+| 9 | Author + Organization Schema | ⭐⭐⭐ | 🟢 Dễ | 4 |
+| 10 | Internal linking | ⭐⭐⭐⭐ | 🔴 Khó | 5 |
+
+## Verification
+
+- [Google Rich Results Test](https://search.google.com/test/rich-results)
+- [Google Search Console](https://search.google.com/search-console)
+- [Google PageSpeed Insights](https://pagespeed.web.dev/)
+- [Facebook Sharing Debugger](https://developers.facebook.com/tools/debug/)
+- `curl -s https://thegioitrimun.vn/sitemap.xml` → phải trả XML sitemap
+- `curl -s https://thegioitrimun.vn/robots.txt` → phải trả robots rules

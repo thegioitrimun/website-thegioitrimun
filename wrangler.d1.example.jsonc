@@ -1,0 +1,23 @@
+{
+  "vars": { "DATA_BACKEND": "d1", "D1_SHADOW_READ": "false" },
+  "d1_databases": [
+    { "binding": "APP_DB", "database_name": "thegioitrimun-app", "database_id": "REPLACE_APP_DB_ID" },
+    { "binding": "INCI_DB", "database_name": "thegioitrimun-inci-runtime", "database_id": "REPLACE_INCI_DB_ID" }
+  ],
+  "r2_buckets": [
+    { "binding": "R2_IMAGES", "bucket_name": "thegioitrimun-images" },
+    { "binding": "PRIVATE_RECORDS", "bucket_name": "thegioitrimun-private-records" }
+  ],
+  "queues": {
+    "producers": [
+      { "binding": "NOTIFICATION_QUEUE", "queue": "thegioitrimun-notifications" },
+      { "binding": "SHIPPING_QUEUE", "queue": "thegioitrimun-shipping" },
+      { "binding": "PANCAKE_QUEUE", "queue": "thegioitrimun-pancake" }
+    ],
+    "consumers": [
+      { "queue": "thegioitrimun-notifications", "max_batch_size": 5, "max_batch_timeout": 5, "max_retries": 6, "max_concurrency": 2, "dead_letter_queue": "thegioitrimun-notifications-dlq" },
+      { "queue": "thegioitrimun-shipping", "max_batch_size": 5, "max_batch_timeout": 5, "max_retries": 6, "max_concurrency": 2, "dead_letter_queue": "thegioitrimun-shipping-dlq" },
+      { "queue": "thegioitrimun-pancake", "max_batch_size": 5, "max_batch_timeout": 5, "max_retries": 8, "max_concurrency": 2, "dead_letter_queue": "thegioitrimun-pancake-dlq" }
+    ]
+  }
+}

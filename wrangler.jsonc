@@ -1,0 +1,125 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "iskin-clinic",
+  "main": "_worker.js",
+  "compatibility_date": "2025-09-27",
+  "routes": [
+    {
+      "pattern": "thegioitrimun.vn/*",
+      "zone_name": "thegioitrimun.vn"
+    },
+    {
+      "pattern": "www.thegioitrimun.vn/*",
+      "zone_name": "thegioitrimun.vn"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "APP_DB",
+      "database_name": "thegioitrimun-app",
+      "database_id": "bffac3a5-7aa2-46dc-a8c2-179d049900c5"
+    },
+    {
+      "binding": "INCI_DB_0",
+      "database_name": "thegioitrimun-inci-shard-00",
+      "database_id": "a104fdb0-a0c9-47b2-820e-95e10feda713"
+    },
+    {
+      "binding": "INCI_DB_1",
+      "database_name": "thegioitrimun-inci-shard-01",
+      "database_id": "731f0de9-65fe-44ec-9a87-2b0eb64697d0"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_IMAGES",
+      "bucket_name": "thegioitrimun-images"
+    },
+    {
+      "binding": "PRIVATE_RECORDS",
+      "bucket_name": "thegioitrimun-private-records"
+    }
+  ],
+  "queues": {
+    "producers": [
+      { "binding": "NOTIFICATION_QUEUE", "queue": "thegioitrimun-notifications" },
+      { "binding": "SHIPPING_QUEUE", "queue": "thegioitrimun-shipping" },
+      { "binding": "PANCAKE_QUEUE", "queue": "thegioitrimun-pancake" }
+    ],
+    "consumers": [
+      {
+        "queue": "thegioitrimun-notifications",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-notifications-dlq"
+      },
+      {
+        "queue": "thegioitrimun-shipping",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-shipping-dlq"
+      },
+      {
+        "queue": "thegioitrimun-pancake",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 8,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-pancake-dlq"
+      }
+    ]
+  },
+  "images": {
+    "binding": "IMAGES"
+  },
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "2001",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
+      "name": "ORDER_LOOKUP_RATE_LIMITER",
+      "namespace_id": "2002",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "DATA_BACKEND": "d1",
+    "INCI_SHARD_COUNT": "2",
+    "D1_SHADOW_READ": "false",
+    "R2_PUBLIC_BASE_URL": "https://thegioitrimun.vn/r2",
+    "ORDER_LOOKUP_SMS_ENABLED": "false",
+    "PRODUCT_SOURCE_PROJECT": "thegioitrimun.vn",
+    "EMAIL_MAX_ATTEMPTS": "6",
+    "OAUTH_BASE_URL": "https://thegioitrimun.vn",
+    "OAUTH_PROVIDERS": "google",
+    "GHTK_ENABLED": "false"
+  },
+  "triggers": {
+    "crons": [
+      "*/2 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

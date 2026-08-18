@@ -1,0 +1,4 @@
+_worker.js
+worker/
+.dev.vars
+wrangler.json

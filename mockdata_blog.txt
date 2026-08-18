@@ -1,0 +1,306 @@
+-- Mock Data for iSkin Clinic Blog
+-- This file contains INSERT statements for populating the 'blog_categories' and 'blog_posts' tables.
+-- You can run these commands in the Supabase SQL Editor to add initial content.
+--
+-- IMPORTANT: Replace the placeholder author_id UUIDs ('00000000-...') 
+-- with actual UUIDs from your 'patients' table for the authors to link correctly.
+
+-- =================================================================
+-- Table: blog_categories
+-- =================================================================
+-- Delete existing data to prevent conflicts
+DELETE FROM public.blog_categories;
+
+-- Insert new data
+INSERT INTO public.blog_categories (slug, name) VALUES
+('cham-soc-da', 'Chăm sóc da'),
+('dieu-tri-mun', 'Điều trị mụn'),
+('lao-hoa-da', 'Lão hóa da'),
+('cong-nghe-tham-my', 'Công nghệ thẩm mỹ'),
+('meo-thu-thuat', 'Mẹo & Thủ thuật');
+
+-- =================================================================
+-- Table: blog_posts
+-- =================================================================
+-- Delete existing data to prevent conflicts
+DELETE FROM public.blog_posts;
+
+-- Insert new data
+-- NOTE: Replace author_id with real UUIDs from your 'patients' table.
+-- '7fbfd276-694a-4de0-95de-2242b6a9d313' -> Placeholder for BS. Trần Thị Thanh Nho
+-- '7fbfd276-694a-4de0-95de-2242b6a9d313' -> Placeholder for ThS.BS. Nguyễn Thị Minh Trang
+-- '7fbfd276-694a-4de0-95de-2242b6a9d313' -> Placeholder for iSkin Clinic Team
+
+INSERT INTO public.blog_posts (slug, title, summary, content, author_id, date, category_slug, image_url) VALUES
+(
+  '7-buoc-cham-soc-da-co-ban-tai-nha',
+  '7 Bước Chăm Sóc Da Cơ Bản Tại Nhà Dành Cho Người Mới Bắt Đầu',
+  'Bạn mới bắt đầu hành trình chăm sóc da? Hãy cùng iSkin Clinic khám phá 7 bước skincare cơ bản nhưng cực kỳ hiệu quả để có một làn da khỏe mạnh.',
+  $$### Giới thiệu
+Chăm sóc da (skincare) không cần phải phức tạp. Với một quy trình cơ bản và đúng cách, bạn hoàn toàn có thể duy trì một làn da khỏe mạnh, rạng rỡ. Dưới đây là 7 bước chăm sóc da cơ bản mà các chuyên gia tại iSkin Clinic khuyên bạn nên thực hiện hàng ngày.
+
+### Bước 1: Tẩy trang
+Đây là bước không thể thiếu, ngay cả khi bạn không trang điểm. Tẩy trang giúp loại bỏ lớp kem chống nắng, bụi bẩn và bã nhờn tích tụ trên da sau một ngày dài.
+*   **Sản phẩm gợi ý:** Dầu tẩy trang (cho da khô/thường), nước tẩy trang (cho da dầu/hỗn hợp).
+
+### Bước 2: Rửa mặt
+Sau khi tẩy trang, sữa rửa mặt sẽ làm sạch sâu hơn, loại bỏ hoàn toàn cặn bẩn còn sót lại trong lỗ chân lông.
+*   **Lưu ý:** Chọn sữa rửa mặt có độ pH cân bằng (khoảng 5.5) để không làm khô da.
+
+### Bước 3: Toner (Nước cân bằng)
+Toner giúp cân bằng lại độ pH cho da sau khi rửa mặt, làm dịu da và là bước đệm để các sản phẩm dưỡng sau đó thẩm thấu tốt hơn.
+
+### Bước 4: Serum (Tinh chất đặc trị)
+Đây là bước giải quyết các vấn đề cụ thể của da như mụn, thâm, lão hóa.
+*   **Ví dụ:** Serum Vitamin C (làm sáng da), Serum Hyaluronic Acid (cấp ẩm), Serum Niacinamide (kiểm soát dầu, mờ thâm).
+
+### Bước 5: Kem dưỡng ẩm
+Dưỡng ẩm là bước "khóa" lại tất cả các dưỡng chất từ những bước trước và cung cấp độ ẩm cần thiết cho da, giúp da luôn mềm mại, mịn màng.
+
+### Bước 6: Kem chống nắng (Ban ngày)
+Đây là bước quan trọng nhất để bảo vệ da khỏi tác hại của tia UV - nguyên nhân chính gây lão hóa, sạm nám và thậm chí là ung thư da.
+*   **Lưu ý:** Sử dụng kem chống nắng có chỉ số SPF từ 30 trở lên và thoa lại sau mỗi 2-3 giờ.
+
+### Bước 7: Tẩy tế bào chết (1-2 lần/tuần)
+Tẩy tế bào chết giúp loại bỏ lớp sừng già cỗi trên bề mặt da, giúp da sáng mịn, đều màu và hấp thụ dưỡng chất tốt hơn.
+*   **Loại hình:** Tẩy tế bào chết vật lý (dạng hạt) hoặc hóa học (AHA/BHA).
+
+### Kết luận
+Xây dựng một thói quen chăm sóc da cơ bản là nền tảng cho một làn da khỏe đẹp. Hãy kiên trì thực hiện và lắng nghe làn da của mình để điều chỉnh sản phẩm cho phù hợp nhé!
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-07-15',
+  'cham-soc-da',
+  'https://images.unsplash.com/photo-1556760544-74068565f28c?q=80&w=2940&auto=format&fit=crop'
+),
+(
+  'hieu-dung-ve-mun-an-va-cach-dieu-tri',
+  'Hiểu Đúng Về Mụn Ẩn và Cách Điều Trị Dứt Điểm',
+  'Mụn ẩn không viêm nhưng lại khiến bề mặt da sần sùi và có thể bùng phát thành mụn viêm. Đâu là nguyên nhân và cách điều trị hiệu quả?',
+  $$### Mụn ẩn là gì?
+Mụn ẩn là loại mụn không viêm, có nhân nằm sâu dưới nang lông. Chúng không gây đau nhức nhưng khiến bề mặt da trở nên sần sùi, không mịn màng. Nếu không được xử lý đúng cách, mụn ẩn có thể bị vi khuẩn tấn công và phát triển thành mụn viêm, mụn mủ.
+
+### Nguyên nhân gây ra mụn ẩn
+1.  **Bít tắc lỗ chân lông:** Đây là nguyên nhân chính. Dầu thừa, tế bào chết, bụi bẩn và cặn trang điểm tích tụ gây bít tắc, hình thành nhân mụn.
+2.  **Rối loạn nội tiết tố:** Sự thay đổi hormone trong các giai đoạn như dậy thì, mang thai, hoặc chu kỳ kinh nguyệt có thể kích thích tuyến bã nhờn hoạt động mạnh, gây mụn.
+3.  **Chế độ sinh hoạt:** Thức khuya, căng thẳng, ăn nhiều đồ cay nóng, dầu mỡ cũng là những yếu tố góp phần hình thành mụn.
+4.  **Sử dụng mỹ phẩm không phù hợp:** Các sản phẩm chứa cồn, hương liệu hoặc có kết cấu quá dày có thể gây bít tắc và kích ứng da.
+
+### Phương pháp điều trị hiệu quả
+*   **Làm sạch sâu:** Luôn tẩy trang kỹ và sử dụng sữa rửa mặt phù hợp 2 lần/ngày.
+*   **Tẩy tế bào chết hóa học:** Sử dụng các sản phẩm chứa AHA/BHA giúp làm sạch sâu lỗ chân lông, loại bỏ tế bào chết và đẩy nhân mụn lên bề mặt.
+*   **Sử dụng Retinoids:** Các dẫn xuất của Vitamin A như Retinol, Tretinoin giúp bình thường hóa sừng hóa, thúc đẩy quá trình thay mới tế bào và điều trị mụn ẩn hiệu quả. Cần có sự tư vấn của bác sĩ khi sử dụng.
+*   **Lấy nhân mụn y khoa:** Khi nhân mụn đã được đẩy lên, việc lấy nhân mụn tại các cơ sở uy tín sẽ giúp loại bỏ mụn nhanh chóng và tránh để lại sẹo.
+*   **Duy trì lối sống lành mạnh:** Ngủ đủ giấc, uống đủ nước, hạn chế stress và có chế độ ăn uống cân bằng.
+
+Điều trị mụn ẩn đòi hỏi sự kiên nhẫn và phương pháp đúng. Đừng ngần ngại tìm đến các bác sĩ da liễu để được thăm khám và tư vấn phác đồ điều trị phù hợp nhất.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-07-10',
+  'dieu-tri-mun',
+  'https://images.unsplash.com/photo-1621578639599-444ad644882?q=80&w=2940&auto=format&fit=crop'
+),
+(
+  'top-5-hoat-chat-chong-lao-hoa-dinh-cao',
+  'Top 5 Hoạt Chất "Vàng" Chống Lão Hóa Được Bác Sĩ Tin Dùng',
+  'Lão hóa là quy luật tự nhiên, nhưng chúng ta hoàn toàn có thể làm chậm quá trình này. Khám phá 5 hoạt chất chống lão hóa đỉnh cao được khoa học chứng minh.',
+  $$### 1. Retinoids (Vitamin A)
+Đây là "tiêu chuẩn vàng" trong ngành da liễu. Retinoids hoạt động bằng cách thúc đẩy quá trình tái tạo tế bào, tăng sinh collagen, làm mờ nếp nhăn, cải thiện sắc tố và kết cấu da.
+*   **Các loại phổ biến:** Retinol (không kê đơn), Tretinoin (kê đơn).
+
+### 2. Vitamin C (L-Ascorbic Acid)
+Là một chất chống oxy hóa mạnh mẽ, Vitamin C giúp bảo vệ da khỏi các gốc tự do gây hại từ môi trường, làm sáng da, mờ thâm nám và kích thích sản sinh collagen.
+
+### 3. Peptides
+Peptides là các chuỗi axit amin ngắn, đóng vai trò là "tín hiệu" cho các tế bào da. Chúng có thể ra lệnh cho da sản xuất nhiều collagen hơn, giúp da săn chắc và đàn hồi.
+
+### 4. Hyaluronic Acid (HA)
+HA là một chất giữ ẩm tuyệt vời, có khả năng giữ nước gấp 1000 lần trọng lượng của nó. HA giúp da luôn căng mọng, ngậm nước, từ đó làm đầy các nếp nhăn li ti.
+
+### 5. Niacinamide (Vitamin B3)
+Niacinamide là một hoạt chất đa năng. Nó không chỉ giúp củng cố hàng rào bảo vệ da, giảm mất nước mà còn cải thiện độ đàn hồi, làm sáng da và giảm sự xuất hiện của nếp nhăn.
+
+Việc kết hợp thông minh các hoạt chất này sẽ mang lại hiệu quả chống lão hóa toàn diện. Tuy nhiên, hãy bắt đầu từ nồng độ thấp và tham khảo ý kiến bác sĩ da liễu để xây dựng một chu trình phù hợp và an toàn.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-07-01',
+  'lao-hoa-da',
+  'https://images.unsplash.com/photo-1605255953523-2a329519a797?q=80&w=2862&auto=format&fit=crop'
+),
+(
+  'laser-co2-fractional-dieu-tri-seo-ro',
+  'Laser CO2 Fractional: "Tiêu Chuẩn Vàng" Trong Điều Trị Sẹo Rỗ',
+  'Công nghệ Laser CO2 Fractional hoạt động như thế nào và tại sao nó được coi là một trong những phương pháp điều trị sẹo rỗ hiệu quả nhất hiện nay?',
+  $$### Laser CO2 Fractional hoạt động như thế nào?
+Công nghệ này sử dụng tia laser có bước sóng 10.600nm tác động sâu vào lớp hạ bì của da mà không gây tổn thương vùng da xung quanh. Hàng ngàn vi điểm tổn thương được tạo ra, kích thích mạnh mẽ quá trình tự lành thương của cơ thể.
+Quá trình này bao gồm:
+1.  **Tăng sinh Collagen và Elastin:** Cơ thể sản xuất một lượng lớn collagen và elastin mới để lấp đầy các vi điểm tổn thương, từ đó làm đầy các vết sẹo rỗ.
+2.  **Tái tạo bề mặt:** Lớp da cũ, sần sùi được thay thế bằng lớp da mới, khỏe mạnh và mịn màng hơn.
+
+### Ưu điểm vượt trội
+*   **Hiệu quả cao:** Cải thiện rõ rệt tình trạng sẹo rỗ chỉ sau vài buổi điều trị.
+*   **An toàn:** Tia laser chỉ tác động vào các điểm đã được xác định trước, bảo vệ vùng da lành xung quanh.
+*   **Lợi ích kép:** Ngoài điều trị sẹo, công nghệ này còn giúp thu nhỏ lỗ chân lông, trẻ hóa da và cải thiện nếp nhăn.
+
+### Cần lưu ý gì khi điều trị?
+*   **Chăm sóc sau laser:** Da sẽ hơi đỏ và sưng nhẹ trong vài ngày đầu. Cần tuân thủ nghiêm ngặt chỉ dẫn của bác sĩ về việc làm sạch, dưỡng ẩm và chống nắng để da phục hồi tốt nhất.
+*   **Lựa chọn cơ sở uy tín:** Kỹ thuật viên và bác sĩ có tay nghề cao sẽ quyết định đến 90% thành công của ca điều trị.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-06-25',
+  'cong-nghe-tham-my',
+  'https://images.unsplash.com/photo-1516997121675-4c3d44141a16?q=80&w=2940&auto=format&fit=crop'
+),
+(
+  'bha-va-aha-la-gi',
+  'BHA và AHA: Đâu là "chân ái" cho làn da của bạn?',
+  'AHA và BHA là hai thành phần tẩy tế bào chết hóa học phổ biến nhất, nhưng mỗi loại lại phù hợp với những tình trạng da khác nhau. Cùng tìm hiểu nhé!',
+  $$### AHA (Alpha Hydroxy Acid)
+AHA là nhóm acid tan trong nước, hoạt động trên bề mặt da.
+*   **Công dụng:** Tẩy tế bào chết bề mặt, làm mờ thâm nám, giúp da sáng và đều màu hơn, cải thiện nếp nhăn nông, giữ ẩm.
+*   **Phù hợp với:** Da khô, da lão hóa, da không đều màu.
+*   **Ví dụ:** Glycolic Acid, Lactic Acid, Mandelic Acid.
+
+### BHA (Beta Hydroxy Acid)
+BHA là acid tan trong dầu, có khả năng đi sâu vào lỗ chân lông.
+*   **Công dụng:** Làm sạch sâu lỗ chân lông, loại bỏ bã nhờn, kháng viêm, hỗ trợ điều trị mụn (mụn đầu đen, mụn ẩn, mụn viêm nhẹ).
+*   **Phù hợp với:** Da dầu, da mụn, da có lỗ chân lông to.
+*   **Ví dụ:** Salicylic Acid.
+
+### Nên chọn loại nào?
+*   Nếu vấn đề chính của bạn là bề mặt da thô ráp, sạm màu, lão hóa -> **Chọn AHA**.
+*   Nếu bạn chiến đấu với mụn, dầu thừa, lỗ chân lông to -> **Chọn BHA**.
+*   Bạn hoàn toàn có thể kết hợp cả hai trong chu trình chăm sóc da, ví dụ dùng xen kẽ hoặc dùng AHA cho toàn mặt và BHA cho vùng da có mụn. Tuy nhiên, hãy bắt đầu từ từ và theo dõi phản ứng của da.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-06-18',
+  'cham-soc-da',
+  'https://images.unsplash.com/photo-1620916566398-39f168a2b53b?q=80&w=2787&auto=format&fit=crop'
+),
+(
+  'phuc-hoi-da-sau-nan-mun',
+  'Bí quyết phục hồi da sau khi nặn mụn, tạm biệt thâm sẹo',
+  'Nặn mụn đúng cách chỉ là bước đầu. Chăm sóc da sau đó mới là yếu tố quyết định làn da của bạn có bị thâm và sẹo hay không.',
+  $$### Ngay sau khi nặn mụn (24 giờ đầu)
+*   **Làm sạch nhẹ nhàng:** Chỉ rửa mặt với nước muối sinh lý hoặc nước lọc. Tránh dùng sữa rửa mặt có hạt hoặc hoạt chất mạnh.
+*   **Chấm điểm kháng khuẩn:** Dùng các sản phẩm chứa Benzoyl Peroxide, BHA hoặc kháng sinh dạng chấm lên nốt mụn vừa nặn để ngăn vi khuẩn xâm nhập.
+*   **Không chạm tay lên mặt:** Hạn chế tối đa việc sờ, nặn, gãi lên vùng da vừa xử lý.
+
+### Giai đoạn phục hồi (Sau 24 giờ)
+*   **Tập trung vào làm dịu:** Sử dụng các sản phẩm chứa B5, rau má (Centella Asiatica), Allantoin để làm dịu da, giảm đỏ và thúc đẩy quá trình lành thương.
+*   **Dưỡng ẩm đủ:** Một làn da đủ ẩm sẽ phục hồi nhanh hơn. Chọn các loại kem dưỡng ẩm có kết cấu mỏng nhẹ, không gây bít tắc.
+*   **Chống nắng tuyệt đối:** Đây là bước quan trọng nhất để ngăn ngừa hình thành vết thâm sau viêm (PIH). Hãy thoa kem chống nắng mỗi ngày, kể cả khi ở trong nhà.
+
+### Giai đoạn trị thâm (Khi vết thương đã lành hoàn toàn)
+*   **Sử dụng hoạt chất làm sáng da:** Bổ sung các sản phẩm chứa Niacinamide, Vitamin C, Arbutin, Azelaic Acid vào chu trình để làm mờ vết thâm hiệu quả.
+*   **Kiên nhẫn:** Quá trình trị thâm cần thời gian, hãy kiên trì sử dụng sản phẩm từ 4-8 tuần để thấy kết quả rõ rệt.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-06-12',
+  'dieu-tri-mun',
+  'https://images.unsplash.com/photo-1599303272635-f09b52a425a1?q=80&w=2940&auto=format&fit=crop'
+),
+(
+  'tac-hai-cua-anh-nang-mat-troi',
+  'Tác hại của ánh nắng mặt trời và vì sao kem chống nắng là "bảo bối" không thể thiếu',
+  'Tia UV không chỉ làm da đen sạm mà còn là kẻ thù số một gây ra lão hóa và ung thư da. Hiểu đúng để bảo vệ da đúng cách!',
+  $$### Tia UV: Kẻ thù giấu mặt
+Ánh nắng mặt trời chứa 3 loại tia cực tím (UV):
+*   **UVA:** Xuyên sâu vào lớp hạ bì, phá hủy collagen và elastin, gây ra nếp nhăn, chảy xệ (lão hóa). Tia UVA có thể xuyên qua mây và kính.
+*   **UVB:** Tác động lên bề mặt da, gây ra cháy nắng, đỏ rát và kích thích sản sinh melanin gây sạm, nám, tàn nhang.
+*   **UVC:** Bị tầng ozon hấp thụ gần như hoàn toàn.
+
+### Vì sao phải dùng kem chống nắng mỗi ngày?
+*   **Chống lão hóa:** Hơn 80% nguyên nhân gây lão hóa da đến từ tia UV. Dùng kem chống nắng là biện pháp chống lão hóa hiệu quả và tiết kiệm nhất.
+*   **Ngăn ngừa ung thư da:** Giảm đáng kể nguy cơ mắc các loại ung thư da nguy hiểm.
+*   **Ngăn ngừa sạm nám:** Hạn chế sự sản sinh melanin bất thường, giúp da đều màu và ngăn hình thành các đốm sắc tố.
+*   **Bảo vệ sức khỏe làn da:** Duy trì hàng rào bảo vệ da khỏe mạnh, tránh tình trạng da bị tổn thương, mất nước.
+
+### Cách chọn kem chống nắng
+*   **Broad Spectrum (Phổ rộng):** Chống được cả tia UVA và UVB.
+*   **Chỉ số SPF:** Từ 30 đến 50 là lý tưởng cho việc sử dụng hàng ngày.
+*   **Chỉ số PA:** Biểu thị khả năng chống tia UVA, nên chọn từ PA+++ trở lên.
+*   **Phù hợp với loại da:** Da dầu nên chọn loại kiềm dầu (oil-free), da nhạy cảm nên ưu tiên kem chống nắng vật lý.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-06-05',
+  'lao-hoa-da',
+  'https://images.unsplash.com/photo-1568910748152-90a88094a9f9?q=80&w=2890&auto=format&fit=crop'
+),
+(
+  'cong-nghe-hifu-nang-co',
+  'Công nghệ Hifu: Nâng cơ, trẻ hóa không cần dao kéo',
+  'HIFU (High-Intensity Focused Ultrasound) đang là một trong những công nghệ trẻ hóa được ưa chuộng nhất nhờ hiệu quả vượt trội và không xâm lấn.',
+  $$### HIFU hoạt động như thế nào?
+HIFU sử dụng sóng siêu âm hội tụ cường độ cao, tác động chính xác vào lớp SMAS (Superficial Muscular Aponeurotic System) ở độ sâu khoảng 4.5mm dưới da. Đây là lớp cân cơ nâng đỡ toàn bộ cấu trúc da mặt.
+*   Năng lượng từ HIFU làm co rút các sợi collagen và elastin cũ, chùng nhão.
+*   Đồng thời, nó kích thích quá trình sản sinh collagen và elastin mới một cách mạnh mẽ.
+
+### Hiệu quả mang lại
+*   **Nâng cơ, săn chắc:** Cải thiện rõ rệt tình trạng chảy xệ ở vùng má, cung mày, nọng cằm.
+*   **Xóa nhăn:** Làm mờ các nếp nhăn ở trán, khóe mắt, rãnh cười.
+*   **Thon gọn gương mặt:** Tạo đường viền hàm V-line sắc nét hơn.
+*   **Trẻ hóa bề mặt da:** Làn da trở nên mịn màng, căng bóng và đều màu hơn.
+
+### Ưu điểm của HIFU
+*   **Không xâm lấn:** Không phẫu thuật, không đau, không cần thời gian nghỉ dưỡng.
+*   **Hiệu quả nhanh chóng:** Có thể thấy sự thay đổi ngay sau liệu trình và hiệu quả sẽ tiếp tục tăng dần trong 2-3 tháng sau đó.
+*   **An toàn:** Được FDA Hoa Kỳ chứng nhận về độ an toàn và hiệu quả.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-05-28',
+  'cong-nghe-tham-my',
+  'https://images.unsplash.com/photo-1596724392437-a04a6b135b91?q=80&w=2787&auto=format&fit=crop'
+),
+(
+  '5-sai-lam-khi-rua-mat',
+  '5 sai lầm khi rửa mặt khiến da bạn ngày càng tệ hơn',
+  'Rửa mặt là bước cơ bản nhất nhưng cũng là nơi nhiều người mắc sai lầm nhất. Cùng điểm qua 5 lỗi sai phổ biến để chăm da đúng cách nhé!',
+  $$### 1. Không rửa tay trước khi rửa mặt
+Tay chúng ta chứa vô số vi khuẩn. Nếu không rửa tay sạch, bạn đang vô tình đưa vi khuẩn lên mặt, khiến tình trạng mụn tồi tệ hơn.
+
+### 2. Dùng nước quá nóng hoặc quá lạnh
+Nước quá nóng làm mất đi lớp dầu tự nhiên, gây khô da. Nước quá lạnh không đủ để làm sạch hiệu quả. Hãy dùng nước ấm vừa phải.
+
+### 3. Chà xát quá mạnh
+Nhiều người nghĩ chà xát mạnh sẽ sạch hơn, nhưng thực tế điều này chỉ làm tổn thương hàng rào bảo vệ da, gây kích ứng và đỏ rát. Hãy massage nhẹ nhàng theo chuyển động tròn.
+
+### 4. Dùng sai sữa rửa mặt
+Chọn sữa rửa mặt không phù hợp với loại da (ví dụ da khô dùng loại cho da dầu) sẽ làm tình trạng da tệ đi. Hãy hiểu rõ làn da của mình để chọn sản phẩm đúng.
+
+### 5. Không lau khô mặt bằng khăn sạch
+Khăn mặt dùng nhiều lần là nơi trú ngụ của vi khuẩn. Tốt nhất, hãy dùng bông tẩy trang hoặc khăn sạch dùng một lần để thấm khô da nhẹ nhàng.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-05-21',
+  'meo-thu-thuat',
+  'https://images.unsplash.com/photo-1567592215162-e2572b53b85d?q=80&w=2787&auto=format&fit=crop'
+),
+(
+  'retinol-cho-nguoi-moi-bat-dau',
+  'Retinol là gì? Hướng dẫn sử dụng Retinol cho người mới bắt đầu',
+  'Retinol được mệnh danh là hoạt chất "vàng" trong làng chống lão hóa, trị mụn. Nhưng làm thế nào để sử dụng hiệu quả mà không bị kích ứng?',
+  $$### Retinol là gì?
+Retinol là một dẫn xuất của Vitamin A, thuộc nhóm Retinoids. Nó hoạt động bằng cách thúc đẩy quá trình sừng hóa và tái tạo tế bào, giúp giải quyết nhiều vấn đề về da.
+
+### Lợi ích của Retinol
+*   **Chống lão hóa:** Tăng sinh collagen, làm mờ nếp nhăn.
+*   **Trị mụn:** Bình thường hóa sừng hóa, giúp lỗ chân lông thông thoáng, giảm mụn.
+*   **Cải thiện sắc tố:** Làm mờ thâm, nám, giúp da đều màu.
+*   **Tái tạo bề mặt:** Giúp da mịn màng, căng bóng.
+
+### Hướng dẫn sử dụng cho người mới bắt đầu
+1.  **Bắt đầu với nồng độ thấp:** Chọn sản phẩm có nồng độ Retinol từ 0.25% - 0.5%.
+2.  **Tần suất thấp:** Tuần đầu tiên, chỉ dùng 1-2 lần/tuần để da làm quen. Sau đó tăng dần lên 3 lần/tuần và dùng cách ngày khi da đã quen.
+3.  **Phương pháp "Sandwich":** Dưỡng ẩm -> Retinol -> Dưỡng ẩm. Cách này giúp giảm thiểu kích ứng.
+4.  **Chỉ dùng vào buổi tối:** Retinol nhạy cảm với ánh sáng.
+5.  **Bắt buộc dùng kem chống nắng:** Retinol làm da nhạy cảm hơn với ánh nắng, vì vậy chống nắng vào ban ngày là điều không thể thiếu.
+6.  **Tránh kết hợp với AHA/BHA/Vitamin C nồng độ cao** trong cùng một buổi để tránh quá tải cho da.
+
+Hãy kiên nhẫn, vì Retinol cần thời gian để phát huy hiệu quả. Nếu gặp kích ứng mạnh, hãy ngưng sử dụng và tham khảo ý kiến bác sĩ.
+    $$,
+  '7fbfd276-694a-4de0-95de-2242b6a9d313',
+  '2024-05-15',
+  'lao-hoa-da',
+  'https://images.unsplash.com/photo-1629198735660-e37ea39157b8?q=80&w=2851&auto=format&fit=crop'
+);

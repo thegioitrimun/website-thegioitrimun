@@ -1,0 +1,24 @@
+{
+  "name": "Da Liễu Nhiệt Đới Phú Quốc",
+  "short_name": "Da Liễu Phú Quốc",
+  "description": "Trang web chính thức của Da Liễu Nhiệt Đới Phú Quốc, cung cấp dịch vụ da liễu và sản phẩm chăm sóc da chính hãng.",
+  "id": "/?pwa=da-lieu-nhiet-doi-phu-quoc",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2d9a9a",
+  "icons": [
+    {
+      "src": "/icons/da-lieu-nhiet-doi-phu-quoc-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/da-lieu-nhiet-doi-phu-quoc-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

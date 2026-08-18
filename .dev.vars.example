@@ -1,0 +1,18 @@
+# Local Cloudflare Worker secrets (D1 + R2 + Worker). Copy to .dev.vars and configure values.
+DATA_BACKEND=d1
+OAUTH_BASE_URL=http://localhost:8788
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GEMINI_API_KEY=replace_with_a_rotated_server_side_key
+SMTP_HOST=pro218.emailserver.vn
+SMTP_PORT=465
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM_NAME=Thế Giới Trị Mụn
+SMTP_FROM_ADDRESS=cskh@thegioitrimun.vn
+ADMIN_NOTIFICATION_EMAIL=
+GHTK_TOKEN=
+GHTK_WEBHOOK_SECRET=
+EMAIL_MAX_ATTEMPTS=6
+PRIVATE_RECORDS_BUCKET=thegioitrimun-private-records
+D1_SHADOW_READ=false

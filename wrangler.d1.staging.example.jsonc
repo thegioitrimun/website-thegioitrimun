@@ -1,0 +1,115 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "iskin-clinic-d1-staging",
+  "compatibility_date": "2025-09-27",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "APP_DB",
+      "database_name": "thegioitrimun-app-staging",
+      "database_id": "REPLACE_APP_DB_STAGING_ID"
+    },
+    {
+      "binding": "INCI_DB",
+      "database_name": "thegioitrimun-inci-staging-runtime",
+      "database_id": "REPLACE_INCI_DB_STAGING_ID"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "R2_IMAGES",
+      "bucket_name": "thegioitrimun-images"
+    },
+    {
+      "binding": "PRIVATE_RECORDS",
+      "bucket_name": "thegioitrimun-private-staging"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "NOTIFICATION_QUEUE",
+        "queue": "thegioitrimun-notifications-staging"
+      },
+      {
+        "binding": "SHIPPING_QUEUE",
+        "queue": "thegioitrimun-shipping-staging"
+      },
+      {
+        "binding": "PANCAKE_QUEUE",
+        "queue": "thegioitrimun-pancake-staging"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "thegioitrimun-notifications-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-notifications-staging-dlq"
+      },
+      {
+        "queue": "thegioitrimun-shipping-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-shipping-staging-dlq"
+      },
+      {
+        "queue": "thegioitrimun-pancake-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 8,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-pancake-staging-dlq"
+      }
+    ]
+  },
+  "images": {
+    "binding": "IMAGES"
+  },
+  "ratelimits": [
+    {
+      "name": "AI_RATE_LIMITER",
+      "namespace_id": "2101",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
+    {
+      "name": "ORDER_LOOKUP_RATE_LIMITER",
+      "namespace_id": "2102",
+      "simple": {
+        "limit": 5,
+        "period": 60
+      }
+    }
+  ],
+  "vars": {
+    "DATA_BACKEND": "d1",
+    "D1_SHADOW_READ": "false",
+    "R2_PUBLIC_BASE_URL": "https://thegioitrimun.vn/r2",
+    "ORDER_LOOKUP_SMS_ENABLED": "false",
+    "PRODUCT_SOURCE_PROJECT": "thegioitrimun.vn",
+    "EMAIL_MAX_ATTEMPTS": "6"
+  },
+  "triggers": {
+    "crons": [
+      "*/2 * * * *"
+    ]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": true
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}

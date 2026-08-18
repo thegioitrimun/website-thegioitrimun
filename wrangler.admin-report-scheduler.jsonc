@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "natural-skin-admin-report-scheduler",
+  "main": "workers/admin-report-scheduler/index.mjs",
+  "compatibility_date": "2025-09-27",
+  "workers_dev": true,
+  "preview_urls": false,
+  "triggers": {
+    "crons": ["5 * * * *"]
+  },
+  "observability": {
+    "enabled": true
+  },
+  "d1_databases": [
+    {
+      "binding": "APP_DB",
+      "database_name": "thegioitrimun-app",
+      "database_id": "bffac3a5-7aa2-46dc-a8c2-179d049900c5"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "NOTIFICATION_QUEUE",
+        "queue": "thegioitrimun-notifications"
+      }
+    ]
+  },
+  "vars": {
+    "DATA_BACKEND": "d1",
+    "EMAIL_MAX_ATTEMPTS": "6"
+  }
+}

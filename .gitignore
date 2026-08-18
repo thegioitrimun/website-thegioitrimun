@@ -1,0 +1,48 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.local
+.env.*.local
+
+# build output
+dist/
+
+# editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
+
+# local playwright artifacts
+.playwright-cli/
+output/
+
+# local visual brainstorming artifacts
+.superpowers/
+
+# github workflows (requires workflow oauth scope)
+.github/workflows/
+
+# backup archives
+*.tar.gz
+*.tar.zst
+*.zip
+*.bak
+thegioitrimun-project-backup*
+

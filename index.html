@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi" style="scroll-behavior: smooth;">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" sizes="48x48" href="/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260730" id="favicon" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/da-lieu-nhiet-doi-phu-quoc-32.png?v=clinic-20260730" />
+  <link rel="shortcut icon" href="/favicon.ico?v=clinic-20260730" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thế Giới Trị Mụn | Chăm sóc da chuyên sâu</title>
+  <meta name="description"
+    content="Phòng khám da liễu chuyên sâu — Dịch vụ trị mụn, chăm sóc da, sản phẩm mỹ phẩm chính hãng. Đặt lịch khám online ngay.">
+  <meta name="author" content="Thế Giới Trị Mụn">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <link rel="canonical" href="https://thegioitrimun.vn/">
+  <link rel="alternate" hreflang="vi" href="https://thegioitrimun.vn/">
+  <link rel="alternate" hreflang="en" href="https://thegioitrimun.vn/?lang=en">
+  <link rel="alternate" hreflang="ru" href="https://thegioitrimun.vn/?lang=ru">
+  <link rel="alternate" hreflang="zh" href="https://thegioitrimun.vn/?lang=cn">
+  <link rel="alternate" hreflang="x-default" href="https://thegioitrimun.vn/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Thế Giới Trị Mụn | Chăm sóc da chuyên sâu">
+  <meta property="og:description"
+    content="Phòng khám da liễu chuyên sâu — Dịch vụ trị mụn, chăm sóc da, sản phẩm mỹ phẩm chính hãng. Đặt lịch khám online ngay.">
+  <meta property="og:image" content="https://thegioitrimun.vn/seo/og-default.jpg">
+  <meta property="og:image:secure_url" content="https://thegioitrimun.vn/seo/og-default.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Thế Giới Trị Mụn - Chăm sóc da chuyên sâu">
+  <meta property="og:url" content="https://thegioitrimun.vn">
+  <meta property="og:site_name" content="Thế Giới Trị Mụn">
+  <meta property="og:locale" content="vi_VN">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta property="og:locale:alternate" content="ru_RU">
+  <meta property="og:locale:alternate" content="zh_CN">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Thế Giới Trị Mụn | Chăm sóc da chuyên sâu">
+  <meta name="twitter:description"
+    content="Phòng khám da liễu chuyên sâu — Dịch vụ trị mụn, chăm sóc da, sản phẩm mỹ phẩm chính hãng.">
+  <meta name="twitter:image" content="https://thegioitrimun.vn/seo/og-default.jpg">
+  <meta name="twitter:image:alt" content="Thế Giới Trị Mụn - Chăm sóc da chuyên sâu">
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/manifest.json?v=clinic-20260730" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <!-- iOS support -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260730" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Thế Giới Trị Mụn" />
+
+  <link rel="preload" as="image" href="/icons/da-lieu-nhiet-doi-phu-quoc-96.png" type="image/png" fetchpriority="high">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    (function () {
+      const normalizedPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      const shouldPreloadHero = normalizedPath === '/';
+      if (!shouldPreloadHero) return;
+
+      const heroPreloads = [
+        { href: '/hero/hero-mobile-v2.avif', media: '(max-width: 639px)' },
+        { href: '/hero/hero-tablet-v2.avif', media: '(min-width: 640px) and (max-width: 767px)' },
+        { href: '/hero/hero-desktop-v2.avif', media: '(min-width: 768px)' },
+      ];
+
+      heroPreloads.forEach(({ href, media }) => {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.as = 'image';
+        link.href = href;
+        link.media = media;
+        link.type = 'image/avif';
+        link.setAttribute('fetchpriority', 'high');
+        document.head.appendChild(link);
+      });
+    })();
+  </script>
+  <script>
+    // IIFE to set theme instantly, preventing FOUC
+    (function () {
+      const theme = localStorage.getItem('iskin-clinic-theme') || 'light';
+      const colorTheme = localStorage.getItem('iskin-clinic-color-theme') || 'teal';
+      const root = document.documentElement;
+
+      const isDark = theme === 'dark';
+      root.classList.toggle('dark', isDark);
+      root.classList.add(`theme-${colorTheme}`);
+    })();
+    // IIFE to set font instantly, preventing FOUC
+    (function () {
+      const fontStacks = {
+        'Be Vietnam Pro': '"Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif',
+        'Roboto': 'Roboto, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif',
+        'Open Sans': '"Open Sans", "Segoe UI", Arial, sans-serif',
+        'Noto Sans': '"Noto Sans", "Segoe UI", Arial, sans-serif'
+      };
+      const font = localStorage.getItem('iskin-clinic-font') || 'Open Sans';
+      const resolvedFont = fontStacks[font] || fontStacks['Open Sans'];
+      document.documentElement.style.setProperty('--font-sans', resolvedFont);
+      document.documentElement.style.setProperty('--font-heading', resolvedFont);
+    })();
+  </script>
+
+</head>
+
+<body class="bg-background text-foreground font-sans">
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

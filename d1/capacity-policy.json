@@ -1,0 +1,20 @@
+{
+  "plan": "free",
+  "maxDatabases": 10,
+  "maxDatabaseBytes": 524288000,
+  "shardThresholdBytes": 471859200,
+  "warningThresholdBytes": 419430400,
+  "maxAccountBytes": 5368709120,
+  "runtimeDatabases": [
+    "thegioitrimun-app",
+    "thegioitrimun-inci-runtime",
+    "thegioitrimun-app-staging",
+    "thegioitrimun-inci-staging-runtime"
+  ],
+  "strategy": {
+    "app": "Keep carts, orders, order items and inventory for one transaction in the same APP database. Before 450 MiB, archive closed historical data into a dated APP archive database instead of splitting a live transaction.",
+    "inci": "Before 450 MiB, provision the next INCI shard and route canonical ingredients by a stable normalized-name range. A single ingredient and all aliases/functions stay in one shard.",
+    "rawArchives": "Crawler source records and immutable exports belong in R2, not runtime D1 databases.",
+    "provisioning": "Do not reserve empty databases. Create the next shard only after the 400 MiB warning and before the 450 MiB gate is reached."
+  }
+}

@@ -1,0 +1,4 @@
+:root {
+  --font-hero-body: var(--font-sans);
+  --font-hero-display: var(--font-heading);
+}

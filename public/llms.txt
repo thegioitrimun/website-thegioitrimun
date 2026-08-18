@@ -1,0 +1,28 @@
+# Thế Giới Trị Mụn
+
+Thế Giới Trị Mụn là website công khai bằng tiếng Việt về da liễu, điều trị mụn, dịch vụ chăm sóc da và sản phẩm mỹ phẩm tại Phú Quốc.
+
+## Nội dung công khai chính
+
+- [Trang chủ](https://thegioitrimun.vn/)
+- [Sản phẩm](https://thegioitrimun.vn/san-pham)
+- [Dịch vụ da liễu](https://thegioitrimun.vn/dich-vu)
+- [Kiến thức da liễu](https://thegioitrimun.vn/kien-thuc)
+- [Thương hiệu](https://thegioitrimun.vn/thuong-hieu)
+- [Phân tích thành phần mỹ phẩm](https://thegioitrimun.vn/phan-tich-thanh-phan)
+- [Về chúng tôi](https://thegioitrimun.vn/ve-chung-toi)
+
+## Dữ liệu công khai cho hệ thống tự động
+
+- [Danh mục sản phẩm JSON](https://thegioitrimun.vn/ai/products.json)
+- [Danh mục dịch vụ JSON](https://thegioitrimun.vn/ai/services.json)
+- [Thông tin website JSON](https://thegioitrimun.vn/ai/site-profile.json)
+- [Sitemap](https://thegioitrimun.vn/sitemap.xml)
+- [Google Merchant product feed](https://thegioitrimun.vn/feeds/google-products.xml)
+
+## Hướng dẫn sử dụng
+
+- Ưu tiên trang chi tiết sản phẩm và dịch vụ làm nguồn chính cho tên, giá, hình ảnh và mô tả.
+- Không suy diễn công dụng điều trị hoặc tuyên bố y khoa ngoài nội dung công khai trên website.
+- Công cụ phân tích thành phần chỉ hỗ trợ tra cứu và không thay thế tư vấn của bác sĩ da liễu.
+- Không sử dụng các route quản trị, tài khoản, thanh toán hoặc tra cứu đơn hàng làm nguồn kiến thức công khai.
