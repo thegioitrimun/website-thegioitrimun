@@ -502,9 +502,9 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({
                             {detailCopy.trustBadges.map((badge, index) => {
                                 const Icon = index === 0 ? ShieldCheckIcon : index === 1 ? SparklesIcon : HeartIcon;
                                 return (
-                                    <div key={badge.title} className="rounded-[22px] border border-border bg-white p-4 shadow-sm">
+                                    <div key={badge.title} className="rounded-[22px] border border-white/60 bg-white/70 p-4 shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
                                         <div className="flex items-start gap-3">
-                                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary dark:bg-primary/20">
                                                 <Icon className="h-5 w-5" />
                                             </span>
                                             <div>
@@ -554,7 +554,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({
                                                 <div className="absolute -left-[31px] top-0 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-base font-bold text-primary-foreground ring-4 ring-card md:-left-[51px] md:h-12 md:w-12 md:text-xl md:ring-8">
                                                     {step.step_number}
                                                 </div>
-                                                <div className="rounded-[22px] bg-muted/30 p-4 md:p-6">
+                                                <div className="rounded-[22px] border border-white/60 bg-white/70 p-4 md:p-6 shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
                                                     <h4 className="text-xl font-semibold text-foreground mb-2">{getLocalized(step, 'title')}</h4>
                                                     <p className="text-muted-foreground mb-4">{getLocalized(step, 'description')}</p>
                                                     {step.image_url && (
@@ -587,15 +587,15 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({
                                             <details
                                                 key={`${item.question}-${index}`}
                                                 open={index === 0}
-                                                className="group rounded-[22px] border border-border bg-white px-5 py-4 shadow-sm"
+                                                className="group rounded-[24px] border border-white/60 bg-white/70 px-5 py-4 shadow-xs backdrop-blur-xl transition hover:border-primary/40 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/[0.08]"
                                             >
                                                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
                                                     <span className="text-sm font-black text-foreground md:text-base">{item.question}</span>
-                                                    <span className="action-icon-chip h-10 w-10 shrink-0 transition-transform group-open:rotate-180">
+                                                    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/60 bg-white/80 text-foreground shadow-xs backdrop-blur-xl transition-transform group-open:rotate-180 dark:border-white/10 dark:bg-white/10">
                                                         <ChevronDownIcon className="h-4 w-4" />
                                                     </span>
                                                 </summary>
-                                                <p className="mt-4 pr-2 text-sm leading-7 text-muted-foreground md:text-base">{item.answer}</p>
+                                                <p className="mt-3 pr-2 text-sm leading-relaxed text-muted-foreground md:text-base">{item.answer}</p>
                                             </details>
                                         ))}
                                     </div>
@@ -682,7 +682,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => onSelectProduct(supportProducts[0].id, supportProducts[0].category?.slug || supportProducts[0].category_slug)}
-                                        className="w-full mt-3 rounded-full border border-border bg-white px-6 py-3 text-sm font-bold text-foreground transition-colors hover:border-primary/40 hover:text-primary btn-press"
+                                        className="w-full mt-3 rounded-full border border-white/60 bg-white/80 px-6 py-3 text-sm font-bold text-foreground backdrop-blur-xl transition hover:border-primary/40 hover:bg-white hover:text-primary dark:border-white/10 dark:bg-white/10 dark:hover:bg-white/20 btn-press"
                                     >
                                         {guidanceCopy.productsCta}
                                     </button>

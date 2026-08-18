@@ -194,7 +194,7 @@ const CompactIngredientSummary: React.FC<CompactIngredientSummaryProps> = ({
 const ProductIngredientAnalysis: React.FC<ProductIngredientAnalysisProps & { analysis: AnalyzerResponse | null, isLoading: boolean, error: string, copy: any, normalizedIngredients: string, analyzerLang: string }> = ({ productName, analysis, isLoading, error, copy, normalizedIngredients, analyzerLang }) => {
     if (!normalizedIngredients) {
         return (
-            <div className="rounded-[24px] border border-border bg-white p-5 text-sm font-semibold text-muted-foreground shadow-sm">
+            <div className="rounded-[24px] border border-border bg-white p-5 text-sm font-semibold text-muted-foreground shadow-sm dark:border-white/10 dark:bg-card">
                 {copy.noInci}
             </div>
         );
@@ -202,11 +202,11 @@ const ProductIngredientAnalysis: React.FC<ProductIngredientAnalysisProps & { ana
 
     return (
         <div className="mx-auto max-w-none space-y-6">
-            <section className="max-w-full overflow-hidden rounded-[28px] border border-border bg-[linear-gradient(135deg,#fffaf6_0%,#ffffff_50%,#eef8ff_100%)] p-5 text-center shadow-[0_22px_60px_-50px_rgba(36,46,57,0.35)] md:p-6 md:text-left">
+            <section className="max-w-full overflow-hidden rounded-[28px] border border-border bg-[linear-gradient(135deg,#fffaf6_0%,#ffffff_50%,#eef8ff_100%)] p-5 text-center shadow-[0_22px_60px_-50px_rgba(36,46,57,0.35)] md:p-6 md:text-left dark:border-white/10 dark:bg-[rgba(15,23,42,0.68)]">
                 <p className="section-kicker">{copy.kicker}</p>
                 <h3 className="mt-2 !text-[1.35rem] font-bold leading-tight text-foreground md:!text-2xl">{copy.title}</h3>
                 <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-muted-foreground md:mx-0 md:text-base">{copy.description}</p>
-                <details className="mt-4 rounded-[20px] border border-border/80 bg-white/82 p-4">
+                <details className="mt-4 rounded-[20px] border border-border/80 bg-white/82 p-4 dark:border-white/10 dark:bg-white/5">
                     <summary className="cursor-pointer select-none text-sm font-bold text-primary">
                         {copy.source}
                     </summary>
@@ -220,7 +220,7 @@ const ProductIngredientAnalysis: React.FC<ProductIngredientAnalysisProps & { ana
             </section>
 
             {isLoading ? (
-                <div className="flex items-center justify-center gap-3 rounded-[24px] border border-border bg-white p-6 text-sm font-bold text-muted-foreground">
+                <div className="flex items-center justify-center gap-3 rounded-[24px] border border-border bg-white p-6 text-sm font-bold text-muted-foreground dark:border-white/10 dark:bg-card">
                     <Spinner className="h-5 w-5" />
                     {copy.loading}
                 </div>
