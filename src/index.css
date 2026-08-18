@@ -379,6 +379,13 @@
     scroll-behavior: auto;
   }
 
+  html,
+  body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    width: 100%;
+  }
+
   body {
     background:
       radial-gradient(circle at top left, rgba(255, 182, 156, 0.34), transparent 30%),
