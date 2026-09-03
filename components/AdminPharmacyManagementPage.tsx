@@ -770,6 +770,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
     const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
     const [editCategoryName, setEditCategoryName] = useState('');
     const [editCategorySlug, setEditCategorySlug] = useState('');
+    const [editCategoryIsFeatured, setEditCategoryIsFeatured] = useState(false);
     const [isCategoryFormVisible, setIsCategoryFormVisible] = useState(false);
 
     // State for brand management
@@ -967,18 +968,32 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
         setEditingCategoryId(cat.id);
         setEditCategoryName(cat.name);
         setEditCategorySlug(cat.slug);
+        setEditCategoryIsFeatured(Boolean(cat.is_featured));
+        setIsCategoryFormVisible(true);
     };
 
-    const handleSaveEditCategory = () => {
+    const handleSaveEditCategory = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         if (editingCategoryId && editCategoryName && editCategorySlug) {
             const originalCat = categories.find(c => c.id === editingCategoryId);
-            onSaveCategory({ ...originalCat, id: editingCategoryId, name: editCategoryName, slug: editCategorySlug });
+            onSaveCategory({
+                ...originalCat,
+                id: editingCategoryId,
+                name: editCategoryName,
+                slug: editCategorySlug,
+                is_featured: editCategoryIsFeatured,
+            });
             setEditingCategoryId(null);
+            setIsCategoryFormVisible(false);
         }
     };
 
     const handleCancelEditCategory = () => {
         setEditingCategoryId(null);
+        setEditCategoryName('');
+        setEditCategorySlug('');
+        setEditCategoryIsFeatured(false);
+        setIsCategoryFormVisible(false);
     };
 
     const handleAddNewBrand = async (e: React.FormEvent) => {
@@ -4084,69 +4099,110 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
 
                 {activeTab === 'categories' && (
                     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {isCategoryFormVisible ? (
-                            <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+                        {(isCategoryFormVisible || editingCategoryId) ? (
+                            <div className="w-full rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+                                {/* Header banner with Back button, Eyebrow, Title and Action buttons */}
                                 <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
                                     <div className="flex items-center gap-2.5 sm:gap-3">
                                         <button
                                             type="button"
-                                            onClick={() => setIsCategoryFormVisible(false)}
-                                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:border-primary/50 hover:bg-card hover:text-primary transition-all active:scale-95 shadow-2xs"
+                                            onClick={handleCancelEditCategory}
+                                            className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:border-primary/50 hover:bg-card hover:text-primary transition-all active:scale-95 shadow-2xs"
                                             title="Quay lại danh sách chuyên mục"
                                         >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-4 w-4">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
                                             </svg>
                                         </button>
                                         <div>
                                             <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Chuyên mục</p>
-                                            <h3 className="text-xl sm:text-2xl font-black text-foreground">Thêm chuyên mục mới</h3>
+                                            <h3 className="text-lg sm:text-2xl font-black text-foreground">
+                                                {editingCategoryId ? `Chỉnh sửa chuyên mục: ${editCategoryName || '...'}` : 'Thêm chuyên mục mới'}
+                                            </h3>
                                         </div>
                                     </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCategoryFormVisible(false)}
-                                        className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-                                    >
-                                        Hủy
-                                    </button>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCancelEditCategory}
+                                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border/70 bg-background/50 text-xs font-bold text-muted-foreground hover:text-foreground active:scale-95 transition-all shadow-2xs"
+                                        >
+                                            Hủy
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={editingCategoryId ? handleSaveEditCategory : handleAddNewCategory}
+                                            className="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 sm:px-5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-all"
+                                        >
+                                            <span>{editingCategoryId ? 'Lưu thay đổi' : 'Tạo chuyên mục'}</span>
+                                        </button>
+                                    </div>
                                 </div>
-                                <form onSubmit={handleAddNewCategory} className="space-y-4 max-w-2xl">
+
+                                <form onSubmit={editingCategoryId ? handleSaveEditCategory : handleAddNewCategory} className="space-y-4 max-w-2xl">
                                     <div>
-                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Tên chuyên mục <span className="text-red-500">*</span></label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
+                                            Tên chuyên mục <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
-                                            value={newCategoryName}
+                                            value={editingCategoryId ? editCategoryName : newCategoryName}
                                             onChange={e => {
-                                                setNewCategoryName(e.target.value);
-                                                if (!newCategorySlug) setNewCategorySlug(generateSlug(e.target.value));
+                                                if (editingCategoryId) {
+                                                    setEditCategoryName(e.target.value);
+                                                    if (!editCategorySlug) setEditCategorySlug(generateSlug(e.target.value));
+                                                } else {
+                                                    setNewCategoryName(e.target.value);
+                                                    if (!newCategorySlug) setNewCategorySlug(generateSlug(e.target.value));
+                                                }
                                             }}
-                                            className="w-full admin-glass-input"
+                                            className="w-full admin-glass-input text-sm font-semibold"
                                             placeholder="Nhập tên chuyên mục..."
                                             required
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">Slug đường dẫn <span className="text-red-500">*</span></label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
+                                            Slug đường dẫn (URL thân thiện SEO) <span className="text-red-500">*</span>
+                                        </label>
                                         <input
                                             type="text"
-                                            value={newCategorySlug}
-                                            onChange={e => setNewCategorySlug(e.target.value)}
+                                            value={editingCategoryId ? editCategorySlug : newCategorySlug}
+                                            onChange={e => {
+                                                if (editingCategoryId) {
+                                                    setEditCategorySlug(e.target.value);
+                                                } else {
+                                                    setNewCategorySlug(e.target.value);
+                                                }
+                                            }}
                                             className="w-full admin-glass-input font-mono text-xs"
                                             placeholder="vi-du-slug"
                                             required
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2 pt-2">
-                                        <input
-                                            type="checkbox"
-                                            id="newCategoryIsFeatured"
-                                            checked={newCategoryIsFeatured}
-                                            onChange={e => setNewCategoryIsFeatured(e.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                        />
-                                        <label htmlFor="newCategoryIsFeatured" className="text-sm font-bold text-primary cursor-pointer select-none">
-                                            ⭐ Hiển thị chuyên mục này trên Trang Chủ
+                                    <div className="rounded-2xl border border-white/60 bg-background/40 p-3.5 backdrop-blur-md dark:border-white/10">
+                                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                id="categoryIsFeatured"
+                                                checked={editingCategoryId ? editCategoryIsFeatured : newCategoryIsFeatured}
+                                                onChange={e => {
+                                                    if (editingCategoryId) {
+                                                        setEditCategoryIsFeatured(e.target.checked);
+                                                    } else {
+                                                        setNewCategoryIsFeatured(e.target.checked);
+                                                    }
+                                                }}
+                                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                            />
+                                            <div className="text-xs">
+                                                <p className="font-bold text-foreground flex items-center gap-1">
+                                                    <span>⭐ Hiển thị chuyên mục này trên Trang Chủ</span>
+                                                </p>
+                                                <p className="text-muted-foreground mt-0.5">
+                                                    Đưa chuyên mục này lên danh mục nổi bật ngoài Trang Chủ giúp khách hàng dễ duyệt sản phẩm hơn.
+                                                </p>
+                                            </div>
                                         </label>
                                     </div>
                                     <div className="flex items-center gap-3 pt-3">
@@ -4154,11 +4210,11 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             type="submit"
                                             className="bg-primary text-primary-foreground font-bold py-2.5 px-6 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-sm text-xs"
                                         >
-                                            Tạo chuyên mục
+                                            {editingCategoryId ? 'Lưu thay đổi' : 'Tạo chuyên mục'}
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setIsCategoryFormVisible(false)}
+                                            onClick={handleCancelEditCategory}
                                             className="border border-border bg-background/50 px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95"
                                         >
                                             Hủy
@@ -4180,12 +4236,14 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                                                 categoryFilter === 'all'
                                                     ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                                             }`}
                                         >
                                             <span>Tất cả</span>
                                             <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                categoryFilter === 'all' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
+                                                categoryFilter === 'all'
+                                                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                                                    : 'bg-muted text-foreground'
                                             }`}>
                                                 {categories.length}
                                             </span>
@@ -4196,132 +4254,105 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                                                 categoryFilter === 'featured'
                                                     ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                                             }`}
                                         >
                                             <span>⭐ Nổi bật Trang Chủ</span>
                                             <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                categoryFilter === 'featured' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
+                                                categoryFilter === 'featured'
+                                                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                                                    : 'bg-muted text-foreground'
                                             }`}>
-                                                {categories.filter(c => c.is_featured).length}
+                                                {featuredCategoriesCount}
                                             </span>
                                         </button>
                                     </div>
 
-                                    {/* Search bar & action buttons */}
-                                    <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-                                        <div className="relative flex-1">
-                                            <input
-                                                type="text"
-                                                placeholder="Tìm theo tên chuyên mục hoặc slug..."
-                                                value={categorySearchQuery}
-                                                onChange={e => setCategorySearchQuery(e.target.value)}
-                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-                                            />
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
+                                    {/* Search & Actions row */}
+                                    <div className="flex items-center gap-2 pt-1.5">
+                                        <div className="relative flex-1 min-w-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                                             </svg>
-                                            {categorySearchQuery && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setCategorySearchQuery('')}
-                                                    className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            )}
+                                            <input
+                                                type="text"
+                                                value={categorySearchQuery}
+                                                onChange={(e) => setCategorySearchQuery(e.target.value)}
+                                                placeholder="Tìm theo tên chuyên mục, slug..."
+                                                className="h-9 w-full rounded-xl border-0 bg-background/30 pl-9 pr-3 text-xs shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)] backdrop-blur-md transition-all focus:bg-background/60 focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/60"
+                                            />
                                         </div>
 
-                                        {/* Nút Xuất Excel icon-only */}
                                         <button
                                             type="button"
                                             onClick={handleExportCategories}
-                                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 shrink-0"
-                                            title="Xuất Excel danh sách chuyên mục"
+                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground"
+                                            title="Xuất danh sách chuyên mục ra Excel"
                                         >
-                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-outputexcel.webp" alt="Xuất Excel" className="w-4.5 h-4.5 object-contain" />
+                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-xuat-excel.webp" alt="Xuất Excel" className="w-5 h-5 object-contain" />
                                         </button>
 
-                                        {/* Dropdown 3 chấm: Tải mẫu & Nhập Excel */}
-                                        <div className="relative z-50">
+                                        <div className="relative shrink-0">
                                             <button
                                                 type="button"
-                                                onClick={() => setShowCategoryActionsMenu(!showCategoryActionsMenu)}
-                                                className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all active:scale-95 shrink-0 ${
-                                                    showCategoryActionsMenu
-                                                        ? 'border-primary/50 bg-primary/10 text-primary shadow-xs'
-                                                        : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                                }`}
-                                                title="Tiện ích: Nhập Excel, Tải mẫu"
+                                                onClick={() => setShowCategoryActionsMenu(prev => !prev)}
+                                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground"
+                                                title="Tiện ích nhập liệu Excel"
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                                                 </svg>
                                             </button>
 
                                             {showCategoryActionsMenu && (
                                                 <>
-                                                    <div
-                                                        className="fixed inset-0 z-40 bg-transparent"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setShowCategoryActionsMenu(false);
-                                                        }}
-                                                    />
-                                                    <div className="absolute right-0 top-full mt-1.5 w-52 rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-0.5 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
+                                                    <div className="fixed inset-0 z-40" onClick={() => setShowCategoryActionsMenu(false)} />
+                                                    <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-white/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 z-50 animate-in fade-in zoom-in-95">
+                                                        <label className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer transition-colors">
+                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-nhap-excel.webp" alt="" className="w-4 h-4 object-contain" />
+                                                            <span>Nhập từ Excel</span>
+                                                            <input type="file" accept=".xlsx, .xls" onChange={(e) => { void handleImportFile(e, 'category'); setShowCategoryActionsMenu(false); }} className="hidden" />
+                                                        </label>
                                                         <button
                                                             type="button"
-                                                            onClick={() => {
-                                                                setShowCategoryActionsMenu(false);
-                                                                categoryFileInputRef.current?.click();
-                                                            }}
-                                                            disabled={isImporting}
-                                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left disabled:opacity-50"
+                                                            onClick={() => { void handleDownloadCategoryTemplate(); setShowCategoryActionsMenu(false); }}
+                                                            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors text-left"
                                                         >
-                                                            {isImporting ? <Spinner className="w-4 h-4" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-inputexcel.webp" alt="" className="w-4 h-4 object-contain shrink-0" />}
-                                                            <span>Nhập từ file Excel</span>
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setShowCategoryActionsMenu(false);
-                                                                handleDownloadCategoryTemplate();
-                                                            }}
-                                                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                                                        >
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-taifilemau.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                            <span>Tải mẫu file Excel</span>
+                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-xuat-excel.webp" alt="" className="w-4 h-4 object-contain" />
+                                                            <span>Tải file mẫu Excel</span>
                                                         </button>
                                                     </div>
                                                 </>
                                             )}
                                         </div>
-                                        <input type="file" ref={categoryFileInputRef} onChange={(e) => handleImportFile(e, 'category')} accept=".xlsx, .xls" className="hidden" />
 
-                                        {/* Nút Thêm mới */}
                                         <button
                                             type="button"
-                                            onClick={() => setIsCategoryFormVisible(true)}
-                                            className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all shrink-0 active:scale-95"
+                                            onClick={() => {
+                                                setEditingCategoryId(null);
+                                                setNewCategoryName('');
+                                                setNewCategorySlug('');
+                                                setNewCategoryIsFeatured(false);
+                                                setIsCategoryFormVisible(true);
+                                            }}
+                                            className="flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground shadow-xs backdrop-blur-md transition-all hover:bg-primary/90 active:scale-95 shrink-0"
                                             title="Tạo chuyên mục mới"
                                         >
-                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="" className="w-5 h-5 object-contain" />
+                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="Thêm" className="w-4 h-4 object-contain" />
                                             <span className="hidden sm:inline">Thêm mới</span>
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* 2. List Card (Desktop Table & Mobile List) */}
+                                {/* 2. List Card (Desktop Table + Mobile Cards) */}
                                 <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 overflow-hidden">
-                                    {/* Desktop Table */}
+                                    {/* Desktop Table View */}
                                     <div className="hidden lg:block overflow-x-auto">
-                                        <table className="w-full table-fixed text-left text-sm">
+                                        <table className="w-full text-sm text-left">
                                             <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                                                 <tr>
-                                                    <th className="w-[38%] px-4 py-3 font-extrabold">Tên chuyên mục</th>
-                                                    <th className="w-[32%] px-4 py-3 font-extrabold">Slug đường dẫn</th>
+                                                    <th className="w-[45%] px-4 py-3 font-extrabold">Tên chuyên mục</th>
+                                                    <th className="w-[25%] px-4 py-3 font-extrabold">Slug đường dẫn</th>
                                                     <th className="w-[15%] px-4 py-3 text-center font-extrabold">Trang chủ</th>
                                                     <th className="w-[15%] px-4 py-3 text-right font-extrabold">Thao tác</th>
                                                 </tr>
@@ -4336,51 +4367,38 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 ) : (
                                                     filteredCategories.map(cat => (
                                                         <tr key={cat.id} className="transition-colors hover:bg-muted/20">
-                                                            {editingCategoryId === cat.id ? (
-                                                                <td colSpan={4} className="p-3 bg-primary/5">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <input type="text" value={editCategoryName} onChange={e => setEditCategoryName(e.target.value)} className="flex-1 rounded-xl border border-input bg-background px-3 py-1.5 text-xs font-semibold" placeholder="Tên chuyên mục" />
-                                                                        <input type="text" value={editCategorySlug} onChange={e => setEditCategorySlug(e.target.value)} className="flex-1 rounded-xl border border-input bg-background px-3 py-1.5 text-xs font-mono" placeholder="Slug" />
-                                                                        <button onClick={handleSaveEditCategory} className="rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90">Lưu</button>
-                                                                        <button onClick={handleCancelEditCategory} className="rounded-xl border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground hover:bg-muted">Hủy</button>
-                                                                    </div>
-                                                                </td>
-                                                            ) : (
-                                                                <>
-                                                                    <td className="px-4 py-3 font-bold text-foreground truncate">{cat.name}</td>
-                                                                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground truncate">{cat.slug}</td>
-                                                                    <td className="px-4 py-3 text-center">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => onSaveCategory({ ...cat, is_featured: !cat.is_featured })}
-                                                                            title={cat.is_featured ? 'Bỏ khỏi Trang Chủ' : 'Đưa lên Trang Chủ'}
-                                                                            className={`text-base transition-all active:scale-95 ${cat.is_featured ? 'scale-110 text-yellow-500' : 'text-gray-300 grayscale hover:text-yellow-400'}`}
-                                                                        >
-                                                                            ⭐
-                                                                        </button>
-                                                                    </td>
-                                                                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                                                                        <div className="flex items-center justify-end gap-1">
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => handleStartEditCategory(cat)}
-                                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                                                title={`Sửa chuyên mục: ${cat.name}`}
-                                                                            >
-                                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
-                                                                            </button>
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => onDeleteCategory(cat.id)}
-                                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
-                                                                                title={`Xóa chuyên mục: ${cat.name}`}
-                                                                            >
-                                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />
-                                                                            </button>
-                                                                        </div>
-                                                                    </td>
-                                                                </>
-                                                            )}
+                                                            <td className="px-4 py-3 font-bold text-foreground truncate">{cat.name}</td>
+                                                            <td className="px-4 py-3 font-mono text-xs text-muted-foreground truncate">{cat.slug}</td>
+                                                            <td className="px-4 py-3 text-center">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => onSaveCategory({ ...cat, is_featured: !cat.is_featured })}
+                                                                    title={cat.is_featured ? 'Bỏ khỏi Trang Chủ' : 'Đưa lên Trang Chủ'}
+                                                                    className={`text-base transition-all active:scale-95 ${cat.is_featured ? 'scale-110 text-yellow-500' : 'text-gray-300 grayscale hover:text-yellow-400'}`}
+                                                                >
+                                                                    ⭐
+                                                                </button>
+                                                            </td>
+                                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                                <div className="flex items-center justify-end gap-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleStartEditCategory(cat)}
+                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
+                                                                        title={`Sửa chuyên mục: ${cat.name}`}
+                                                                    >
+                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => onDeleteCategory(cat.id)}
+                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
+                                                                        title={`Xóa chuyên mục: ${cat.name}`}
+                                                                    >
+                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />
+                                                                    </button>
+                                                                </div>
+                                                            </td>
                                                         </tr>
                                                     ))
                                                 )}
@@ -4388,7 +4406,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                         </table>
                                     </div>
 
-                                    {/* Mobile List with 10px 12px (py-2.5 px-3) padding */}
+                                    {/* Mobile List View */}
                                     <div className="block lg:hidden divide-y divide-border/40">
                                         {filteredCategories.length === 0 ? (
                                             <div className="p-6 text-center text-xs text-muted-foreground">
@@ -4397,47 +4415,30 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                         ) : (
                                             filteredCategories.map(cat => (
                                                 <article key={cat.id} className="relative py-2.5 px-3 transition-colors hover:bg-muted/10">
-                                                    {editingCategoryId === cat.id ? (
-                                                        <div className="space-y-2.5">
-                                                            <div>
-                                                                <label className="text-[10px] font-bold uppercase text-muted-foreground">Tên</label>
-                                                                <input type="text" value={editCategoryName} onChange={e => setEditCategoryName(e.target.value)} className="mt-1 w-full admin-glass-input text-xs" />
-                                                            </div>
-                                                            <div>
-                                                                <label className="text-[10px] font-bold uppercase text-muted-foreground">Slug</label>
-                                                                <input type="text" value={editCategorySlug} onChange={e => setEditCategorySlug(e.target.value)} className="mt-1 w-full admin-glass-input font-mono text-xs" />
-                                                            </div>
-                                                            <div className="grid grid-cols-2 gap-2 pt-1">
-                                                                <button onClick={handleCancelEditCategory} className="rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:bg-muted">Hủy</button>
-                                                                <button onClick={handleSaveEditCategory} className="rounded-xl bg-primary px-3 py-2 text-xs font-bold text-primary-foreground hover:bg-primary/90">Lưu</button>
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="flex items-center justify-between gap-3">
-                                                            <div className="flex min-w-0 items-center gap-2">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => onSaveCategory({ ...cat, is_featured: !cat.is_featured })}
-                                                                    title={cat.is_featured ? 'Bỏ khỏi Trang Chủ' : 'Đưa lên Trang Chủ'}
-                                                                    className={`text-base transition-all active:scale-95 shrink-0 ${cat.is_featured ? 'scale-110 text-yellow-500' : 'text-gray-300 grayscale'}`}
-                                                                >
-                                                                    ⭐
-                                                                </button>
-                                                                <div className="min-w-0">
-                                                                    <p className="truncate text-xs font-bold text-foreground">{cat.name}</p>
-                                                                    <p className="font-mono text-[11px] text-muted-foreground truncate">{cat.slug}</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex shrink-0 items-center gap-1">
-                                                                <button onClick={() => handleStartEditCategory(cat)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-primary active:scale-95" title="Sửa">
-                                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
-                                                                </button>
-                                                                <button onClick={() => onDeleteCategory(cat.id)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95" title="Xóa">
-                                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />
-                                                                </button>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="flex min-w-0 items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => onSaveCategory({ ...cat, is_featured: !cat.is_featured })}
+                                                                title={cat.is_featured ? 'Bỏ khỏi Trang Chủ' : 'Đưa lên Trang Chủ'}
+                                                                className={`text-base transition-all active:scale-95 shrink-0 ${cat.is_featured ? 'scale-110 text-yellow-500' : 'text-gray-300 grayscale'}`}
+                                                            >
+                                                                ⭐
+                                                            </button>
+                                                            <div className="min-w-0">
+                                                                <p className="truncate text-xs font-bold text-foreground">{cat.name}</p>
+                                                                <p className="font-mono text-[11px] text-muted-foreground truncate">{cat.slug}</p>
                                                             </div>
                                                         </div>
-                                                    )}
+                                                        <div className="flex shrink-0 items-center gap-1">
+                                                            <button onClick={() => handleStartEditCategory(cat)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-primary active:scale-95" title="Sửa">
+                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
+                                                            </button>
+                                                            <button onClick={() => onDeleteCategory(cat.id)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95" title="Xóa">
+                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </article>
                                             ))
                                         )}
