@@ -1,6 +1,8 @@
 import React from 'react';
 import type { DetailFaqEntry } from '../types';
-import { PlusCircleIcon, TrashIcon } from './icons';
+import { PlusCircleIcon } from './icons';
+
+const DELETE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp';
 
 interface DetailFaqEditorProps {
   value: DetailFaqEntry[];
@@ -110,7 +112,7 @@ const DetailFaqEditor: React.FC<DetailFaqEditorProps> = ({
                   title={`Xóa câu hỏi ${index + 1}`}
                   aria-label={`Xóa câu hỏi ${index + 1}`}
                 >
-                  <TrashIcon className="h-4 w-4" />
+                  <img src={DELETE_ICON} alt="Xóa" className="h-4 w-4 object-contain" />
                 </button>
               </div>
 

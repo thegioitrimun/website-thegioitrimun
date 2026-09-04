@@ -1,7 +1,9 @@
 import React from 'react';
 import type { DetailFaqEntry, Product } from '../types';
-import { PlusCircleIcon, SparklesIcon, TrashIcon } from './icons';
+import { PlusCircleIcon, SparklesIcon } from './icons';
 import Spinner from './Spinner';
+
+const DELETE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp';
 import { ImageDropzone } from './ImageDropzone';
 import MediaUploader from './MediaUploader';
 import FAQEditor from './FAQEditor';
@@ -175,7 +177,7 @@ const ProductMainForm: React.FC<ProductMainFormProps> = ({
                       className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-all hover:scale-110 hover:border-red-200 hover:text-destructive active:scale-95"
                       aria-label="Xóa block nội dung"
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      <img src={DELETE_ICON} alt="Xóa" className="h-4.5 w-4.5 object-contain" />
                     </button>
                     <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 whitespace-nowrap rounded-lg border border-border/80 bg-popover px-2.5 py-1 text-[11px] font-bold text-popover-foreground shadow-xl backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100 z-50">
                       Xóa block
