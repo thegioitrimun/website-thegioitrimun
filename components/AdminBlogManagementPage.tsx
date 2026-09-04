@@ -117,6 +117,28 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
     selectedPost?.detail_loaded && String(selectedPost?.content || '').trim().length > 0
   );
 
+  // Auto-dismiss Excel popover on outside click, touch, or scroll
+  useEffect(() => {
+    if (!showExcelMenu) return;
+    const handleOutside = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest('[data-blog-excel-menu]')) {
+        setShowExcelMenu(false);
+      }
+    };
+    const handleScroll = () => {
+      setShowExcelMenu(false);
+    };
+    document.addEventListener('click', handleOutside);
+    document.addEventListener('touchstart', handleOutside);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      document.removeEventListener('click', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [showExcelMenu]);
+
   // Queues
   const seoQueuePosts = useMemo(
     () =>
@@ -609,7 +631,9 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
     return (
       <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
         {/* Category Toolbar Card */}
-        <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+        <div className={`rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all ${
+          showExcelMenu ? 'relative z-50' : 'relative z-30'
+        }`}>
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
@@ -622,7 +646,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               {/* Excel Utility 3-Dots Menu */}
-              <div className="relative shrink-0">
+              <div className={`relative shrink-0 ${showExcelMenu ? 'z-50' : ''}`} data-blog-excel-menu>
                 <button
                   type="button"
                   onClick={() => setShowExcelMenu(!showExcelMenu)}
@@ -639,7 +663,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
                       onClick={() => setShowExcelMenu(false)}
                     />
                     <div
-                      className="absolute right-0 top-10 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all"
+                      className="absolute right-0 top-full mt-1.5 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-2xl p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="space-y-0.5">
@@ -913,7 +937,9 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
   return (
     <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
       {/* Unified Filter & Toolbar Card (Apple Glass Standard) */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-2.5 sm:p-4 mx-1 sm:mx-0">
+      <div className={`rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-2.5 sm:p-4 mx-1 sm:mx-0 transition-all ${
+        showExcelMenu ? 'relative z-50' : 'relative z-30'
+      }`}>
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Search Input - spacious and responsive */}
           <div className="relative flex-1 min-w-0">
@@ -974,7 +1000,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
           </button>
 
           {/* Excel Utility Popover (Section 4 Apple Glass) */}
-          <div className="relative shrink-0">
+          <div className={`relative shrink-0 ${showExcelMenu ? 'z-50' : ''}`} data-blog-excel-menu>
             <button
               type="button"
               onClick={() => setShowExcelMenu(!showExcelMenu)}
@@ -991,7 +1017,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
                   onClick={() => setShowExcelMenu(false)}
                 />
                 <div
-                  className="absolute right-0 top-10 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all"
+                  className="absolute right-0 top-full mt-1.5 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-2xl p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="space-y-0.5">
