@@ -82,6 +82,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [postsCurrentPage, setPostsCurrentPage] = useState(1);
   const [showExcelMenu, setShowExcelMenu] = useState(false);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
 
   // Category form state
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -914,7 +915,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
       {/* Unified Filter & Toolbar Card (Apple Glass Standard) */}
       <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-2.5 sm:p-4 mx-1 sm:mx-0">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Search Input */}
+          {/* Search Input - spacious and responsive */}
           <div className="relative flex-1 min-w-0">
             <input
               type="text"
@@ -935,19 +936,42 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
             )}
           </div>
 
-          {/* Category Dropdown */}
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2 sm:px-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50 max-w-[110px] sm:max-w-[170px] shrink-0"
+          {/* Desktop Category Dropdown (>= 640px) */}
+          <div className="hidden sm:block shrink-0">
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50 w-44 shrink-0 cursor-pointer"
+            >
+              <option value="all">Tất cả chuyên mục</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Mobile Category Filter Button (< 640px) */}
+          <button
+            type="button"
+            onClick={() => setShowMobileFilter(!showMobileFilter)}
+            className={`sm:hidden relative flex h-9 w-9 items-center justify-center rounded-xl border transition-all active:scale-95 shrink-0 ${
+              showMobileFilter || categoryFilter !== 'all'
+                ? 'border-primary/50 bg-primary/10 text-primary shadow-xs font-bold'
+                : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-muted/50'
+            }`}
+            title="Lọc chuyên mục"
           >
-            <option value="all">Tất cả chuyên mục</option>
-            {categories.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
+            </svg>
+            {categoryFilter !== 'all' && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold shadow-xs">
+                1
+              </span>
+            )}
+          </button>
 
           {/* Excel Utility Popover (Section 4 Apple Glass) */}
           <div className="relative shrink-0">
@@ -1017,12 +1041,41 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
             type="button"
             onClick={openNewPost}
             className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-2.5 sm:px-4 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs backdrop-blur-md transition-all hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+            title="Viết bài mới"
           >
             <PlusCircleIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Viết bài mới</span>
-            <span className="sm:hidden">Viết bài</span>
           </button>
         </div>
+
+        {/* Mobile Filter Expandable Dropdown Row */}
+        {showMobileFilter && (
+          <div className="sm:hidden mt-2 pt-2 border-t border-border/20 flex items-center gap-2">
+            <select
+              value={categoryFilter}
+              onChange={(e) => {
+                setCategoryFilter(e.target.value);
+              }}
+              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-3 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50"
+            >
+              <option value="all">Tất cả chuyên mục ({categories.length})</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {categoryFilter !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setCategoryFilter('all')}
+                className="h-9 px-2.5 rounded-xl border border-border/60 bg-background/40 text-[11px] font-medium text-muted-foreground hover:text-foreground shrink-0"
+              >
+                Xóa lọc
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Desktop Table View */}
