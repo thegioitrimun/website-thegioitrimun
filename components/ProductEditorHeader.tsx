@@ -386,7 +386,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                     />
 
                     {/* Dropdown Popover */}
-                    <div className="absolute right-0 top-full mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 top-full mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-[60] p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
                       {/* Toggle Hiển thị web */}
                       {onTogglePublished && (
                         <button
@@ -574,7 +574,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
 
       {/* 2. Apple Glass Section Navigator (Đã ẩn thanh cuộn xấu) */}
       {sections.length > 0 ? (
-        <div className="sticky top-2 sm:top-3 z-20 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className={`sticky top-2 sm:top-3 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${showMobileMenu ? 'z-0 pointer-events-none' : 'z-10'}`}>
           {sections.map((section) => (
             <a
               key={section.id}
