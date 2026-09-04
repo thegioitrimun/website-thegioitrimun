@@ -312,19 +312,11 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
               <h1 className="text-sm font-bold text-foreground truncate">
                 {productName || title}
               </h1>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${
-                  isSaving ? 'text-primary' : isDirty ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'
-                }`}>
-                  <span className={`h-1.5 w-1.5 rounded-full ${
-                    isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
-                  }`} />
-                  <span>{isSaving ? 'Đang lưu...' : isDirty ? 'Chưa lưu' : 'Đã đồng bộ'}</span>
-                </span>
-                {positionLabel ? (
-                  <span className="text-[10px] text-muted-foreground truncate">• {positionLabel}</span>
-                ) : null}
-              </div>
+              {positionLabel ? (
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                  {positionLabel}
+                </p>
+              ) : null}
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">
@@ -466,36 +458,12 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Badge trạng thái + Nút HỦY & LƯU VÀ CẬP NHẬT TRÊN TOP */}
+          {/* Row 2: Autosave time + Nút HỦY & LƯU VÀ CẬP NHẬT TRÊN TOP */}
           <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
-            {/* Badges trạng thái trực quan */}
-            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
-              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border shrink-0 ${
-                isPublished
-                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                  : 'border-muted-foreground/30 bg-muted/40 text-muted-foreground'
-              }`}>
-                <img
-                  src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
-                  alt=""
-                  className="w-3 h-3 object-contain shrink-0"
-                />
-                <span>{isPublished ? 'Hiện web' : 'Ẩn web'}</span>
-              </span>
-
-              {isFeatured ? (
-                <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0">
-                  <img
-                    src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
-                    alt=""
-                    className="w-3 h-3 object-contain shrink-0"
-                  />
-                  <span>Nổi bật</span>
-                </span>
-              ) : null}
-
+            {/* Autosave thời gian */}
+            <div className="min-w-0">
               {formattedDraftTime ? (
-                <span className="text-[10px] text-muted-foreground truncate hidden xs:inline">
+                <span className="text-[11px] text-muted-foreground font-medium truncate">
                   Auto {formattedDraftTime}
                 </span>
               ) : null}
@@ -572,29 +540,117 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
         ) : null}
       </div>
 
-      {/* 2. Apple Glass Section Navigator (Đã ẩn thanh cuộn xấu) */}
-      {sections.length > 0 ? (
-        <div className={`sticky top-2 sm:top-3 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 mx-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${showMobileMenu ? 'z-0 pointer-events-none' : 'z-10'}`}>
-          {sections.map((section) => (
-            <a
-              key={section.id}
-              href={`#${section.id}`}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted hover:border-primary/40 active:scale-95 dark:border-white/10"
+      {/* 2. Apple Glass Section Navigator & Sticky Status Badges */}
+      <div className={`sticky top-2 sm:top-3 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 mx-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${showMobileMenu ? 'z-0 pointer-events-none' : 'z-10'}`}>
+        {/* Badge trạng thái đồng bộ */}
+        <span
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-2.5 py-1.5 text-xs font-bold transition-all dark:border-white/10 ${
+            isSaving
+              ? 'text-primary'
+              : isDirty
+                ? 'text-amber-700 dark:text-amber-400'
+                : 'text-emerald-700 dark:text-emerald-400'
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
+            }`}
+          />
+          <span>{isSaving ? 'Đang lưu...' : isDirty ? 'Chưa lưu' : 'Đã đồng bộ'}</span>
+        </span>
+
+        {/* Badge / Nút Hiện / Ẩn Web */}
+        {onTogglePublished ? (
+          <button
+            type="button"
+            onClick={onTogglePublished}
+            disabled={disabledActions}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs backdrop-blur-2xl ${
+              isPublished
+                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                : 'border-white/80 bg-card/85 text-muted-foreground hover:text-foreground dark:border-white/10'
+            }`}
+            title={isPublished ? 'Đang hiện web (Click để ẩn)' : 'Đang ẩn web (Click để hiện)'}
+          >
+            <img
+              src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
+              alt=""
+              className="w-3.5 h-3.5 object-contain shrink-0"
+            />
+            <span>{isPublished ? 'Hiện web' : 'Ẩn web'}</span>
+          </button>
+        ) : (
+          <span
+            className={`inline-flex shrink-0 items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold shadow-xs backdrop-blur-2xl ${
+              isPublished
+                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                : 'border-white/80 bg-card/85 text-muted-foreground dark:border-white/10'
+            }`}
+          >
+            <img
+              src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
+              alt=""
+              className="w-3.5 h-3.5 object-contain shrink-0"
+            />
+            <span>{isPublished ? 'Hiện web' : 'Ẩn web'}</span>
+          </span>
+        )}
+
+        {/* Badge / Nút Nổi bật */}
+        {isFeatured ? (
+          onToggleFeatured ? (
+            <button
+              type="button"
+              onClick={onToggleFeatured}
+              disabled={disabledActions}
+              className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 transition-all active:scale-95 shadow-xs backdrop-blur-2xl"
+              title="Đang nổi bật (Click để bỏ)"
             >
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  section.status === 'complete'
-                    ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]'
-                    : section.status === 'warning'
-                      ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]'
-                      : 'bg-muted-foreground/40'
-                }`}
+              <img
+                src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
+                alt=""
+                className="w-3.5 h-3.5 object-contain shrink-0"
               />
-              <span>{section.label}</span>
-            </a>
-          ))}
-        </div>
-      ) : null}
+              <span>Nổi bật</span>
+            </button>
+          ) : (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 shadow-xs backdrop-blur-2xl">
+              <img
+                src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
+                alt=""
+                className="w-3.5 h-3.5 object-contain shrink-0"
+              />
+              <span>Nổi bật</span>
+            </span>
+          )
+        ) : null}
+
+        {/* Divider phân cách giữa nhóm trạng thái và các section navigation */}
+        {sections.length > 0 && (
+          <div className="h-5 w-px bg-border/60 shrink-0 mx-0.5" />
+        )}
+
+        {/* Các liên kết chuyển mục section */}
+        {sections.map((section) => (
+          <a
+            key={section.id}
+            href={`#${section.id}`}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted hover:border-primary/40 active:scale-95 dark:border-white/10"
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                section.status === 'complete'
+                  ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]'
+                  : section.status === 'warning'
+                    ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]'
+                    : 'bg-muted-foreground/40'
+              }`}
+            />
+            <span>{section.label}</span>
+          </a>
+        ))}
+      </div>
     </div>
   );
 };
