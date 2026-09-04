@@ -105,7 +105,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
   return (
     <div className={`mb-3 sm:mb-4 space-y-2.5 sm:space-y-3 relative ${showMobileMenu ? 'z-50' : ''}`}>
       {/* 1. Glass Header Banner */}
-      <div className={`rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3 sm:p-4 md:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 relative transition-[z-index] ${showMobileMenu ? 'z-50' : 'z-30'}`}>
+      <div className={`rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3 sm:p-4 md:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 relative transition-[z-index] mx-1 ${showMobileMenu ? 'z-50' : 'z-30'}`}>
         {/* DESKTOP LAYOUT (md+) */}
         <div className="hidden md:flex md:items-center md:justify-between md:gap-4">
           {/* Left: Nút quay lại + Tên sản phẩm + Badge trạng thái */}
@@ -574,7 +574,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
 
       {/* 2. Apple Glass Section Navigator (Đã ẩn thanh cuộn xấu) */}
       {sections.length > 0 ? (
-        <div className={`sticky top-2 sm:top-3 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${showMobileMenu ? 'z-0 pointer-events-none' : 'z-10'}`}>
+        <div className={`sticky top-2 sm:top-3 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 mx-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${showMobileMenu ? 'z-0 pointer-events-none' : 'z-10'}`}>
           {sections.map((section) => (
             <a
               key={section.id}
