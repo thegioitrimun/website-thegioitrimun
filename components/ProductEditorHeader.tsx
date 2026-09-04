@@ -138,24 +138,6 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                   {productName || title}
                 </h1>
 
-                {/* Badge trạng thái thay đổi */}
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold border transition-all shrink-0 ${
-                    isSaving
-                      ? 'border-primary/30 bg-primary/10 text-primary'
-                      : isDirty
-                        ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
-                        : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${
-                      isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
-                    }`}
-                  />
-                  <span>{isSaving ? 'Đang lưu...' : isDirty ? 'Có thay đổi chưa lưu' : 'Đã đồng bộ'}</span>
-                </span>
-
                 {formattedDraftTime ? (
                   <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300 shrink-0">
                     Autosave {formattedDraftTime}
