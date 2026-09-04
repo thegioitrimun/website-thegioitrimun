@@ -23,6 +23,7 @@ type AdminWorkspacePage = AdminNavigationView['page'];
 
 type AdminWorkspaceLayoutProps = {
   currentPage: AdminWorkspacePage;
+  currentRole: 'customer' | 'doctor' | 'accountant' | 'admin' | 'master_admin';
   onBack: () => void;
   onNavigate: (page: AdminNavigationView) => void;
   children: React.ReactNode;
@@ -60,6 +61,13 @@ const moduleConfig: Array<{
     mobileLabel: 'Pancake',
     description: 'Điều khiển đồng bộ D1 sang Pancake.',
     icon: <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp" alt="Pancake POS" className="h-7 w-7 object-contain" />,
+  },
+  {
+    page: 'adminVatManagement',
+    label: 'Kế toán VAT',
+    mobileLabel: 'VAT',
+    description: 'Bảng kê, kỳ thuế và hồ sơ nộp.',
+    icon: <DocumentDuplicateIcon className="h-7 w-7" />,
   },
   {
     page: 'adminBlogManagement',
@@ -136,6 +144,7 @@ export const AdminWorkspaceTabs = <T extends string>({
 
 const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   currentPage,
+  currentRole,
   onBack,
   onNavigate,
   children,
@@ -168,7 +177,12 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
     };
   }, [isMobileDrawerOpen]);
 
-  const activeModule = moduleConfig.find((item) => item.page === currentPage) || moduleConfig[0];
+  const visibleModules = moduleConfig.filter((item) => {
+    if (currentRole === 'master_admin') return true;
+    if (currentRole === 'accountant') return item.page === 'adminVatManagement';
+    return item.page !== 'adminVatManagement';
+  });
+  const activeModule = visibleModules.find((item) => item.page === currentPage) || visibleModules[0] || moduleConfig[0];
   const renderModuleButton = (item: (typeof moduleConfig)[number], compact = false, isMobileDrawer = false) => {
     const isActive = item.page === currentPage;
     const compactLabel = item.mobileLabel || item.label;
@@ -311,7 +325,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                 </button>
               </div>
               <nav className="space-y-1">
-                {moduleConfig.map((item) => (
+                {visibleModules.map((item) => (
                   <div key={item.page} onClick={() => setIsMobileDrawerOpen(false)}>
                     {renderModuleButton(item, false, true)}
                   </div>
@@ -339,7 +353,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               </div>
 
               <nav className="space-y-1">
-                {moduleConfig.map((item) => renderModuleButton(item))}
+                {visibleModules.map((item) => renderModuleButton(item))}
               </nav>
 
             </aside>
@@ -350,8 +364,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               <AnimatedSection className="mb-4 lg:mb-0">
 
                 {taskItems && taskItems.length > 0 ? (
-                  <div className="lg:hidden rounded-2xl border border-border/80 bg-background/85 p-1.5">
-                    <div className="flex snap-x overflow-x-auto hide-scrollbar gap-1.5 pb-0.5 xl:flex-wrap xl:overflow-visible">
+                  <div className="lg:hidden bg-transparent">
+                    <div className="flex snap-x overflow-x-auto hide-scrollbar gap-1.5 pb-1 xl:flex-wrap xl:overflow-visible">
                       {taskItems.map((item) => {
                         const isActive = item.key === activeTaskKey;
                         return (

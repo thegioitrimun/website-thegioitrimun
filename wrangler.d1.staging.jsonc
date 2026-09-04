@@ -44,6 +44,10 @@
       {
         "binding": "PANCAKE_QUEUE",
         "queue": "thegioitrimun-pancake-staging"
+      },
+      {
+        "binding": "TELEGRAM_QUEUE",
+        "queue": "thegioitrimun-telegram-orders-staging"
       }
     ],
     "consumers": [
@@ -70,11 +74,22 @@
         "max_retries": 8,
         "max_concurrency": 2,
         "dead_letter_queue": "thegioitrimun-pancake-staging-dlq"
+      },
+      {
+        "queue": "thegioitrimun-telegram-orders-staging",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-telegram-orders-staging-dlq"
       }
     ]
   },
   "images": {
     "binding": "IMAGES"
+  },
+  "ai": {
+    "binding": "AI"
   },
   "ratelimits": [
     {
@@ -98,6 +113,7 @@
     "DATA_BACKEND": "d1",
     "INCI_SHARD_COUNT": "2",
     "D1_SHADOW_READ": "false",
+    "D1_PROTECTED_MINIMUM_ORDERS": "45",
     "R2_PUBLIC_BASE_URL": "https://iskin-clinic-d1-staging.thegioitrimun.workers.dev/r2",
     "ORDER_LOOKUP_SMS_ENABLED": "false",
     "PRODUCT_SOURCE_PROJECT": "thegioitrimun.vn",
@@ -111,7 +127,10 @@
     "PANCAKE_DEFAULT_WEIGHT_GRAMS": "100",
     "OAUTH_BASE_URL": "https://iskin-clinic-d1-staging.thegioitrimun.workers.dev",
     "OAUTH_PROVIDERS": "google",
-    "GHTK_ENABLED": "false"
+    "GHTK_ENABLED": "false",
+    "TELEGRAM_ORDER_ALERTS_ENABLED": "false",
+    "SPX_LABEL_TELEGRAM_ENABLED": "false",
+    "DEPLAO_ORDER_AUTOMATION_ENABLED": "false"
   },
   "triggers": {
     "crons": [
@@ -123,7 +142,7 @@
   },
   "assets": {
     "binding": "ASSETS",
-    "directory": "./dist",
+    "directory": "./dist/client",
     "not_found_handling": "single-page-application",
     "run_worker_first": true
   },

@@ -9,30 +9,31 @@ import { maybeHandleObservabilityRoute } from './worker/observability/routes.js'
 import { maybeHandleAdminToolsRoute } from './worker/adminTools/routes.js';
 import { maybeHandleSeoRoute } from './worker/seo/routes.js';
 import { maybeHandleIngredientAnalyzerRoute } from './worker/ingredientAnalyzer/routes.js';
-import { syncD1ProductIngredientSnapshots } from './worker/ingredientAnalyzer/productSync.js';
+import { syncD1ProductIngredientSnapshots } from './worker/ingredientAnalyzer/productSyncD1.js';
 import { maybeHandleAiGatewayRoute } from './worker/aiGateway/routes.js';
 import { maybeHandleOrderLookupRoute } from './worker/orderLookup/routes.js';
 import { maybeHandleAuthRoute } from './worker/auth/routes.js';
 import { maybeHandleD1CommerceRoute } from './worker/orders/routes.js';
+import { maybeHandleSepayRoute } from './worker/payments/routes.js';
 import { maybeHandleGhtkRoute } from './worker/shipping/routes.js';
 import { maybeHandleAppointmentRoute } from './worker/appointments/routes.js';
 import { maybeHandleAccountRoute } from './worker/account/routes.js';
 import { maybeHandleAdminD1Route } from './worker/adminD1/routes.js';
+import { maybeHandleVatRoute } from './worker/vat/routes.js';
+import { syncVatCandidates } from './worker/vat/candidates.js';
 import { maybeHandleReviewRoute } from './worker/reviews/routes.js';
 import { maybeHandleAnalyticsRoute } from './worker/analytics/routes.js';
 import { maybeHandlePancakeRoute } from './worker/integrations/pancake/routes.js';
+import { maintainDeplaoAutomation, maybeHandleDeplaoRoute } from './worker/integrations/deplao/routes.js';
+import { consumeTelegramQueue, dispatchPendingTelegram } from './worker/integrations/deplao/telegram.js';
 import { consumePancakeQueue, dispatchPendingPancakeSync } from './worker/integrations/pancake/outbox.js';
+import { pollPancakeInbound } from './worker/integrations/pancake/inbound.js';
 import { dispatchPendingNotifications, consumeNotificationQueue } from './worker/email/outbox.js';
 import { consumeShippingQueue, dispatchPendingShipping } from './worker/shipping/handlers.js';
 import { enqueueDueAdminReports } from './worker/reports/dispatcher.js';
 import { requireCsrf, requireRole, requireSession } from './worker/auth/session.js';
 import { fetchD1PublicEndpoint } from './worker/publicRuntime/d1Rest.js';
 
-// D1 is the only production data backend. These variables remain only as
-// fail-closed placeholders for historical non-D1 modules that are not part
-// of the production route graph.
-let SUPABASE_URL = '';
-let SUPABASE_ANON_KEY = '';
 const SITE_NAME = 'Thế Giới Trị Mụn';
 const BASE_URL = 'https://thegioitrimun.vn';
 const CANONICAL_HOST = 'thegioitrimun.vn';
@@ -139,8 +140,6 @@ const BOOTSTRAP_FALLBACK_HOMEPAGE_HERO = {
     image_mobile_url: BOOTSTRAP_HERO_STATIC_ASSETS.mobile.url,
     image_mobile_avif_url: BOOTSTRAP_HERO_STATIC_ASSETS.mobile.avifUrl,
 };
-const supabaseFetchFailureOnce = new Set();
-let hasLoggedSupabaseConfigWarning = false;
 const SEO_LANGS = ['vi', 'en', 'ru', 'cn'];
 const HREFLANG_BY_LANG = {
     vi: 'vi',
@@ -226,38 +225,11 @@ function isBot(userAgent) {
 }
 
 function applyRuntimeConfig(env = {}) {
-    const d1Only = usesD1Backend(env);
-    SUPABASE_URL = d1Only
-        ? ''
-        : String(env.SUPABASE_URL || env.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
-    SUPABASE_ANON_KEY = d1Only
-        ? ''
-        : String(
-            env.SUPABASE_PUBLISHABLE_KEY ||
-            env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-            env.SUPABASE_ANON_KEY ||
-            env.VITE_SUPABASE_ANON_KEY ||
-            '',
-        );
-
+    if (!usesD1Backend(env) || !env.APP_DB) {
+        throw new Error('D1-only Worker requires DATA_BACKEND=d1 and APP_DB.');
+    }
     const configuredR2Base = env.R2_PUBLIC_BASE_URL || env.VITE_R2_IMAGE_BASE_URL || DEFAULT_R2_IMAGE_BASE_URL;
     R2_IMAGE_BASE_URL = String(configuredR2Base).replace(/\/+$/, '');
-
-    if (!d1Only && !hasLoggedSupabaseConfigWarning) {
-        const keyLooksValid = /^sb_publishable_/i.test(String(SUPABASE_ANON_KEY || '')) || /^eyJ/i.test(String(SUPABASE_ANON_KEY || ''));
-        if (!SUPABASE_URL || !keyLooksValid) {
-            console.warn('[worker] Supabase runtime config may be invalid.', {
-                supabaseUrl: SUPABASE_URL,
-                hasPublishableKey: Boolean(SUPABASE_ANON_KEY),
-                keyPreview: String(SUPABASE_ANON_KEY || '').slice(0, 14),
-            });
-        }
-        hasLoggedSupabaseConfigWarning = true;
-    }
-}
-
-function buildSupabaseRestUrl(endpoint) {
-    return `${SUPABASE_URL}/rest/v1/${String(endpoint || '').replace(/^\/+/, '')}`;
 }
 
 function isAllowedPublicRuntimeResource(resource) {
@@ -1166,11 +1138,7 @@ function getStorageUrl(path, bucket) {
         return `${R2_IMAGE_BASE_URL}/${encodeURIComponent(resolved.bucket)}/${encodeObjectPath(objectPath)}`;
     }
 
-    if (bucket) {
-        return `${SUPABASE_URL}/storage/v1/object/public/${encodeURIComponent(String(bucket))}/${encodeObjectPath(objectPath)}`;
-    }
-
-    return `${SUPABASE_URL}/storage/v1/object/public/${encodeObjectPath(objectPath)}`;
+    return `${R2_IMAGE_BASE_URL}/${encodeObjectPath(objectPath)}`;
 }
 
 function normalizeBootstrapHomepageHeroImagePath(value) {
@@ -2046,38 +2014,11 @@ function readBearerToken(request) {
     return auth.slice(7).trim() || null;
 }
 
-async function getAuthenticatedUser(token) {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    if (!res.ok) return null;
-    return res.json();
-}
-
-async function getCurrentUserRole(token, userId) {
-    const endpoint = `${SUPABASE_URL}/rest/v1/patients?id=eq.${encodeURIComponent(userId)}&select=role&limit=1`;
-    const res = await fetch(endpoint, {
-        headers: {
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
-    if (!res.ok) return null;
-    const rows = await res.json();
-    return rows?.[0]?.role || null;
-}
-
 function usesD1Backend(env) {
     return String(env?.DATA_BACKEND || '').toLowerCase() === 'd1';
 }
 
 function createPublicDataFetch(env) {
-    if (!usesD1Backend(env)) return supabaseFetch;
     return async (endpoint) => {
         const result = await fetchD1PublicEndpoint(env, endpoint);
         return result.data;
@@ -2101,62 +2042,23 @@ function d1AuthResult(session, allowedRoles = []) {
 }
 
 async function authorizeRequestByRole(request, allowedRoles, env) {
-    if (usesD1Backend(env)) {
-        try {
-            const session = await requireRole(env.APP_DB, request, allowedRoles);
-            if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())) {
-                await requireCsrf(env.APP_DB, request, session);
-            }
-            return d1AuthResult(session, allowedRoles);
-        } catch (error) {
-            return {
-                error: jsonResponse(
-                    { error: error instanceof Error ? error.message : 'Authentication failed.' },
-                    Number(error?.status || 401),
-                ),
-            };
-        }
+    try {
+        const session = await requireRole(env.APP_DB, request, allowedRoles);
+        if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())) await requireCsrf(env.APP_DB, request, session);
+        return d1AuthResult(session, allowedRoles);
+    } catch (error) {
+        return { error: jsonResponse({ error: error instanceof Error ? error.message : 'Authentication failed.' }, Number(error?.status || 401)) };
     }
-
-    const token = readBearerToken(request);
-    if (!token) return { error: jsonResponse({ error: 'Missing bearer token.' }, 401) };
-
-    const user = await getAuthenticatedUser(token);
-    if (!user?.id) return { error: jsonResponse({ error: 'Invalid access token.' }, 401) };
-
-    const role = await getCurrentUserRole(token, user.id);
-    if (!allowedRoles.includes(role)) {
-        return { error: jsonResponse({ error: 'Forbidden: insufficient role.' }, 403) };
-    }
-
-    return { user, role };
 }
 
 async function authorizeAuthenticatedRequest(request, env) {
-    if (usesD1Backend(env)) {
-        try {
-            const session = await requireSession(env.APP_DB, request);
-            if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())) {
-                await requireCsrf(env.APP_DB, request, session);
-            }
-            return d1AuthResult(session);
-        } catch (error) {
-            return {
-                error: jsonResponse(
-                    { error: error instanceof Error ? error.message : 'Authentication failed.' },
-                    Number(error?.status || 401),
-                ),
-            };
-        }
+    try {
+        const session = await requireSession(env.APP_DB, request);
+        if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase())) await requireCsrf(env.APP_DB, request, session);
+        return d1AuthResult(session);
+    } catch (error) {
+        return { error: jsonResponse({ error: error instanceof Error ? error.message : 'Authentication failed.' }, Number(error?.status || 401)) };
     }
-
-    const token = readBearerToken(request);
-    if (!token) return { error: jsonResponse({ error: 'Missing bearer token.' }, 401) };
-
-    const user = await getAuthenticatedUser(token);
-    if (!user?.id) return { error: jsonResponse({ error: 'Invalid access token.' }, 401) };
-
-    return { user };
 }
 
 async function authorizeImageMutation(request, env) {
@@ -2272,67 +2174,8 @@ async function supabaseFetch(endpoint, options = {}) {
     return result.data;
 }
 
-async function supabaseFetchWithMeta(endpoint, options = {}) {
-    const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : 8000;
-    const controller = new AbortController();
-    const startedAt = Date.now();
-    let timedOut = false;
-    const timeoutId = setTimeout(() => {
-        timedOut = true;
-        controller.abort('supabase fetch timeout');
-    }, timeoutMs);
-    try {
-        const response = await fetch(buildSupabaseRestUrl(endpoint), {
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-            },
-            signal: controller.signal,
-        });
-        if (!response.ok) {
-            if (!supabaseFetchFailureOnce.has(endpoint)) {
-                supabaseFetchFailureOnce.add(endpoint);
-                const errorText = await response.text().catch(() => '');
-                console.error('[worker] Supabase fetch failed:', {
-                    endpoint,
-                    status: response.status,
-                    body: errorText.slice(0, 500),
-                });
-            }
-            return {
-                data: null,
-                status: response.status,
-                duration_ms: Date.now() - startedAt,
-                timed_out: false,
-                error_message: `Supabase responded with status ${response.status}`,
-            };
-        }
-        return {
-            data: await response.json(),
-            status: response.status,
-            duration_ms: Date.now() - startedAt,
-            timed_out: false,
-            error_message: '',
-        };
-    } catch (error) {
-        if (!supabaseFetchFailureOnce.has(endpoint)) {
-            supabaseFetchFailureOnce.add(endpoint);
-            console.error('[worker] Supabase fetch threw:', {
-                endpoint,
-                message: error instanceof Error ? error.message : String(error),
-            });
-        }
-        const didTimeout = timedOut || (error instanceof Error && error.name === 'AbortError');
-        return {
-            data: null,
-            status: didTimeout ? 504 : undefined,
-            duration_ms: Date.now() - startedAt,
-            timed_out: didTimeout,
-            error_message: error instanceof Error ? error.message : String(error),
-        };
-    } finally {
-        clearTimeout(timeoutId);
-    }
+async function supabaseFetchWithMeta() {
+    throw new Error('Legacy external data fetch is disabled in the D1-only Worker.');
 }
 
 // ============================================================
@@ -3184,10 +3027,13 @@ export default {
         const routeModules = [
             () => maybeHandleAuthRoute(routeContext),
             () => maybeHandleD1CommerceRoute(routeContext),
+            () => maybeHandleSepayRoute(routeContext),
             () => maybeHandleGhtkRoute(routeContext),
             () => maybeHandleAppointmentRoute(routeContext),
             () => maybeHandleAccountRoute(routeContext),
             () => maybeHandlePancakeRoute(routeContext),
+            () => maybeHandleDeplaoRoute(routeContext),
+            () => maybeHandleVatRoute(routeContext),
             () => maybeHandleAdminD1Route(routeContext),
             () => maybeHandleReviewRoute(routeContext),
             () => maybeHandleAnalyticsRoute(routeContext),
@@ -3205,7 +3051,6 @@ export default {
                 queuePublicMetricEvent,
                 isAllowedPublicRuntimeResource,
                 jsonResponse,
-                PUBLIC_RUNTIME_PROXY_TIMEOUT_MS,
                 PUBLIC_BOOTSTRAP_QUERY_TIMEOUT_MS,
                 PRODUCT_LIST_LITE_SELECT,
                 HOMEPAGE_PRODUCT_SELECT,
@@ -3215,9 +3060,6 @@ export default {
                 HOMEPAGE_BRAND_LIMIT,
                 BLOG_HOMEPAGE_SELECT,
                 HOMEPAGE_BLOG_SOURCE_LIMIT,
-                buildSupabaseRestUrl,
-                SUPABASE_ANON_KEY,
-                supabaseFetchWithMeta,
                 mapBlogLiteRecord,
                 selectHomepageProductRows,
                 mapServiceRecord,
@@ -3268,7 +3110,6 @@ export default {
             () => maybeHandleIngredientAnalyzerRoute(routeContext, {
                 jsonResponse,
                 authorizeAdminEditorAccess: (authRequest) => authorizeAdminEditorAccess(authRequest, env),
-                SUPABASE_URL,
             }),
             () => maybeHandleAiGatewayRoute(routeContext, {
                 jsonResponse,
@@ -3277,8 +3118,6 @@ export default {
             }),
             () => maybeHandleOrderLookupRoute(routeContext, {
                 jsonResponse,
-                SUPABASE_URL,
-                SUPABASE_ANON_KEY,
                 ctx,
                 dispatchPendingNotifications,
             }),
@@ -3402,6 +3241,14 @@ export default {
                     message: error instanceof Error ? error.message : String(error),
                 });
             }),
+            syncVatCandidates(env, { limit: 50 }).then((summary) => {
+                const synced = Number(summary?.orders?.synced || 0) + Number(summary?.clinic?.synced || 0);
+                if (synced) console.log('[vat-candidates] Synced candidates:', synced);
+            }).catch((error) => {
+                console.error('[vat-candidates] Scheduled sync failed:', {
+                    message: error instanceof Error ? error.message : String(error),
+                });
+            }),
             enqueueDueAdminReports(env).then((summary) => {
                 if (summary.reports) console.log('[admin-reports] Enqueued reports:', summary);
             }).then(() => dispatchPendingNotifications(env)).then((summary) => {
@@ -3425,6 +3272,21 @@ export default {
                     message: error instanceof Error ? error.message : String(error),
                 });
             }),
+            pollPancakeInbound(env).then((summary) => {
+                const accepted = (summary.resources || []).reduce((total, row) => total + Number(row.accepted || 0), 0);
+                if (accepted) console.log('[pancake-inbound] Queued remote changes:', accepted);
+            }).catch((error) => {
+                console.error('[pancake-inbound] Poll failed:', {
+                    message: error instanceof Error ? error.message : String(error),
+                });
+            }),
+            maintainDeplaoAutomation(env).then(() => dispatchPendingTelegram(env)).then((summary) => {
+                if (summary.queued) console.log('[telegram-order-outbox] Queued alerts:', summary.queued);
+            }).catch((error) => {
+                console.error('[deplao-automation] Maintenance failed:', {
+                    message: error instanceof Error ? error.message : String(error),
+                });
+            }),
         ]));
     },
 
@@ -3432,6 +3294,7 @@ export default {
         const kind = batch.messages.find((message) => message.body?.kind)?.body?.kind;
         if (kind === 'shipping') return consumeShippingQueue(batch, env);
         if (kind === 'pancake') return consumePancakeQueue(batch, env);
+        if (kind === 'telegram') return consumeTelegramQueue(batch, env);
         return consumeNotificationQueue(batch, env);
     },
 };

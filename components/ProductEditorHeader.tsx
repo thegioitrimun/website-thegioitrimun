@@ -1,5 +1,6 @@
-import React from 'react';
-import { CheckCircleIcon } from './icons';
+import React, { useState, useEffect } from 'react';
+import Spinner from './Spinner';
+import type { Product } from '../types';
 import type { ProductEditorSection } from '../src/productEditorTypes';
 
 interface DraftState {
@@ -14,12 +15,28 @@ interface DraftState {
 
 interface ProductEditorHeaderProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
+  productName?: string;
   positionLabel?: string | null;
   isDirty?: boolean;
   isSaving?: boolean;
+  isUploadingImages?: boolean;
+  publishState?: boolean;
+  isPublished?: boolean;
+  isFeatured?: boolean;
+  onTogglePublished?: () => void;
+  onToggleFeatured?: () => void;
   sections?: ProductEditorSection[];
   draftState?: DraftState;
+  onBack?: () => void;
+  onSave?: () => void;
+  onCancel?: () => void;
+  onCreateNew?: () => void;
+  previousProduct?: Pick<Product, 'id' | 'name'> | null;
+  nextProduct?: Pick<Product, 'id' | 'name'> | null;
+  onSelectPreviousProduct?: () => void;
+  onSelectNextProduct?: () => void;
+  disabledActions?: boolean;
   actionSlot?: React.ReactNode;
   secondaryActionSlot?: React.ReactNode;
 }
@@ -27,14 +44,48 @@ interface ProductEditorHeaderProps {
 const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
   title,
   subtitle,
+  productName,
   positionLabel,
   isDirty = false,
   isSaving = false,
+  isUploadingImages = false,
+  publishState = false,
+  isPublished = false,
+  isFeatured = false,
+  onTogglePublished,
+  onToggleFeatured,
   sections = [],
   draftState,
+  onBack,
+  onSave,
+  onCancel,
+  onCreateNew,
+  previousProduct = null,
+  nextProduct = null,
+  onSelectPreviousProduct,
+  onSelectNextProduct,
+  disabledActions = false,
   actionSlot,
   secondaryActionSlot,
 }) => {
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  useEffect(() => {
+    if (!showMobileMenu) return;
+    const handleOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest('[data-mobile-header-menu]')) {
+        setShowMobileMenu(false);
+      }
+    };
+    document.addEventListener('click', handleOutside);
+    document.addEventListener('touchstart', handleOutside);
+    return () => {
+      document.removeEventListener('click', handleOutside);
+      document.removeEventListener('touchstart', handleOutside);
+    };
+  }, [showMobileMenu]);
+
   const formattedDraftTime = draftState?.lastSavedAt
     ? new Intl.DateTimeFormat('vi-VN', {
         day: '2-digit',
@@ -44,79 +95,468 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
       }).format(new Date(draftState.lastSavedAt))
     : null;
 
+  const handleCancel = onCancel || onBack;
+
   return (
-    <div className="mb-6 space-y-4">
-      <div className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5 md:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="mt-2 flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground md:text-[2rem]">{title}</h1>
-              {positionLabel ? (
-                <span className="inline-flex items-center rounded-full border border-border bg-background px-3 py-1 text-xs font-semibold text-muted-foreground">
-                  {positionLabel}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                  isSaving
-                    ? 'border-primary/25 bg-primary/10 text-primary'
-                    : isDirty
-                      ? 'border-amber-200 bg-amber-50 text-amber-800'
-                      : 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                }`}
+    <div className="mb-3 sm:mb-4 space-y-2.5 sm:space-y-3">
+      {/* 1. Glass Header Banner */}
+      <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3 sm:p-4 md:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 relative z-30">
+        {/* DESKTOP LAYOUT (md+) */}
+        <div className="hidden md:flex md:items-center md:justify-between md:gap-4">
+          {/* Left: Nút quay lại + Tên sản phẩm + Badge trạng thái */}
+          <div className="flex items-center gap-3 min-w-0">
+            {handleCancel ? (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:border-primary/50 hover:bg-card hover:text-primary transition-all active:scale-95 shadow-2xs"
+                title="Về danh sách sản phẩm"
+                aria-label="Về danh sách"
               >
-                <CheckCircleIcon className="h-4 w-4" />
-                {isSaving ? 'Đang lưu bản nháp' : isDirty ? 'Có thay đổi chưa lưu' : 'Đã đồng bộ'}
-              </span>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-4 w-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+              </button>
+            ) : null}
 
-              {formattedDraftTime ? (
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg lg:text-xl font-black text-foreground tracking-tight truncate max-w-[280px] lg:max-w-[420px] 2xl:max-w-none">
+                  {productName || title}
+                </h1>
+
+                {/* Badge trạng thái thay đổi */}
                 <span
-                  className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                    draftState?.status === 'error'
-                      ? 'border-red-200 bg-red-50 text-red-700'
-                      : 'border-sky-200 bg-sky-50 text-sky-800'
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold border transition-all shrink-0 ${
+                    isSaving
+                      ? 'border-primary/30 bg-primary/10 text-primary'
+                      : isDirty
+                        ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                        : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
                   }`}
                 >
-                  {(draftState?.label || 'Autosave')} {formattedDraftTime}
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
+                    }`}
+                  />
+                  <span>{isSaving ? 'Đang lưu...' : isDirty ? 'Có thay đổi chưa lưu' : 'Đã đồng bộ'}</span>
                 </span>
+
+                {formattedDraftTime ? (
+                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300 shrink-0">
+                    Autosave {formattedDraftTime}
+                  </span>
+                ) : null}
+              </div>
+
+              {positionLabel ? (
+                <p className="mt-0.5 text-xs text-muted-foreground font-medium">
+                  {positionLabel}
+                </p>
               ) : null}
             </div>
           </div>
 
-          <div className="flex w-full flex-col gap-3 xl:w-auto xl:min-w-[360px] xl:items-end">
-            {secondaryActionSlot ? <div className="flex flex-wrap justify-end gap-2">{secondaryActionSlot}</div> : null}
-            {actionSlot ? <div className="flex flex-wrap justify-end gap-2">{actionSlot}</div> : null}
+          {/* Right: Thao tác (Chuyển trang, Nổi bật, Hiện web, Tạo mới, Hủy, Lưu) */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Bộ chuyển sản phẩm trước / sau */}
+            {(previousProduct || nextProduct) ? (
+              <div className="flex items-center rounded-xl border border-border/60 bg-background/50 p-0.5 shadow-2xs backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={onSelectPreviousProduct}
+                  disabled={!previousProduct || disabledActions}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                  title={previousProduct?.name ? `Trước: ${previousProduct.name}` : 'Không có sản phẩm trước'}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                  </svg>
+                </button>
+                <span className="text-[10px] font-bold text-muted-foreground px-2 border-x border-border/40 select-none">
+                  Chuyển
+                </span>
+                <button
+                  type="button"
+                  onClick={onSelectNextProduct}
+                  disabled={!nextProduct || disabledActions}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none transition-all"
+                  title={nextProduct?.name ? `Sau: ${nextProduct.name}` : 'Không có sản phẩm sau'}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
+                </button>
+              </div>
+            ) : null}
+
+            {/* Toggle Hiển thị trên website (Icon hệ thống) */}
+            {onTogglePublished ? (
+              <button
+                type="button"
+                onClick={onTogglePublished}
+                disabled={disabledActions}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-all active:scale-95 shadow-2xs ${
+                  isPublished
+                    ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold'
+                    : 'border-border/70 bg-background/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                title={isPublished ? 'Đang hiển thị trên website (Click để ẩn)' : 'Đang ẩn khỏi website (Click để hiện)'}
+              >
+                <img
+                  src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
+                  alt=""
+                  className="w-4 h-4 object-contain shrink-0"
+                />
+                <span className="hidden lg:inline">{isPublished ? 'Hiện web' : 'Ẩn web'}</span>
+              </button>
+            ) : null}
+
+            {/* Toggle Đánh dấu nổi bật (Icon hệ thống) */}
+            {onToggleFeatured ? (
+              <button
+                type="button"
+                onClick={onToggleFeatured}
+                disabled={disabledActions}
+                className={`inline-flex h-9 items-center gap-1.5 rounded-xl border px-2.5 text-xs font-semibold transition-all active:scale-95 shadow-2xs ${
+                  isFeatured
+                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold'
+                    : 'border-border/70 bg-background/50 text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+                title={isFeatured ? 'Đang nổi bật trên homepage (Click để bỏ)' : 'Chưa nổi bật (Click để bật nổi bật)'}
+              >
+                <img
+                  src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp'}
+                  alt=""
+                  className="w-4 h-4 object-contain shrink-0"
+                />
+                <span className="hidden lg:inline">{isFeatured ? 'Nổi bật' : 'Bình thường'}</span>
+              </button>
+            ) : null}
+
+            {onCreateNew ? (
+              <button
+                type="button"
+                onClick={onCreateNew}
+                disabled={disabledActions}
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-background/50 px-2.5 sm:px-3 text-xs font-bold text-foreground hover:bg-muted hover:border-primary/40 active:scale-95 disabled:opacity-50 transition-all shadow-2xs"
+                title="Tạo sản phẩm mới"
+              >
+                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="" className="w-5 h-5 object-contain" />
+                <span className="hidden xl:inline">Tạo mới</span>
+              </button>
+            ) : null}
+
+            {/* Vạch ngăn cách */}
+            <div className="h-6 w-px bg-border/60 mx-0.5" />
+
+            {/* Nút HỦY */}
+            {handleCancel ? (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="h-9 px-3.5 sm:px-4 rounded-xl border border-border/70 bg-background/50 text-xs font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
+              >
+                Hủy
+              </button>
+            ) : null}
+
+            {/* Nút LƯU & CẬP NHẬT WEBSITE */}
+            {onSave ? (
+              <button
+                type="button"
+                onClick={onSave}
+                disabled={isSaving || isUploadingImages || disabledActions}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+              >
+                {isSaving ? <Spinner className="h-3.5 w-3.5" /> : null}
+                <span>
+                  {isSaving
+                    ? 'Đang lưu...'
+                    : isUploadingImages
+                      ? 'Đợi upload ảnh'
+                      : publishState
+                        ? 'Lưu & xuất bản website'
+                        : 'Lưu sản phẩm'}
+                </span>
+              </button>
+            ) : null}
           </div>
         </div>
 
+        {/* MOBILE LAYOUT (< md) - Thiết kế tối ưu với menu 3 chấm [ ⋯ ] */}
+        <div className="block md:hidden space-y-2.5">
+          {/* Row 1: Back + Name + Pager + Dấu 3 chấm [ ⋯ ] */}
+          <div className="flex items-center gap-2">
+            {handleCancel ? (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:bg-muted hover:text-foreground active:scale-95 transition-all shadow-2xs"
+                title="Về danh sách"
+                aria-label="Về danh sách"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-4 w-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0 7.5-7.5M3 12h18" />
+                </svg>
+              </button>
+            ) : null}
+
+            <div className="min-w-0 flex-1">
+              <h1 className="text-sm font-bold text-foreground truncate">
+                {productName || title}
+              </h1>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className={`inline-flex items-center gap-1 text-[11px] font-bold ${
+                  isSaving ? 'text-primary' : isDirty ? 'text-amber-700 dark:text-amber-400' : 'text-emerald-700 dark:text-emerald-400'
+                }`}>
+                  <span className={`h-1.5 w-1.5 rounded-full ${
+                    isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`} />
+                  <span>{isSaving ? 'Đang lưu...' : isDirty ? 'Chưa lưu' : 'Đã đồng bộ'}</span>
+                </span>
+                {positionLabel ? (
+                  <span className="text-[10px] text-muted-foreground truncate">• {positionLabel}</span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              {/* Pager trước / sau */}
+              {(previousProduct || nextProduct) ? (
+                <div className="flex items-center rounded-xl border border-border/60 bg-background/50 p-0.5 shadow-2xs">
+                  <button
+                    type="button"
+                    onClick={onSelectPreviousProduct}
+                    disabled={!previousProduct || disabledActions}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                    title={previousProduct?.name ? `Trước: ${previousProduct.name}` : 'Không có'}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-3.5 w-3.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onSelectNextProduct}
+                    disabled={!nextProduct || disabledActions}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+                    title={nextProduct?.name ? `Sau: ${nextProduct.name}` : 'Không có'}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-3.5 w-3.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                    </svg>
+                  </button>
+                </div>
+              ) : null}
+
+              {/* Nút Ba Chấm [ ⋯ ] chứa Nổi bật, Hiện web, Tạo mới trên mobile */}
+              <div className="relative" data-mobile-header-menu>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  className={`flex h-8.5 w-8.5 items-center justify-center rounded-xl border transition-all active:scale-95 shadow-2xs shrink-0 ${
+                    showMobileMenu
+                      ? 'border-primary/50 bg-primary/10 text-primary shadow-xs'
+                      : 'border-border/70 bg-background/50 text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Tùy chọn: Hiện web, Nổi bật, Tạo mới"
+                  aria-label="Tùy chọn thêm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                  </svg>
+                </button>
+
+                {showMobileMenu && (
+                  <>
+                    {/* Invisible Backdrop click catcher */}
+                    <div
+                      className="fixed inset-0 z-40 bg-transparent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMobileMenu(false);
+                      }}
+                    />
+
+                    {/* Dropdown Popover */}
+                    <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
+                      {/* Toggle Hiển thị web */}
+                      {onTogglePublished && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onTogglePublished();
+                            setShowMobileMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
+                              alt=""
+                              className="w-4 h-4 object-contain shrink-0"
+                            />
+                            <span>{isPublished ? 'Ẩn khỏi web' : 'Hiện trên web'}</span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                            isPublished ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {isPublished ? 'Đang bật' : 'Đang tắt'}
+                          </span>
+                        </button>
+                      )}
+
+                      {/* Toggle Đánh dấu nổi bật */}
+                      {onToggleFeatured && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onToggleFeatured();
+                            setShowMobileMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <img
+                              src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp'}
+                              alt=""
+                              className="w-4 h-4 object-contain shrink-0"
+                            />
+                            <span>{isFeatured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật'}</span>
+                          </div>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                            isFeatured ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {isFeatured ? 'Đang bật' : 'Đang tắt'}
+                          </span>
+                        </button>
+                      )}
+
+                      {onCreateNew && (
+                        <>
+                          <div className="my-1 border-t border-border/50" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onCreateNew();
+                              setShowMobileMenu(false);
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
+                          >
+                            <img
+                              src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp"
+                              alt=""
+                              className="w-4 h-4 object-contain shrink-0"
+                            />
+                            <span>Tạo sản phẩm mới</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Row 2: Badge trạng thái + Nút HỦY & LƯU VÀ CẬP NHẬT TRÊN TOP */}
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
+            {/* Badges trạng thái trực quan */}
+            <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border shrink-0 ${
+                isPublished
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                  : 'border-muted-foreground/30 bg-muted/40 text-muted-foreground'
+              }`}>
+                <img
+                  src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
+                  alt=""
+                  className="w-3 h-3 object-contain shrink-0"
+                />
+                <span>{isPublished ? 'Hiện web' : 'Ẩn web'}</span>
+              </span>
+
+              {isFeatured ? (
+                <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0">
+                  <img
+                    src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
+                    alt=""
+                    className="w-3 h-3 object-contain shrink-0"
+                  />
+                  <span>Nổi bật</span>
+                </span>
+              ) : null}
+
+              {formattedDraftTime ? (
+                <span className="text-[10px] text-muted-foreground truncate hidden xs:inline">
+                  Auto {formattedDraftTime}
+                </span>
+              ) : null}
+            </div>
+
+            {/* Nút Hủy & Lưu */}
+            <div className="flex items-center gap-2 shrink-0">
+              {handleCancel ? (
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="h-8.5 px-3 rounded-xl border border-border/70 bg-background/50 text-xs font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
+                >
+                  Hủy
+                </button>
+              ) : null}
+
+              {onSave ? (
+                <button
+                  type="button"
+                  onClick={onSave}
+                  disabled={isSaving || isUploadingImages || disabledActions}
+                  className="inline-flex h-8.5 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                >
+                  {isSaving ? <Spinner className="h-3.5 w-3.5" /> : null}
+                  <span>
+                    {isSaving
+                      ? 'Đang lưu...'
+                      : isUploadingImages
+                        ? 'Đợi ảnh'
+                        : publishState
+                          ? 'Lưu & xuất bản'
+                          : 'Lưu sản phẩm'}
+                  </span>
+                </button>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* Thông báo bản nháp nếu có */}
         {draftState?.hasRestorableDraft ? (
-          <div className="mt-4 rounded-[1.4rem] border border-sky-200 bg-sky-50/90 px-4 py-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="mt-3.5 rounded-xl border border-sky-500/30 bg-sky-500/10 p-3 text-xs text-sky-900 dark:text-sky-200">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-sky-950">Có bản nháp local chưa áp vào form.</p>
-                <p className="mt-1 text-sm text-sky-900">
-                  {formattedDraftTime ? `Bản nháp được autosave lúc ${formattedDraftTime}.` : 'Đã tìm thấy bản nháp autosave trên máy này.'}
+                <p className="font-bold">Có bản nháp cục bộ chưa áp dụng.</p>
+                <p className="text-[11px] opacity-80 mt-0.5">
+                  {formattedDraftTime ? `Autosave lúc ${formattedDraftTime}.` : 'Đã tìm thấy bản nháp autosave trên máy này.'}
                   {draftState.note ? ` ${draftState.note}` : ''}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5">
                 {draftState.onDiscard ? (
                   <button
                     type="button"
                     onClick={draftState.onDiscard}
-                    className="rounded-full border border-sky-300 bg-white px-4 py-2 text-sm font-semibold text-sky-900 transition-colors hover:border-sky-400"
+                    className="rounded-lg border border-border/60 bg-background/50 px-2.5 py-1 text-xs font-semibold hover:bg-muted transition-all active:scale-95"
                   >
-                    Bỏ bản nháp
+                    Bỏ qua
                   </button>
                 ) : null}
                 {draftState.onRestore ? (
                   <button
                     type="button"
                     onClick={draftState.onRestore}
-                    className="rounded-full border border-sky-700 bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-800"
+                    className="rounded-lg bg-sky-600 px-3 py-1 text-xs font-bold text-white hover:bg-sky-700 transition-all active:scale-95"
                   >
                     Khôi phục
                   </button>
@@ -127,32 +567,27 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
         ) : null}
       </div>
 
+      {/* 2. Apple Glass Section Navigator (Đã ẩn thanh cuộn xấu) */}
       {sections.length > 0 ? (
-        <div className="sticky top-3 z-30 overflow-x-auto rounded-[1.6rem] bg-transparent border-0 p-2 backdrop-blur-xl">
-          <div className="flex min-w-max gap-2">
-            {sections.map((section) => (
-              <a
-                key={section.id}
-                href={`#${section.id}`}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+        <div className="sticky top-2 sm:top-3 z-30 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {sections.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted hover:border-primary/40 active:scale-95 dark:border-white/10"
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
                   section.status === 'complete'
-                    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                    ? 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]'
                     : section.status === 'warning'
-                      ? 'border-amber-200 bg-amber-50 text-amber-800'
-                      : 'border-border bg-background text-muted-foreground hover:border-primary/25 hover:text-primary'
+                      ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]'
+                      : 'bg-muted-foreground/40'
                 }`}
-              >
-                <span className={`h-2.5 w-2.5 rounded-full ${
-                  section.status === 'complete'
-                    ? 'bg-emerald-500'
-                    : section.status === 'warning'
-                      ? 'bg-amber-500'
-                      : 'bg-border'
-                }`} />
-                {section.label}
-              </a>
-            ))}
-          </div>
+              />
+              <span>{section.label}</span>
+            </a>
+          ))}
         </div>
       ) : null}
     </div>

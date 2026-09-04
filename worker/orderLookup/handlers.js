@@ -16,16 +16,6 @@ function normalizePhone(value) {
     return String(value || '').replace(/\D/g, '');
 }
 
-function toE164Phone(value) {
-    const raw = String(value || '').trim();
-    const digits = normalizePhone(raw);
-    if (raw.startsWith('+')) return `+${digits}`;
-    if (digits.startsWith('00')) return `+${digits.slice(2)}`;
-    if (digits.startsWith('84')) return `+${digits}`;
-    if (digits.startsWith('0')) return `+84${digits.slice(1)}`;
-    return `+${digits}`;
-}
-
 function createResponder(jsonResponse) {
     return (payload, status = 200, headers = {}) => jsonResponse(payload, status, {
         'Cache-Control': 'no-store',
@@ -65,20 +55,7 @@ async function parseLookupBody(request, respond) {
     if (orderCode.length < 5 || orderCode.length > 40 || phone.length < 8 || phone.length > 15) {
         return { response: respond({ error: 'Mã đơn hàng hoặc số điện thoại không hợp lệ.' }, 400) };
     }
-    return { body, orderCode, phone, e164Phone: toE164Phone(body?.phone) };
-}
-
-function getServerConfig(env, deps, respond) {
-    const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY;
-    const publishableKey = deps.SUPABASE_ANON_KEY || env.SUPABASE_PUBLISHABLE_KEY;
-    if (!serviceRoleKey || !publishableKey || !deps.SUPABASE_URL) {
-        return { response: respond({ error: 'Order lookup service is not configured.' }, 503) };
-    }
-    return { serviceRoleKey, publishableKey };
-}
-
-function usesD1Backend(env) {
-    return String(env?.DATA_BACKEND || '').toLowerCase() === 'd1';
+    return { body, orderCode, phone };
 }
 
 function generateOtp() {
@@ -218,24 +195,6 @@ async function verifyD1EmailOtp(parsed, otp, env, respond) {
     return respond([await loadD1GuestOrder(env.APP_DB, order)]);
 }
 
-async function fetchSecureOrder({ orderCode, phone, serviceRoleKey, supabaseUrl, fetchImpl }) {
-    const response = await fetchImpl(`${supabaseUrl}/rest/v1/rpc/lookup_guest_product_order_secure`, {
-        method: 'POST',
-        headers: {
-            apikey: serviceRoleKey,
-            Authorization: `Bearer ${serviceRoleKey}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            p_order_code: orderCode,
-            p_customer_phone: phone,
-        }),
-    });
-    if (!response.ok) return { error: response };
-    const orders = await response.json();
-    return { orders: Array.isArray(orders) ? orders : [] };
-}
-
 export async function handleGuestOrderOtpRequest(request, env, deps) {
     const respond = createResponder(deps.jsonResponse);
     const guard = await enforceRequestGuards(request, env, respond);
@@ -243,46 +202,7 @@ export async function handleGuestOrderOtpRequest(request, env, deps) {
 
     const parsed = await parseLookupBody(request, respond);
     if (parsed.response) return parsed.response;
-    if (usesD1Backend(env)) return requestD1EmailOtp(parsed, env, deps, respond);
-
-    if (String(env.ORDER_LOOKUP_SMS_ENABLED || '').toLowerCase() !== 'true') {
-        return respond({ error: 'Dịch vụ OTP qua SMS chưa được cấu hình.' }, 503);
-    }
-    const config = getServerConfig(env, deps, respond);
-    if (config.response) return config.response;
-    const fetchImpl = deps.fetchImpl || fetch;
-
-    const lookup = await fetchSecureOrder({
-        orderCode: parsed.orderCode,
-        phone: parsed.phone,
-        serviceRoleKey: config.serviceRoleKey,
-        supabaseUrl: deps.SUPABASE_URL,
-        fetchImpl,
-    });
-    if (lookup.error) return respond({ error: 'Không thể xác minh đơn hàng vào lúc này.' }, 502);
-
-    // Return the same response for unknown orders to avoid credential enumeration.
-    if (lookup.orders.length === 0) {
-        return respond({ sent: true }, 202);
-    }
-
-    const otpResponse = await fetchImpl(`${deps.SUPABASE_URL}/auth/v1/otp`, {
-        method: 'POST',
-        headers: {
-            apikey: config.publishableKey,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            phone: parsed.e164Phone,
-            create_user: true,
-            channel: 'sms',
-        }),
-    });
-    if (!otpResponse.ok) {
-        return respond({ error: 'Không thể gửi mã OTP vào lúc này.' }, otpResponse.status === 429 ? 429 : 502);
-    }
-
-    return respond({ sent: true, channel: 'sms' }, 202);
+    return requestD1EmailOtp(parsed, env, deps, respond);
 }
 
 export async function handleGuestOrderLookup(request, env, deps) {
@@ -296,44 +216,5 @@ export async function handleGuestOrderLookup(request, env, deps) {
     if (!OTP_PATTERN.test(otp)) {
         return respond({ error: 'Mã OTP không hợp lệ.' }, 400);
     }
-    if (usesD1Backend(env)) return verifyD1EmailOtp(parsed, otp, env, respond);
-
-    if (String(env.ORDER_LOOKUP_SMS_ENABLED || '').toLowerCase() !== 'true') {
-        return respond({ error: 'Dịch vụ OTP qua SMS chưa được cấu hình.' }, 503);
-    }
-
-    const config = getServerConfig(env, deps, respond);
-    if (config.response) return config.response;
-    const fetchImpl = deps.fetchImpl || fetch;
-
-    const verifyResponse = await fetchImpl(`${deps.SUPABASE_URL}/auth/v1/verify`, {
-        method: 'POST',
-        headers: {
-            apikey: config.publishableKey,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            phone: parsed.e164Phone,
-            token: otp,
-            type: 'sms',
-        }),
-    });
-    if (!verifyResponse.ok) {
-        return respond({ error: 'Mã OTP không đúng hoặc đã hết hạn.' }, 401);
-    }
-
-    const verification = await verifyResponse.json().catch(() => null);
-    if (normalizePhone(verification?.user?.phone) !== normalizePhone(parsed.e164Phone)) {
-        return respond({ error: 'Không thể xác minh số điện thoại.' }, 401);
-    }
-
-    const lookup = await fetchSecureOrder({
-        orderCode: parsed.orderCode,
-        phone: parsed.phone,
-        serviceRoleKey: config.serviceRoleKey,
-        supabaseUrl: deps.SUPABASE_URL,
-        fetchImpl,
-    });
-    if (lookup.error) return respond({ error: 'Không thể tra cứu đơn hàng vào lúc này.' }, 502);
-    return respond(lookup.orders);
+    return verifyD1EmailOtp(parsed, otp, env, respond);
 }

@@ -13,6 +13,7 @@ function parseJson(value, fallback) {
 
 function publicRole(roles) {
     if (roles.includes('master_admin')) return 'master_admin';
+    if (roles.includes('accountant')) return 'accountant';
     if (roles.includes('admin')) return 'admin';
     if (roles.includes('doctor') || roles.includes('editor')) return 'doctor';
     return 'customer';

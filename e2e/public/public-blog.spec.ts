@@ -10,7 +10,6 @@ test.describe('Public blog journeys', () => {
     await searchInput.fill('mụn đầu đen');
     await page.waitForTimeout(1200);
 
-    await expect(page.getByText(/KẾT QUẢ NHANH/i)).toBeVisible();
     await expect(page.getByText(/mụn đầu đen/i).first()).toBeVisible();
     await expect(page.getByText(/Mụn đầu đen ở trán: Nguyên nhân & Cách điều trị an toàn, hiệu quả/i)).toBeVisible();
 

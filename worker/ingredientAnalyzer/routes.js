@@ -1,8 +1,8 @@
-import { handleIngredientAnalyze } from './handlers.js';
+import { handleIngredientAnalyze } from './handlersD1.js';
 import {
     handleProductIngredientSnapshot,
     handleProductIngredientSync,
-} from './productSync.js';
+} from './productSyncD1.js';
 
 const noContent = () => new Response(null, { status: 204 });
 const methodNotAllowed = () => new Response('Method Not Allowed', { status: 405 });

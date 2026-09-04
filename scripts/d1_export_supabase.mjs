@@ -22,7 +22,9 @@ const APP_TABLES = [
     'doctors', 'faq_items', 'homepage_hero', 'site_info', 'footer_content', 'auth_page_images',
     'about_page_content', 'about_features', 'about_values', 'payment_settings',
     'tax_profiles', 'tax_rates', 'admin_report_schedules',
-    'funnel_events',
+    'funnel_events', 'catalog_seo_events', 'product_ingredient_sync_events',
+    'product_generation_jobs', 'contact_page_content', 'testimonials',
+    'discount_code_usages', 'invoices', 'performed_services', 'prescribed_medications',
 ];
 const INCI_TABLES = ['ingredients', 'ingredient_search_terms'];
 

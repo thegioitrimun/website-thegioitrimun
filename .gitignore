@@ -46,3 +46,6 @@ output/
 *.bak
 thegioitrimun-project-backup*
 
+# temporary scratch files
+tmp/
+

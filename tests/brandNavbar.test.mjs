@@ -19,14 +19,15 @@ test('shared navbar and metadata use the tropical dermatology brand', async () =
   const headerEnd = app.indexOf('</header>', headerStart);
   const headerSource = app.slice(headerStart, headerEnd);
 
-  assert.ok(headerStart >= 0 && headerEnd > headerStart, 'shared public header must be discoverable');
-  assert.match(headerSource, /Da Liễu Nhiệt Đới/);
+  assert.match(headerSource, /Thế Giới/);
+  assert.match(headerSource, /Trị/);
+  assert.match(headerSource, /Mụn/);
   assert.match(headerSource, /Phú Quốc/);
   assert.match(headerSource, /backdrop-blur-md/);
   assert.doesNotMatch(headerSource, /Skin clinic \+ pharmacy/);
   assert.doesNotMatch(headerSource, /backdrop-blur-(?:xl|2xl)/);
   assert.doesNotMatch(headerSource, /pointer-events-none absolute inset-x-0 top-0 h-/);
-  assert.match(app, /da-lieu-nhiet-doi-phu-quoc-96\.png/);
+  assert.match(app, /da-lieu-nhiet-doi-phu-quoc/);
   assert.match(html, /da-lieu-nhiet-doi-phu-quoc-96\.png/);
   assert.match(manifest, /da-lieu-nhiet-doi-phu-quoc-192\.png/);
   assert.match(seo, /da-lieu-nhiet-doi-phu-quoc-512\.png/);

@@ -71,6 +71,77 @@ test.describe.serial('Admin pharmacy business flows', () => {
     await expect(page.locator('input[placeholder=\"Tìm theo tên, slug hoặc mô tả...\"]').first()).toBeVisible();
   });
 
+  test('opens route-backed Online and POS order forms with conditional fields', async ({ page }) => {
+    await loginToAdmin(page, '/admin/don-hang');
+    await expect(page.getByRole('button', { name: /Tạo đơn online/i }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /Tạo đơn POS/i }).first()).toBeVisible();
+
+    await page.getByRole('button', { name: /Tạo đơn POS/i }).first().click();
+    await expect(page).toHaveURL(/\/admin\/don-hang\?.*action=new-order.*channel=pos/);
+    await expect(page.getByRole('heading', { name: /Tạo đơn POS/i })).toBeVisible();
+    await expect(page.getByLabel(/Trạng thái khi tạo/i)).toBeVisible();
+    await expect(page.locator('input[name="province"]')).toHaveCount(0);
+
+    await page.getByRole('button', { name: /Về danh sách đơn/i }).click();
+    await page.getByRole('button', { name: /Tạo đơn online/i }).first().click();
+    await expect(page).toHaveURL(/\/admin\/don-hang\?.*action=new-order.*channel=online/);
+    await expect(page.getByRole('heading', { name: /Tạo đơn online/i })).toBeVisible();
+    await expect(page.locator('input[name="province"]')).toBeVisible();
+    await expect(page.getByLabel(/Phương thức thanh toán/i)).toHaveValue('cod');
+  });
+
+  test('creates Online and POS orders and exposes receipt actions when mutation is enabled', async ({ page, context }) => {
+    test.skip(!allowE2EMutation, 'E2E_ALLOW_MUTATION is disabled.');
+    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+
+    const addFirstProduct = async () => {
+      const addButton = page.getByRole('button', { name: /^Thêm .+/i }).first();
+      await expect(addButton).toBeVisible({ timeout: 30000 });
+      await addButton.click();
+      await expect(page.getByText(/1 sản phẩm/i).last()).toBeVisible();
+    };
+
+    const verifyResultActions = async () => {
+      await expect(page.getByText(/Tạo đơn thành công/i)).toBeVisible({ timeout: 30000 });
+      await expect(page.getByRole('button', { name: /In A4/i })).toBeVisible();
+      await expect(page.getByRole('button', { name: /In 80mm/i })).toBeVisible();
+      await page.getByRole('button', { name: /Sao chép gửi Zalo/i }).click();
+      await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('ĐƠN HÀNG');
+
+      const popupPromise = page.waitForEvent('popup');
+      await page.getByRole('button', { name: /In A4/i }).click();
+      const printPage = await popupPromise;
+      await printPage.waitForLoadState('domcontentloaded').catch(() => null);
+      await expect(printPage.locator('body')).toContainText(/HÓA ĐƠN|ĐƠN HÀNG/);
+      await printPage.close();
+    };
+
+    await loginToAdmin(page, '/admin/don-hang?action=new-order&channel=pos');
+    await addFirstProduct();
+    await page.getByRole('button', { name: /^Tạo đơn POS$/i }).click();
+    await verifyResultActions();
+
+    await page.goto('/admin/don-hang?action=new-order&channel=online');
+    await page.waitForLoadState('networkidle').catch(() => null);
+    await addFirstProduct();
+    await page.getByLabel(/Tên khách hàng/i).fill(createE2ELabel('online-order').name);
+    await page.getByLabel(/Số điện thoại/i).fill('0901234567');
+
+    const provinceInput = page.locator('input[name="province"]');
+    const provinceOption = page.locator('datalist').first().locator('option').first();
+    await expect(provinceOption).toHaveCount(1, { timeout: 30000 });
+    await provinceInput.fill((await provinceOption.getAttribute('value')) || 'Thành phố Hồ Chí Minh');
+    await provinceInput.blur();
+    const wardInput = page.locator('input[name="ward"]');
+    await expect(wardInput).toBeEnabled({ timeout: 30000 });
+    const wardOption = page.locator('datalist').nth(1).locator('option').first();
+    await expect(wardOption).toHaveCount(1, { timeout: 30000 });
+    await wardInput.fill((await wardOption.getAttribute('value')) || 'Phường Sài Gòn');
+    await page.locator('input[name="street"]').fill('1 Đường E2E');
+    await page.getByRole('button', { name: /^Tạo đơn online$/i }).click();
+    await verifyResultActions();
+  });
+
   test('creates and removes an e2e product category when mutation is enabled', async ({ page }) => {
     test.skip(!allowE2EMutation, 'E2E_ALLOW_MUTATION is disabled.');
 

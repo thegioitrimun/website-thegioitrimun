@@ -62,84 +62,81 @@ const ProductMainForm: React.FC<ProductMainFormProps> = ({
   onChangeFaq,
 }) => {
   return (
-    <div className="space-y-5">
-      <section id="product-editor-general" className="scroll-mt-32 rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5 md:p-6">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+    <div className="space-y-4 sm:space-y-5">
+      <section id="product-editor-general" className="scroll-mt-32 rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 md:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">Thông tin cơ bản</p>
-            <h3 className="mt-2 text-xl font-bold text-foreground">Tên, slug và mô tả ngắn</h3>
-
+            <h3 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Tên, slug và mô tả ngắn</h3>
           </div>
           <button
             type="button"
             onClick={onGenerateDetails}
             disabled={isGenerating || !formData.name}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3.5 py-2 text-xs font-bold text-primary transition-all hover:bg-primary/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 shadow-2xs shrink-0"
           >
             {isGenerating ? <Spinner className="h-4 w-4" /> : <SparklesIcon className="h-4 w-4" />}
-            <span>{isGenerating ? 'AI đang điền dữ liệu' : 'Tạo nhanh bằng AI'}</span>
+            <span>{isGenerating ? 'AI đang điền...' : 'Tạo nhanh bằng AI'}</span>
           </button>
         </div>
 
         <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">Tên sản phẩm</span>
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Tên sản phẩm</span>
             <input type="text" name="name" value={formData.name || ''} onChange={onChange} className={fieldClassName} required />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">Slug URL</span>
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Slug URL</span>
             <input type="text" name="slug" value={formData.slug || ''} onChange={onChange} className={fieldClassName} required />
           </label>
         </div>
 
         <label className="mt-4 block">
-          <span className="mb-1.5 block text-sm font-medium text-foreground">Mô tả ngắn</span>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Mô tả ngắn</span>
           <textarea name="description" value={formData.description || ''} onChange={onChange} rows={4} className={`${textAreaClassName} min-h-[124px]`} required />
         </label>
       </section>
 
-      <section id="product-editor-content" className="scroll-mt-32 rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5 md:p-6">
+      <section id="product-editor-content" className="scroll-mt-32 rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 md:p-6">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">Nội dung sản phẩm</p>
-          <h3 className="mt-2 text-xl font-bold text-foreground">Lợi ích, thành phần và mô tả dài</h3>
-
+          <h3 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Lợi ích, thành phần và mô tả dài</h3>
         </div>
 
         <div className="mt-5 grid gap-4 xl:grid-cols-2">
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">Lợi ích chính</span>
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Lợi ích chính</span>
             <textarea value={keyBenefitsText} onChange={(event) => onKeyBenefitsChange(event.target.value)} rows={5} className={textAreaClassName} placeholder="Mỗi dòng là một lợi ích." />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">Loại da phù hợp</span>
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Loại da phù hợp</span>
             <textarea value={skinTypesText} onChange={(event) => onSkinTypesChange(event.target.value)} rows={5} className={textAreaClassName} placeholder="Mỗi dòng là một nhóm da." />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">Thành phần</span>
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Thành phần</span>
             <textarea name="ingredients" value={formData.ingredients || ''} onChange={onChange} rows={5} className={textAreaClassName} />
           </label>
           <label className="block">
-            <span className="mb-1.5 block text-sm font-medium text-foreground">Hướng dẫn sử dụng</span>
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Hướng dẫn sử dụng</span>
             <textarea name="usage_instructions" value={formData.usage_instructions || ''} onChange={onChange} rows={5} className={textAreaClassName} />
           </label>
         </div>
 
         <label className="mt-4 block">
-          <span className="mb-1.5 block text-sm font-medium text-foreground">Lưu ý / cảnh báo</span>
+          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-muted-foreground">Lưu ý / cảnh báo</span>
           <textarea name="precautions" value={formData.precautions || ''} onChange={onChange} rows={4} className={`${textAreaClassName} min-h-[104px]`} />
         </label>
 
-        <div className="mt-6 rounded-[1.5rem] bg-background p-4 md:p-5">
+        <div className="mt-6 rounded-2xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-4 md:p-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Mô tả dài dạng block</p>
-
             </div>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => onAddContentBlock('text')}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/35 hover:text-primary"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-card/60 px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted active:scale-95 shadow-2xs"
               >
                 <PlusCircleIcon className="h-4 w-4" />
                 Thêm đoạn text
@@ -147,7 +144,7 @@ const ProductMainForm: React.FC<ProductMainFormProps> = ({
               <button
                 type="button"
                 onClick={() => onAddContentBlock('image')}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/35 hover:text-primary"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-card/60 px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted active:scale-95 shadow-2xs"
               >
                 <PlusCircleIcon className="h-4 w-4" />
                 Thêm ảnh nội dung
@@ -157,13 +154,13 @@ const ProductMainForm: React.FC<ProductMainFormProps> = ({
 
           <div className="mt-4 space-y-4">
             {contentBlocks.length === 0 ? (
-              <div className="rounded-[1.2rem] border border-dashed border-border bg-card/25 backdrop-blur-xl px-4 py-6 text-sm text-muted-foreground">
+              <div className="rounded-xl border border-dashed border-border/70 bg-card/40 backdrop-blur-xl px-4 py-6 text-sm text-center text-muted-foreground">
                 Chưa có block mô tả dài. Bắt đầu với một block text hoặc ảnh để xây nội dung sản phẩm.
               </div>
             ) : null}
 
             {contentBlocks.map((block, index) => (
-              <div key={block.id} className="rounded-[1.3rem] bg-card/25 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] border-0 p-4">
+              <div key={block.id} className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-xl shadow-xs p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-primary">

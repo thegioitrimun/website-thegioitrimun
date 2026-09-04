@@ -517,11 +517,17 @@
   }
 
   .utility-popover {
-    border-radius: 1.25rem;
-    border: 1px solid hsl(var(--border) / 0.76);
-    background: hsl(var(--popover) / 0.98);
-    box-shadow: 0 22px 40px -28px rgba(36, 46, 57, 0.18);
-    backdrop-filter: blur(12px);
+    border-radius: 1.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 20px 44px -20px rgba(36, 46, 57, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    overflow: hidden;
+  }
+
+  .utility-popover .border-border {
+    border-color: rgba(0, 0, 0, 0.06);
   }
 
   .utility-popover-item {
@@ -529,19 +535,19 @@
     width: 100%;
     align-items: center;
     gap: 0.75rem;
-    border-radius: 0.9rem;
-    padding: 0.7rem 0.9rem;
+    border-radius: 0.85rem;
+    padding: 0.65rem 0.85rem;
     text-align: left;
     font-size: 0.92rem;
     transition: all 0.2s ease;
   }
 
   .utility-popover-item:hover {
-    background: hsl(var(--accent) / 0.45);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .utility-popover-item.is-active {
-    background: hsl(var(--primary) / 0.1);
+    background: hsl(var(--primary) / 0.12);
     color: hsl(var(--primary));
   }
 
@@ -642,17 +648,24 @@
   }
 
   .dark .utility-popover {
-    border-color: hsl(var(--border) / 0.95);
-    background: linear-gradient(180deg, hsl(var(--popover) / 0.98), hsl(var(--card) / 0.98));
-    box-shadow: 0 28px 48px -26px rgba(4, 10, 24, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(15, 23, 34, 0.78);
+    box-shadow: 0 24px 52px -20px rgba(4, 10, 24, 0.58), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .dark .utility-popover .border-border {
+    border-color: rgba(255, 255, 255, 0.08);
   }
 
   .dark .utility-popover-item:hover {
-    background: hsl(var(--accent) / 0.92);
+    background: rgba(255, 255, 255, 0.08);
   }
 
   .dark .utility-popover-item.is-active {
-    background: hsl(var(--primary) / 0.12);
+    background: hsl(var(--primary) / 0.22);
+    color: hsl(var(--primary));
   }
 
   .dark .action-icon-chip {

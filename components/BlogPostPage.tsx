@@ -315,11 +315,11 @@ const BlogPostPage: React.FC<BlogPostPageProps> = ({
               {category && <div className="flex justify-center md:justify-start mb-3"><span className="inline-flex rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-primary">{getLocalized(category, 'name')}</span></div>}
               <h1 className="text-3xl md:text-5xl font-bold text-foreground font-heading mb-5 leading-tight text-center md:text-left">{localizedTitle}</h1>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-muted-foreground text-sm mb-6 pb-6 border-b border-border">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 border border-border">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 border border-border dark:border-white/10 dark:bg-card">
                   <AuthorIcon className="w-5 h-5" />
                   <span>{author?.name || 'Thế Giới Trị Mụn'}</span>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 border border-border">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 border border-border dark:border-white/10 dark:bg-card">
                   <CalendarIcon className="w-5 h-5" />
                   <span>{new Date(post.date).toLocaleDateString(i18n.language === 'vi' ? 'vi-VN' : i18n.language === 'cn' ? 'zh-CN' : i18n.language === 'ru' ? 'ru-RU' : 'en-US')}</span>
                 </div>

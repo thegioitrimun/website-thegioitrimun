@@ -32,7 +32,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack, onGoToServices, aboutData
                 </div>
 
                 {/* Hero Section */}
-                <section className="relative rounded-xl overflow-hidden mb-12 md:mb-20 bg-muted/50 px-8 py-4 md:px-16 md:py-8">
+                <section className="relative rounded-xl overflow-hidden mb-12 md:mb-20 bg-muted/50 dark:bg-transparent px-8 py-4 md:px-16 md:py-8">
                     <div className="absolute inset-0 w-full h-full bg-cover bg-center opacity-10 dark:opacity-5" style={{ backgroundImage: `url('${content.image_url}')` }}></div>
                     <AnimatedSection className="relative z-10 text-center max-w-4xl mx-auto">
                         <h1 className="text-4xl md:text-5xl font-bold text-foreground font-heading mb-6">{getLocalized(content, 'header_title', lang)}</h1>
@@ -66,7 +66,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack, onGoToServices, aboutData
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                         {aboutData.reasonsToChoose.map((reason, index) => (
                             <AnimatedSection key={reason.id} stagger={index * 100}>
-                                <div className="bg-card text-card-foreground p-8 rounded-xl shadow-lg h-full text-center border border-transparent hover:border-primary/30 hover:shadow-xl transition-all-smooth">
+                                <div className="bg-card text-card-foreground p-8 rounded-xl shadow-lg h-full text-center border border-transparent dark:border-white/10 hover:border-primary/30 hover:shadow-xl transition-all-smooth">
                                     <div className="w-12 h-12 mx-auto text-primary mb-5">{api.getIcon(reason.icon, { className: "w-12 h-12" })}</div>
                                     <h3 className="text-xl font-bold mb-3 font-heading">{getLocalized(reason, 'title', lang)}</h3>
                                     <p className="text-muted-foreground">{getLocalized(reason, 'description', lang)}</p>
@@ -77,7 +77,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack, onGoToServices, aboutData
                 </section>
 
                 {/* Doctors Section */}
-                <section className="py-20 bg-muted/50 rounded-xl">
+                <section className="py-20 bg-muted/50 dark:bg-transparent rounded-xl">
                     <div className="container mx-auto px-6">
                         <AnimatedSection className="text-center mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading">{t('about.team_title')}</h2>
@@ -86,7 +86,7 @@ const AboutPage: React.FC<AboutPageProps> = ({ onBack, onGoToServices, aboutData
                         <div className="flex flex-wrap justify-center gap-8 max-w-6xl mx-auto">
                             {doctors.map((doctor, index) => (
                                 <AnimatedSection key={doctor.id} className="h-full w-full sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1.5rem)] max-w-sm" stagger={index * 100}>
-                                    <div className="bg-card text-card-foreground rounded-xl shadow-lg overflow-hidden h-full flex flex-col transform transition-all-smooth hover:-translate-y-2 hover:shadow-2xl">
+                                    <div className="bg-card text-card-foreground rounded-xl shadow-lg overflow-hidden h-full flex flex-col transform transition-all-smooth hover:-translate-y-2 hover:shadow-2xl dark:border dark:border-white/10">
                                         <img src={doctor.avatar_url || 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=2940&auto=format&fit=crop'} alt={doctor.name} className="w-full h-64 object-cover object-top" />
                                         <div className="p-6 flex flex-col flex-grow text-center">
                                             <h3 className="text-xl font-bold text-primary">{doctor.name}</h3>

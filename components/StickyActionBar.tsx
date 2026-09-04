@@ -34,32 +34,37 @@ const StickyActionBar: React.FC<StickyActionBarProps> = ({
         : t('admin.sticky_status_saved', 'Mọi thay đổi đã được lưu');
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/96 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-[1680px] flex-col gap-3 px-3 py-3 sm:px-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/60 dark:border-white/10 bg-card/85 backdrop-blur-2xl shadow-[0_-12px_40px_rgba(0,0,0,0.08)]">
+      <div className="mx-auto flex max-w-[1680px] flex-col gap-2.5 px-3 py-2.5 sm:px-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <span
-            className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold border transition-all ${
               isSaving
-                ? 'border-primary/25 bg-primary/10 text-primary'
+                ? 'border-primary/30 bg-primary/10 text-primary'
                 : isDirty
-                  ? 'border-amber-200 bg-amber-50 text-amber-800'
-                  : 'border-emerald-200 bg-emerald-50 text-emerald-800'
+                  ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                  : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
             }`}
           >
-            {statusLabel}
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
+              }`}
+            />
+            <span>{statusLabel}</span>
           </span>
-          <span className="inline-flex items-center rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground">
+          <span className="inline-flex items-center rounded-full border border-border/60 bg-background/50 px-2.5 py-1 text-xs font-semibold text-muted-foreground">
             {publishState
               ? t('admin.sticky_publish_live', 'Sẽ hiển thị trên website sau khi lưu')
               : t('admin.sticky_publish_draft', 'Đang ở chế độ bản nháp (ẩn web)')}
           </span>
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="flex items-center gap-2 justify-end">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/35 hover:text-primary"
+            className="h-9 px-4 rounded-xl border border-border/60 bg-background/40 text-xs font-bold text-foreground transition-all hover:bg-muted/50 active:scale-95"
           >
             {t('common.cancel', 'Hủy')}
           </button>
@@ -67,9 +72,9 @@ const StickyActionBar: React.FC<StickyActionBarProps> = ({
             type="button"
             onClick={handleSave}
             disabled={isSaving || isUploadingImages}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground shadow-[0_18px_34px_-24px_rgba(32,58,40,0.68)] transition-colors hover:bg-primary/92 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-xs font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSaving ? <Spinner className="h-4 w-4" /> : null}
+            {isSaving ? <Spinner className="h-3.5 w-3.5" /> : null}
             <span>
               {isSaving
                 ? t('admin.sticky_action_saving', 'Đang lưu...')

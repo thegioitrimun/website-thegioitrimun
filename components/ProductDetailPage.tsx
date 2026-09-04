@@ -202,7 +202,7 @@ const ProductIngredientAnalysis: React.FC<ProductIngredientAnalysisProps & { ana
 
     return (
         <div className="mx-auto max-w-none space-y-6">
-            <section className="max-w-full overflow-hidden rounded-[28px] border border-border bg-[linear-gradient(135deg,#fffaf6_0%,#ffffff_50%,#eef8ff_100%)] p-5 text-center shadow-[0_22px_60px_-50px_rgba(36,46,57,0.35)] md:p-6 md:text-left dark:border-white/10 dark:bg-[rgba(15,23,42,0.68)]">
+            <section className="max-w-full overflow-hidden rounded-[28px] border border-border bg-[linear-gradient(135deg,#fffaf6_0%,#ffffff_50%,#eef8ff_100%)] p-5 text-center shadow-[0_22px_60px_-50px_rgba(36,46,57,0.35)] md:p-6 md:text-left dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.85)_0%,rgba(15,23,42,0.95)_50%,rgba(15,23,42,0.85)_100%)]">
                 <p className="section-kicker">{copy.kicker}</p>
                 <h3 className="mt-2 !text-[1.35rem] font-bold leading-tight text-foreground md:!text-2xl">{copy.title}</h3>
                 <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-muted-foreground md:mx-0 md:text-base">{copy.description}</p>

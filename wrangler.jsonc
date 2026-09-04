@@ -44,7 +44,8 @@
     "producers": [
       { "binding": "NOTIFICATION_QUEUE", "queue": "thegioitrimun-notifications" },
       { "binding": "SHIPPING_QUEUE", "queue": "thegioitrimun-shipping" },
-      { "binding": "PANCAKE_QUEUE", "queue": "thegioitrimun-pancake" }
+      { "binding": "PANCAKE_QUEUE", "queue": "thegioitrimun-pancake" },
+      { "binding": "TELEGRAM_QUEUE", "queue": "thegioitrimun-telegram-orders" }
     ],
     "consumers": [
       {
@@ -70,11 +71,22 @@
         "max_retries": 8,
         "max_concurrency": 2,
         "dead_letter_queue": "thegioitrimun-pancake-dlq"
+      },
+      {
+        "queue": "thegioitrimun-telegram-orders",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-telegram-orders-dlq"
       }
     ]
   },
   "images": {
     "binding": "IMAGES"
+  },
+  "ai": {
+    "binding": "AI"
   },
   "ratelimits": [
     {
@@ -104,7 +116,13 @@
     "EMAIL_MAX_ATTEMPTS": "6",
     "OAUTH_BASE_URL": "https://thegioitrimun.vn",
     "OAUTH_PROVIDERS": "google",
-    "GHTK_ENABLED": "false"
+    "GHTK_ENABLED": "false",
+    "SEPAY_ENABLED": "true",
+    "SEPAY_PAYMENT_PREFIX": "TGTM",
+    "SEPAY_PAYMENT_TTL_MINUTES": "15",
+    "TELEGRAM_ORDER_ALERTS_ENABLED": "false",
+    "SPX_LABEL_TELEGRAM_ENABLED": "false",
+    "DEPLAO_ORDER_AUTOMATION_ENABLED": "false"
   },
   "triggers": {
     "crons": [

@@ -79,7 +79,12 @@ export async function getSession(db, request, { touch = false } = {}) {
 }
 
 export async function requireSession(db, request) {
-    const session = await getSession(db, request, { touch: true });
+    // Admin screens load several independent GET endpoints in parallel. Touching the
+    // session for every read turns that initial render into a burst of contending D1
+    // writes. Keep reads read-only; mutations still refresh the activity timestamp.
+    const method = String(request?.method || 'GET').toUpperCase();
+    const touch = !['GET', 'HEAD', 'OPTIONS'].includes(method);
+    const session = await getSession(db, request, { touch });
     if (!session) throw Object.assign(new Error('Authentication required.'), { status: 401 });
     return session;
 }

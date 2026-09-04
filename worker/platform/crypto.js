@@ -28,6 +28,32 @@ export async function sha256(value) {
     return toBase64Url(await crypto.subtle.digest('SHA-256', encoder.encode(String(value))));
 }
 
+export async function sha256Hex(value) {
+    const source = value instanceof ArrayBuffer
+        ? value
+        : ArrayBuffer.isView(value)
+            ? value
+            : encoder.encode(String(value));
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', source));
+    return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export async function hmacSha256Hex(secret, value) {
+    const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(String(secret || '')),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+    );
+    const signature = new Uint8Array(await crypto.subtle.sign(
+        'HMAC',
+        key,
+        encoder.encode(String(value ?? '')),
+    ));
+    return [...signature].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 async function importAesKey(secret) {
     const bytes = await crypto.subtle.digest('SHA-256', encoder.encode(String(secret || '')));
     return crypto.subtle.importKey('raw', bytes, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);

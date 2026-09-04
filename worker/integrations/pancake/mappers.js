@@ -120,10 +120,13 @@ export function mapOrderToPancake(order, productLinks, customerId, env) {
         order.shipping_province,
     ].map((item) => compactText(item, 255)).filter(Boolean).join(', ');
     const items = (order.order_items || []).map((item) => {
-        const link = productLinks.get(String(item.product_id));
-        if (!link?.pancake_variation_id) throw new Error(`Pancake variation is missing for product ${item.product_id}.`);
+        const key = item.product_id == null && item.external_variation_id
+            ? `external:${String(item.external_variation_id)}`
+            : String(item.product_id);
+        const link = productLinks.get(key);
+        if (!link?.pancake_variation_id) throw new Error(`Pancake variation is missing for product ${item.product_id ?? item.external_variation_id}.`);
         return {
-            product_id: String(link.pancake_entity_id),
+            ...(link.pancake_entity_id ? { product_id: String(link.pancake_entity_id) } : {}),
             variation_id: String(link.pancake_variation_id),
             quantity: Math.max(1, integer(item.quantity, 1)),
             variation_info: {
@@ -163,14 +166,14 @@ export function mapOrderToPancake(order, productLinks, customerId, env) {
         total_quantity: items.reduce((sum, item) => sum + item.quantity, 0),
         note: compactText(order.notes, 2000),
         note_print: compactText(order.notes, 2000),
-        received_at_shop: false,
-        is_from_ecommerce: true,
+        received_at_shop: order.order_channel === 'pos',
+        is_from_ecommerce: order.order_channel !== 'pos',
         order_currency: String(order.currency || 'VND'),
         customer: customerId ? { id: String(customerId), name: compactText(order.customer_name, 255) } : undefined,
     };
     if (env.PANCAKE_WAREHOUSE_ID) payload.warehouse_id = String(env.PANCAKE_WAREHOUSE_ID);
-    if (order.payment_method === 'cod') payload.cod = grandTotal;
-    else if (order.payment_status === 'paid') payload.transfer_money = grandTotal;
+    if (order.payment_method === 'cod' && order.payment_status !== 'paid') payload.cod = grandTotal;
+    else if (order.payment_method === 'bank_transfer' && order.payment_status === 'paid') payload.transfer_money = grandTotal;
     return payload;
 }
 

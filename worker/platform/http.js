@@ -36,6 +36,13 @@ export async function readJson(request, maxBytes = 64 * 1024) {
 export function apiError(error, fallback = 'Internal Server Error') {
     const status = Number(error?.status || 500);
     const expose = status >= 400 && status < 500;
+    if (!expose) {
+        console.error('[api-error]', {
+            fallback,
+            message: String(error?.message || error || fallback).slice(0, 1000),
+            code: String(error?.code || 'INTERNAL_ERROR').slice(0, 100),
+        });
+    }
     const message = expose ? String(error?.message || fallback) : fallback;
     const code = String(error?.code || (
         status === 400 ? 'BAD_REQUEST' :

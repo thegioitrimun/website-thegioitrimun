@@ -4,6 +4,10 @@ const DEFAULT_SETTINGS = Object.freeze({
   inventoryEnabled: false,
   customersEnabled: false,
   ordersEnabled: false,
+  inboundEnabled: true,
+  inboundOrdersEnabled: true,
+  inboundCustomersEnabled: true,
+  inboundPollEnabled: true,
   updatedBy: null,
   updatedAt: null,
 });
@@ -32,6 +36,10 @@ export const parsePancakeSyncSettings = (row) => {
     inventoryEnabled: asBoolean(row.inventory_enabled),
     customersEnabled: asBoolean(row.customers_enabled),
     ordersEnabled: asBoolean(row.orders_enabled),
+    inboundEnabled: row.inbound_enabled == null ? true : asBoolean(row.inbound_enabled),
+    inboundOrdersEnabled: row.inbound_orders_enabled == null ? true : asBoolean(row.inbound_orders_enabled),
+    inboundCustomersEnabled: row.inbound_customers_enabled == null ? true : asBoolean(row.inbound_customers_enabled),
+    inboundPollEnabled: row.inbound_poll_enabled == null ? true : asBoolean(row.inbound_poll_enabled),
     updatedBy: row.updated_by || null,
     updatedAt: row.updated_at || null,
   };
@@ -59,10 +67,22 @@ export const isPancakeEntityEnabled = (settings, entityType) => {
 export const getEnabledPancakeEntityTypes = (settings) =>
   Object.keys(KEY_BY_ENTITY_TYPE).filter((entityType) => isPancakeEntityEnabled(settings, entityType));
 
+export const isPancakeInboundEnabled = (settings, resourceType) => Boolean(
+  settings?.masterEnabled
+  && settings?.inboundEnabled
+  && (resourceType === 'order'
+    ? settings?.inboundOrdersEnabled
+    : resourceType === 'customer' && settings?.inboundCustomersEnabled),
+);
+
 export const PANCAKE_SYNC_SETTING_KEYS = Object.freeze([
   'masterEnabled',
   'productsEnabled',
   'inventoryEnabled',
   'customersEnabled',
   'ordersEnabled',
+  'inboundEnabled',
+  'inboundOrdersEnabled',
+  'inboundCustomersEnabled',
+  'inboundPollEnabled',
 ]);

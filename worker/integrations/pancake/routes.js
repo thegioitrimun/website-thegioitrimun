@@ -3,6 +3,12 @@ import { randomId, sha256, timingSafeEqual } from '../../platform/crypto.js';
 import { apiError, json, methodNotAllowed, readJson, requireD1 } from '../../platform/http.js';
 import { recordAdminAuditAttempt } from '../../adminD1/support.js';
 import { getPancakeConfig, PancakeClient } from './client.js';
+import {
+    createPancakeInboundEvent,
+    detectPancakeWebhookEntity,
+    dispatchPendingPancakeInbound,
+    pollPancakeInbound,
+} from './inbound.js';
 import { normalizePancakePhone } from './mappers.js';
 import {
     createPancakeCustomerOutboxStatement,
@@ -13,6 +19,7 @@ import {
 } from './outbox.js';
 import {
     getPancakeSyncSettings,
+    isPancakeInboundEnabled,
     isPancakeEntityEnabled,
     PANCAKE_SYNC_SETTING_KEYS,
 } from './settings.js';
@@ -47,6 +54,10 @@ const SETTINGS_COLUMN_BY_KEY = Object.freeze({
     inventoryEnabled: 'inventory_enabled',
     customersEnabled: 'customers_enabled',
     ordersEnabled: 'orders_enabled',
+    inboundEnabled: 'inbound_enabled',
+    inboundOrdersEnabled: 'inbound_orders_enabled',
+    inboundCustomersEnabled: 'inbound_customers_enabled',
+    inboundPollEnabled: 'inbound_poll_enabled',
 });
 
 const ENTITY_TYPES = Object.freeze(['product', 'inventory', 'customer', 'order']);
@@ -70,16 +81,16 @@ function publicConfig(env) {
         baseUrl: config.baseUrl,
         timeoutMs: config.timeoutMs,
         maxAttempts: config.maxAttempts,
-        direction: 'website_to_pancake',
-        sourceOfTruth: 'website_d1',
-        resources: ['products', 'inventory', 'customers', 'orders', 'order_tax_snapshot'],
+        direction: 'bidirectional',
+        sourceOfTruth: 'shared_by_origin',
+        resources: ['products', 'inventory', 'customers', 'orders', 'order_tax_snapshot', 'pancake_pos_orders'],
     };
 }
 
 async function integrationStatus(request, env) {
     try {
         const { db } = await authorize(request, env);
-        const [settings, outbox, links, lastCompleted, lastError] = await Promise.all([
+        const [settings, outbox, links, lastCompleted, lastError, inboundEvents, inboundCursors, inboundLastError] = await Promise.all([
             getPancakeSyncSettings(db),
             db.prepare(`SELECT entity_type, status, COUNT(*) AS count
                 FROM pancake_sync_outbox GROUP BY entity_type, status ORDER BY entity_type, status`).all(),
@@ -90,6 +101,15 @@ async function integrationStatus(request, env) {
                 ORDER BY completed_at DESC LIMIT 1`).first(),
             db.prepare(`SELECT entity_type, entity_id, status, last_error, updated_at
                 FROM pancake_sync_outbox
+                WHERE last_error IS NOT NULL AND TRIM(last_error) <> ''
+                ORDER BY updated_at DESC LIMIT 1`).first(),
+            db.prepare(`SELECT resource_type, status, COUNT(*) AS count
+                FROM pancake_inbound_events GROUP BY resource_type, status ORDER BY resource_type, status`).all(),
+            db.prepare(`SELECT resource_type, cursor_timestamp, window_end_at, next_page,
+                    last_polled_at, consecutive_failures, last_error
+                FROM pancake_inbound_cursors ORDER BY resource_type`).all(),
+            db.prepare(`SELECT resource_type, remote_id, status, last_error, updated_at
+                FROM pancake_inbound_events
                 WHERE last_error IS NOT NULL AND TRIM(last_error) <> ''
                 ORDER BY updated_at DESC LIMIT 1`).first(),
         ]);
@@ -108,10 +128,17 @@ async function integrationStatus(request, env) {
             links: links.results || [],
             lastCompleted: lastCompleted || null,
             lastError: lastError || null,
+            inbound: {
+                events: inboundEvents.results || [],
+                cursors: inboundCursors.results || [],
+                lastError: inboundLastError || null,
+                pollSeconds: boundedInteger(env.PANCAKE_INBOUND_POLL_SECONDS, 120, 60, 3600),
+                pageSize: boundedInteger(env.PANCAKE_INBOUND_PAGE_SIZE, 25, 1, 30),
+            },
             webhook: {
                 configured: Boolean(env.PANCAKE_WEBHOOK_SECRET),
                 receivingEnabled: Boolean(env.PANCAKE_WEBHOOK_SECRET),
-                processingEnabled: false,
+                processingEnabled: Boolean(env.PANCAKE_WEBHOOK_SECRET && settings.masterEnabled && settings.inboundEnabled),
                 endpoint: '/api/webhooks/pancake',
             },
         });
@@ -346,6 +373,17 @@ async function dispatchOutbox(request, env) {
     }
 }
 
+async function pollInbound(request, env) {
+    try {
+        await authorize(request, env, true);
+        const poll = await pollPancakeInbound(env, { force: true });
+        const dispatch = await dispatchPendingPancakeInbound(env, 100);
+        return json({ poll, dispatch }, 202);
+    } catch (error) {
+        return apiError(error, 'Could not poll Pancake inbound changes.');
+    }
+}
+
 async function retryOutbox(request, env) {
     try {
         const { db } = await authorize(request, env, true);
@@ -415,8 +453,9 @@ async function pancakeWebhook(request, env) {
         if (new TextEncoder().encode(rawPayload).byteLength > 256 * 1024) {
             throw Object.assign(new Error('Pancake webhook payload is too large.'), { status: 413 });
         }
+        let payload;
         try {
-            JSON.parse(rawPayload || '{}');
+            payload = JSON.parse(rawPayload || '{}');
         } catch {
             throw Object.assign(new Error('Invalid Pancake webhook JSON body.'), { status: 400 });
         }
@@ -445,18 +484,39 @@ async function pancakeWebhook(request, env) {
             });
         }
 
-        await db.prepare(`
-            UPDATE webhook_receipts
-            SET status = 'ignored', processed_at = ?, last_error = NULL
-            WHERE id = ?
-        `).bind(now, receiptId).run();
+        const settings = await getPancakeSyncSettings(db);
+        const detected = detectPancakeWebhookEntity(
+            payload,
+            request.headers.get('X-Pancake-Event') || payload?.event || payload?.type || '',
+        );
+        if (!detected || !isPancakeInboundEnabled(settings, detected.resourceType)) {
+            await db.prepare(`UPDATE webhook_receipts
+                SET status = 'ignored', processed_at = ?, last_error = NULL WHERE id = ?`)
+                .bind(now, receiptId).run();
+            return json({
+                success: true,
+                accepted: true,
+                duplicate: false,
+                reverseSynchronization: false,
+                ignored: true,
+                receiptId,
+            });
+        }
+
+        const inbound = await createPancakeInboundEvent(db, env, {
+            resourceType: detected.resourceType,
+            entity: detected.entity,
+            source: 'webhook',
+            receiptId,
+        });
 
         return json({
             success: true,
             accepted: true,
             duplicate: false,
-            reverseSynchronization: false,
+            reverseSynchronization: true,
             receiptId,
+            inbound,
         });
     } catch (error) {
         return apiError(error, 'Could not accept Pancake webhook.');
@@ -509,6 +569,10 @@ export async function maybeHandlePancakeRoute({ request, env, path }) {
     if (path === '/api/admin/integrations/pancake/dispatch') {
         if (request.method !== 'POST') return methodNotAllowed(['POST']);
         return dispatchOutbox(request, env);
+    }
+    if (path === '/api/admin/integrations/pancake/inbound/poll') {
+        if (request.method !== 'POST') return methodNotAllowed(['POST']);
+        return pollInbound(request, env);
     }
     if (path === '/api/admin/integrations/pancake/retry') {
         if (request.method !== 'POST') return methodNotAllowed(['POST']);

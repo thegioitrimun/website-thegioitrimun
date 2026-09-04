@@ -7,7 +7,7 @@ const SITE_RESOURCES = new Set([
     'homepage_hero', 'site_info', 'footer_content', 'auth_page_images',
     'about_page_content', 'about_features', 'about_values', 'payment_settings',
 ]);
-const ROLES = new Set(['customer', 'doctor', 'editor', 'admin', 'master_admin']);
+const ROLES = new Set(['customer', 'doctor', 'editor', 'accountant', 'admin', 'master_admin']);
 
 function clean(value, max = 10000) { return String(value ?? '').trim().slice(0, max); }
 function optional(value, max = 10000) { return clean(value, max) || null; }
@@ -24,7 +24,14 @@ function jsonValue(value, fallback = []) {
     if (typeof value === 'string') { try { JSON.parse(value); return value; } catch { return JSON.stringify(value); } }
     return JSON.stringify(value);
 }
-function parseJson(value, fallback) { try { return JSON.parse(value); } catch { return fallback; } }
+function parseJson(value, fallback) {
+    try {
+        const parsed = JSON.parse(value);
+        return parsed == null ? fallback : parsed;
+    } catch {
+        return fallback;
+    }
+}
 function slug(value) {
     return clean(value, 255).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd')
         .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -323,7 +330,7 @@ export async function deleteAdminSiteContent(request, env, resource, key) {
 
 function userRow(row) {
     const address = parseJson(row.address_json, {}); const roles = clean(row.role_codes || 'customer').split(',').filter(Boolean);
-    const role = roles.includes('master_admin') ? 'master_admin' : roles.includes('admin') ? 'admin' : roles.includes('doctor') ? 'doctor' : 'customer';
+    const role = roles.includes('master_admin') ? 'master_admin' : roles.includes('accountant') ? 'accountant' : roles.includes('admin') ? 'admin' : roles.includes('doctor') ? 'doctor' : 'customer';
     return { id: row.id, name: row.display_name || row.email.split('@')[0], email: row.email, phone: row.phone || '', dob: row.date_of_birth || '', gender: row.gender || 'other',
         address_street: address.street || '', address_ward: address.ward || '', address_district: address.district || '', address_province: address.province || '',
         citizen_id_number: row.citizen_id_number || '', nationality: row.nationality || '', medical_history: row.medical_history || '', skin_type: row.skin_type || '', allergies: row.allergies || '',

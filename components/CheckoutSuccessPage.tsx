@@ -18,7 +18,7 @@ const CheckoutSuccessPage: React.FC<CheckoutSuccessPageProps> = ({ order, onCont
   const { t } = useTranslation();
   const orderTotal = order?.grand_total ?? order?.total_price ?? 0;
   const paymentMethod = order?.payment_method === 'bank_transfer'
-    ? t('checkout.bank_transfer')
+    ? t('checkout.sepay_transfer', 'SePay – chuyển khoản QR tự động')
     : t('checkout.cod');
   const shippingAddress = order
     ? [order.shipping_street, order.shipping_ward, order.shipping_district, order.shipping_province]

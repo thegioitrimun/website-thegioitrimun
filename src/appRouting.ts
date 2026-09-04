@@ -95,6 +95,7 @@ export const viewToPath = (
         case 'adminImageLibrary': return '/admin/hinh-anh';
         case 'adminProductImageImporter': return '/admin/gan-anh-san-pham';
         case 'adminPancakeManagement': return '/admin/pancake-pos';
+        case 'adminVatManagement': return '/admin/ke-toan-vat';
         case 'adminPharmacyManagement': {
             if (view.action === 'order-detail' && view.orderId) {
                 return `/admin/don-hang/${view.orderId}`;
@@ -126,6 +127,10 @@ export const buildViewSearch = (view: View, lang: string): string => {
 
     if (view.page === 'adminPharmacyManagement' && view.action && view.action !== 'order-detail') {
         searchParams.set('action', view.action);
+    }
+
+    if (view.page === 'adminPharmacyManagement' && view.action === 'new-order' && view.orderChannel) {
+        searchParams.set('channel', view.orderChannel);
     }
 
     if (view.page === 'adminDashboard' && view.section && view.section !== 'overview') {
@@ -232,6 +237,7 @@ export const pathToView = (pathname: string, search = ''): View => {
                 case 'hinh-anh': return { page: 'adminImageLibrary' };
                 case 'gan-anh-san-pham': return { page: 'adminProductImageImporter' };
                 case 'pancake-pos': return { page: 'adminPancakeManagement' };
+                case 'ke-toan-vat': return { page: 'adminVatManagement' };
                 case 'nha-thuoc': {
                     const action = searchParams.get('action');
                     const section = third || searchParams.get('section');
@@ -242,7 +248,8 @@ export const pathToView = (pathname: string, search = ''): View => {
                         section: section === 'products' || section === 'categories' || section === 'brands' || section === 'discounts' || section === 'taxes' || section === 'orders' || section === 'ghtk_settings'
                             ? section
                             : undefined,
-                        action: action === 'new-product' ? 'new-product' : undefined,
+                        action: action === 'new-product' ? 'new-product' : action === 'new-order' ? 'new-order' : undefined,
+                        orderChannel: searchParams.get('channel') === 'pos' ? 'pos' : searchParams.get('channel') === 'online' ? 'online' : undefined,
                         orderPreset: preset === 'priority_queue' || preset === 'shipping_handover' || preset === 'bank_transfer_followup' || preset === 'refund_attention' || preset === 'today_watch' || preset === 'all'
                             ? preset
                             : undefined,
@@ -267,9 +274,13 @@ export const pathToView = (pathname: string, search = ''): View => {
                         return { page: 'adminPharmacyManagement', section: 'orders', action: 'order-detail', orderId: third };
                     }
                     const preset = searchParams.get('preset');
+                    const action = searchParams.get('action');
+                    const channel = searchParams.get('channel');
                     return {
                         page: 'adminPharmacyManagement',
                         section: 'orders',
+                        action: action === 'new-order' ? 'new-order' : undefined,
+                        orderChannel: channel === 'pos' ? 'pos' : channel === 'online' ? 'online' : undefined,
                         orderPreset: preset === 'priority_queue' || preset === 'shipping_handover' || preset === 'bank_transfer_followup' || preset === 'refund_attention' || preset === 'today_watch' || preset === 'all'
                             ? preset
                             : undefined,

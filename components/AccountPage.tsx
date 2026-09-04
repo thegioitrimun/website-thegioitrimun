@@ -11,7 +11,7 @@ import {
     LoginIcon, LogoutIcon, HeartIcon, CogIcon, ReceiptIcon
 } from './icons';
 
-type UserPage = 'administrativeProfile' | 'medicalRecords' | 'myMedicalRecords' | 'appointments' | 'wishlist' | 'adminDashboard' | 'orderHistory';
+type UserPage = 'administrativeProfile' | 'medicalRecords' | 'myMedicalRecords' | 'appointments' | 'wishlist' | 'adminDashboard' | 'adminVatManagement' | 'orderHistory';
 
 interface AccountPageProps {
     user: UserData | null;
@@ -52,7 +52,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, onNavigate, onLogout })
         { label: t('account.appointments'), onClick: () => onNavigate({ page: 'appointments' }), icon: <CalendarIcon className="w-6 h-6" /> },
     ];
 
-    const adminMenuItem = { label: t('account.admin'), onClick: () => onNavigate({ page: 'adminDashboard' }), icon: <CogIcon className="w-6 h-6" /> };
+    const adminMenuItem = { label: user?.profile.role === 'accountant' ? 'Kế toán VAT' : t('account.admin'), onClick: () => onNavigate({ page: user?.profile.role === 'accountant' ? 'adminVatManagement' : 'adminDashboard' }), icon: <CogIcon className="w-6 h-6" /> };
 
     return (
         <div className="bg-background text-foreground animate-scale-in pb-20">
@@ -78,7 +78,7 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, onNavigate, onLogout })
                         <>
                             <div className="divide-y divide-border">
                                 {loggedInMenuItems.map(item => <MenuItem key={item.label} {...item} />)}
-                                {['admin', 'master_admin'].includes(user.profile.role) && <MenuItem {...adminMenuItem} />}
+                                {['admin', 'master_admin', 'accountant'].includes(user.profile.role) && <MenuItem {...adminMenuItem} />}
                             </div>
                             <div className="p-4">
                                 <button onClick={onLogout} className="w-full text-center py-3 font-semibold text-destructive bg-destructive/10 hover:bg-destructive/20 rounded-lg transition-colors">

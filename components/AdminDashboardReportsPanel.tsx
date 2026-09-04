@@ -86,10 +86,10 @@ const formatDateTime = (value?: string | null) => {
 };
 
 const MetricTile: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-3xl border border-border bg-card px-5 py-4 shadow-[0_18px_45px_-36px_rgba(28,24,18,0.45)]">
-    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">{label}</p>
-    <p className="mt-3 text-2xl font-bold text-foreground">{value}</p>
-    {hint ? <p className="mt-2 text-sm text-muted-foreground">{hint}</p> : null}
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all hover:border-primary/40 dark:border-white/10">
+    <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
+    <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight">{value}</p>
+    {hint ? <p className="mt-1.5 text-xs text-muted-foreground line-clamp-1">{hint}</p> : null}
   </div>
 );
 
@@ -119,6 +119,7 @@ const scheduleToForm = (schedule: AdminReportSchedule): ScheduleFormState => ({
 const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({ orders }) => {
   const { addToast } = useToast();
   const [preset, setPreset] = useState<ReportsPreset>('30d');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [snapshot, setSnapshot] = useState<AdminDashboardKpiSnapshot | null>(null);
@@ -198,6 +199,30 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
     () => sortedSchedules.find((schedule) => schedule.enabled && schedule.next_run_at) || null,
     [sortedSchedules],
   );
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return topProducts;
+    const q = searchQuery.toLowerCase();
+    return topProducts.filter((p) => p.product_name.toLowerCase().includes(q) || (p.brand && p.brand.toLowerCase().includes(q)));
+  }, [topProducts, searchQuery]);
+
+  const filteredServices = useMemo(() => {
+    if (!searchQuery.trim()) return topServices;
+    const q = searchQuery.toLowerCase();
+    return topServices.filter((s) => s.service_name.toLowerCase().includes(q));
+  }, [topServices, searchQuery]);
+
+  const filteredAlerts = useMemo(() => {
+    if (!searchQuery.trim()) return alerts;
+    const q = searchQuery.toLowerCase();
+    return alerts.filter((a) => a.title.toLowerCase().includes(q) || (a.description && a.description.toLowerCase().includes(q)));
+  }, [alerts, searchQuery]);
+
+  const filteredSchedules = useMemo(() => {
+    if (!searchQuery.trim()) return sortedSchedules;
+    const q = searchQuery.toLowerCase();
+    return sortedSchedules.filter((s) => s.name.toLowerCase().includes(q) || s.recipients.some((r) => r.toLowerCase().includes(q)));
+  }, [sortedSchedules, searchQuery]);
 
   const handleExport = async () => {
     if (!snapshot) return;
@@ -332,306 +357,532 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
+      {/* Screen reader & E2E semantic heading */}
+      <h2 className="sr-only">Xuất báo cáo định kỳ</h2>
 
-
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_45px_-36px_rgba(28,24,18,0.45)]">
-          <div className="flex items-center gap-2">
-            <MailIcon className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Scheduler</p>
-              <h3 className="mt-1 text-2xl font-bold text-foreground">Lịch gửi email báo cáo thật</h3>
-            </div>
-          </div>
-          <p className="mt-3 text-sm leading-7 text-muted-foreground">
-            Worker cron sẽ quét mỗi giờ, lấy lịch đến hạn từ D1 và đưa email báo cáo vào outbox để gửi nền. Admin chỉ cần cấu hình ở đây, không cần export thủ công.
-          </p>
-
-          <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-border/70 bg-background px-4 py-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Schedules active</p>
-              <p className="mt-2 text-lg font-bold text-foreground">{activeScheduleCount}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{sortedSchedules.length} lịch tổng cộng</p>
-            </div>
-            <div className="rounded-2xl border border-border/70 bg-background px-4 py-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Recipient pool</p>
-              <p className="mt-2 text-lg font-bold text-foreground">{totalRecipientCount}</p>
-              <p className="mt-1 text-sm text-muted-foreground">Email nhận báo cáo duy nhất</p>
-            </div>
-            <div className="rounded-2xl border border-border/70 bg-background px-4 py-3.5">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">Lần chạy kế tiếp</p>
-              <p className="mt-2 text-lg font-bold text-foreground">{nextSchedule?.name || 'Chưa có'}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{formatDateTime(nextSchedule?.next_run_at)}</p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-foreground">Tên lịch</span>
-              <input
-                value={scheduleForm.name}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, name: event.target.value }))}
-                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
-                placeholder="Daily Ops Digest"
-              />
-            </label>
-
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-foreground">Preset báo cáo</span>
-              <select
-                value={scheduleForm.preset}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, preset: event.target.value as AdminReportPreset }))}
-                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
+      {/* 1. Header & Filter Card matching Orders, Customers, Appointments */}
+      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+        {/* Preset pills row */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {(['30d', '7d', '90d'] as ReportsPreset[]).map((pKey) => {
+            const isActive = preset === pKey;
+            return (
+              <button
+                key={pKey}
+                type="button"
+                onClick={() => setPreset(pKey)}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
               >
-                {(Object.keys(PRESET_LABELS) as AdminReportPreset[]).map((key) => (
-                  <option key={key} value={key}>
-                    {PRESET_LABELS[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-foreground">Tần suất</span>
-              <select
-                value={scheduleForm.frequency}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, frequency: event.target.value as AdminReportFrequency }))}
-                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
-              >
-                {(Object.keys(FREQUENCY_LABELS) as AdminReportFrequency[]).map((key) => (
-                  <option key={key} value={key}>
-                    {FREQUENCY_LABELS[key]}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {scheduleForm.frequency === 'weekly' ? (
-              <label className="flex flex-col gap-2">
-                <span className="text-sm font-medium text-foreground">Ngày chạy</span>
-                <select
-                  value={scheduleForm.dayOfWeek}
-                  onChange={(event) => setScheduleForm((prev) => ({ ...prev, dayOfWeek: Number(event.target.value) }))}
-                  className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
-                >
-                  {WEEKDAY_LABELS.map((label, index) => (
-                    <option key={label} value={index}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : (
-              <div className="hidden lg:block" />
-            )}
-
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-foreground">Giờ local</span>
-              <input
-                type="number"
-                min="0"
-                max="23"
-                value={scheduleForm.hourLocal}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, hourLocal: Number(event.target.value) }))}
-                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
-              />
-            </label>
-
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-foreground">Phút</span>
-              <input
-                type="number"
-                min="0"
-                max="59"
-                value={scheduleForm.minuteLocal}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, minuteLocal: Number(event.target.value) }))}
-                className="rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
-              />
-            </label>
-
-            <label className="flex flex-col gap-2 lg:col-span-2">
-              <span className="text-sm font-medium text-foreground">Email nhận báo cáo</span>
-              <textarea
-                value={scheduleForm.recipients}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, recipients: event.target.value }))}
-                rows={3}
-                className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none"
-                placeholder="hovidaiphuc@gmail.com, ops@example.com"
-              />
-            </label>
-
-            <label className="flex items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground lg:col-span-2">
-              <input
-                type="checkbox"
-                checked={scheduleForm.enabled}
-                onChange={(event) => setScheduleForm((prev) => ({ ...prev, enabled: event.target.checked }))}
-                className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-              />
-              <span>Bật lịch gửi báo cáo</span>
-            </label>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={handleSaveSchedule}
-              disabled={savingSchedule}
-              className="rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {savingSchedule ? 'Đang lưu...' : scheduleForm.id ? 'Cập nhật lịch' : 'Tạo lịch'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setScheduleForm(DEFAULT_FORM)}
-              className="rounded-2xl border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-            >
-              Làm mới form
-            </button>
-          </div>
+                <span>{PRESET_LABELS[pKey]}</span>
+                {snapshot && pKey === preset && (
+                  <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-bold text-primary-foreground">
+                    {snapshot.total_orders} đơn
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_45px_-36px_rgba(28,24,18,0.45)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">Active schedules</p>
-          <h3 className="mt-2 text-2xl font-bold text-foreground">Lịch đang chạy</h3>
-          <div data-testid="admin-report-schedule-list" className="mt-5 space-y-3">
-            {sortedSchedules.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
-                Chưa có lịch gửi báo cáo nào.
-              </div>
-            ) : (
-              sortedSchedules.map((schedule) => (
-                <div
-                  key={schedule.id}
-                  data-testid="admin-report-schedule-card"
-                  data-schedule-name={schedule.name}
-                  className="rounded-2xl border border-border/70 bg-background px-4 py-4"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p data-testid="admin-report-schedule-name" className="text-sm font-semibold text-foreground">{schedule.name}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {PRESET_LABELS[schedule.preset]} • {FREQUENCY_LABELS[schedule.frequency]}
-                        {schedule.frequency === 'weekly' && schedule.day_of_week !== null ? ` • ${WEEKDAY_LABELS[schedule.day_of_week]}` : ''}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {String(schedule.hour_local).padStart(2, '0')}:{String(schedule.minute_local).padStart(2, '0')} • {schedule.timezone}
-                      </p>
-                    </div>
-                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${schedule.enabled ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-slate-200 bg-slate-100 text-slate-700'}`}>
-                      {schedule.enabled ? 'Enabled' : 'Disabled'}
-                    </span>
-                  </div>
-                  <div className="mt-3 space-y-1 text-sm text-muted-foreground">
-                    <p data-testid="admin-report-schedule-recipients">Email: {schedule.recipients.join(', ') || 'Chưa có'}</p>
-                    <p>Lần chạy kế tiếp: {formatDateTime(schedule.next_run_at)}</p>
-                    <p>Lần gửi gần nhất: {formatDateTime(schedule.last_sent_at)}</p>
-                    {schedule.last_error_message ? (
-                      <p className="text-rose-700">Lỗi gần nhất: {schedule.last_error_message}</p>
-                    ) : null}
-                  </div>
-                  <div className="mt-4 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setScheduleForm(scheduleToForm(schedule))}
-                      data-testid="admin-report-schedule-edit"
-                      className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:border-primary/40 hover:text-primary"
-                    >
-                      <PencilIcon className="h-4 w-4" />
-                      <span>Chỉnh sửa</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleDeleteSchedule(schedule)}
-                      data-testid="admin-report-schedule-delete"
-                      disabled={deletingScheduleId === schedule.id}
-                      className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {deletingScheduleId === schedule.id ? <Spinner className="h-4 w-4" /> : <TrashIcon className="h-4 w-4" />}
-                      <span>Xóa</span>
-                    </button>
-                  </div>
-                </div>
-              ))
+        {/* Search bar, Scheduler shortcut & Excel export button */}
+        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Tìm sản phẩm / dịch vụ / cảnh báo / lịch gửi..."
+              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all text-foreground"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
             )}
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const elem = document.getElementById('report-scheduler-card');
+              elem?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shrink-0 active:scale-95"
+            title="Xem lịch gửi email tự động"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-3.5 h-3.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            <span>Lịch tự động</span>
+            {activeScheduleCount > 0 && (
+              <span className="flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
+                {activeScheduleCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={exporting || !snapshot}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 disabled:opacity-50 shrink-0"
+            title="Xuất toàn bộ báo cáo Excel"
+          >
+            {exporting ? (
+              <Spinner className="w-4 h-4 text-primary" />
+            ) : (
+              <img
+                src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-outputexcel.webp"
+                alt="Xuất Excel"
+                className="w-4.5 h-4.5 object-contain"
+              />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setScheduleForm(DEFAULT_FORM);
+              const elem = document.getElementById('report-scheduler-card');
+              elem?.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="hidden sm:inline-flex items-center gap-1.5 h-9 px-3 rounded-xl bg-secondary text-secondary-foreground text-xs font-bold shrink-0 shadow-xs hover:bg-secondary/90 active:scale-95 transition-all"
+            title="Thêm lịch gửi báo cáo mới"
+          >
+            <span>+ Thêm lịch</span>
+          </button>
         </div>
       </div>
 
+      {/* 2. KPI Metrics & Detailed Breakdown */}
       {loading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-[2rem] border border-border bg-card">
+        <div className="flex min-h-[220px] items-center justify-center rounded-2xl border border-white/70 bg-card/75 p-8 shadow-xs backdrop-blur-2xl dark:border-white/10">
           <Spinner />
         </div>
       ) : !snapshot ? (
-        <div className="rounded-[2rem] border border-dashed border-border px-6 py-12 text-center text-sm text-muted-foreground">
-          Không có dữ liệu báo cáo.
+        <div className="rounded-2xl border border-white/70 bg-card/75 p-10 text-center text-sm text-muted-foreground shadow-xs backdrop-blur-2xl dark:border-white/10">
+          Không có dữ liệu báo cáo cho khoảng thời gian này.
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricTile label="Net revenue" value={formatCurrency(snapshot.net_revenue)} hint={`Gross ${formatCurrency(snapshot.gross_revenue)}`} />
-            <MetricTile label="Paid orders" value={String(snapshot.paid_orders)} hint={`${snapshot.total_orders} tổng đơn`} />
-            <MetricTile label="Khách mới" value={String(snapshot.new_customers)} hint={`${snapshot.returning_customers} returning`} />
-            <MetricTile label="Schedules active" value={String(activeScheduleCount)} hint={`${alerts.length} alert • preset ${PRESET_LABELS[preset]}`} />
+          {/* KPI Metric Tiles */}
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 mx-1 sm:mx-0">
+            <MetricTile
+              label="Doanh thu thực (Net)"
+              value={formatCurrency(snapshot.net_revenue)}
+              hint={`Gross: ${formatCurrency(snapshot.gross_revenue)}`}
+            />
+            <MetricTile
+              label="Đơn đã thanh toán"
+              value={String(snapshot.paid_orders)}
+              hint={`${snapshot.total_orders} tổng đơn hàng`}
+            />
+            <MetricTile
+              label="Khách hàng mới"
+              value={String(snapshot.new_customers)}
+              hint={`${snapshot.returning_customers} khách quay lại`}
+            />
+            <MetricTile
+              label="Lịch tự động active"
+              value={String(activeScheduleCount)}
+              hint={`${alerts.length} cảnh báo • kỳ ${PRESET_LABELS[preset]}`}
+            />
           </div>
 
-          <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-            <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_45px_-36px_rgba(28,24,18,0.45)]">
-              <div className="flex items-center gap-2">
-                <ReceiptIcon className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">Top sản phẩm</h3>
+          {/* 3-Column Breakdown: Top Products, Top Services, Alert Feed */}
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-3 mx-1 sm:mx-0">
+            {/* Top Products */}
+            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+              <div className="flex items-center justify-between pb-3 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <ReceiptIcon className="h-4.5 w-4.5 text-primary" />
+                  <h3 className="text-base sm:text-lg font-bold text-foreground">Top sản phẩm</h3>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground font-mono">
+                  {filteredProducts.length} SP
+                </span>
               </div>
-              <div className="mt-4 space-y-3">
-                {topProducts.slice(0, 6).map((product) => (
-                  <div key={product.product_id} className="rounded-2xl border border-border/70 px-4 py-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-sm font-semibold text-foreground">{product.product_name}</p>
-                      <p className="text-sm font-semibold text-primary">{formatCurrency(product.gross_revenue)}</p>
+              <div className="mt-3.5 space-y-2">
+                {filteredProducts.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-4 text-center">Không có sản phẩm nào phù hợp.</p>
+                ) : (
+                  filteredProducts.slice(0, 6).map((product, idx) => (
+                    <div
+                      key={product.product_id}
+                      className="rounded-xl border border-border/40 bg-background/30 backdrop-blur-md p-3 transition-all hover:bg-background/50 hover:border-primary/30"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-black text-primary">
+                            {idx + 1}
+                          </span>
+                          <p className="truncate text-xs sm:text-sm font-bold text-foreground">{product.product_name}</p>
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-primary font-mono shrink-0">{formatCurrency(product.gross_revenue)}</p>
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted-foreground pl-6.5">
+                        {product.units_sold} đã bán • {product.order_count} đơn hàng
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{product.units_sold} units • {product.order_count} orders</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_45px_-36px_rgba(28,24,18,0.45)]">
-              <div className="flex items-center gap-2">
-                <ReceiptIcon className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">Top dịch vụ</h3>
+            {/* Top Services */}
+            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+              <div className="flex items-center justify-between pb-3 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <ReceiptIcon className="h-4.5 w-4.5 text-primary" />
+                  <h3 className="text-base sm:text-lg font-bold text-foreground">Top dịch vụ</h3>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground font-mono">
+                  {filteredServices.length} DV
+                </span>
               </div>
-              <div className="mt-4 space-y-3">
-                {topServices.slice(0, 6).map((service) => (
-                  <div key={service.service_id} className="rounded-2xl border border-border/70 px-4 py-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-sm font-semibold text-foreground">{service.service_name}</p>
-                      <p className="text-sm font-semibold text-primary">{formatCurrency(service.realized_revenue)}</p>
+              <div className="mt-3.5 space-y-2">
+                {filteredServices.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-4 text-center">Không có dịch vụ nào phù hợp.</p>
+                ) : (
+                  filteredServices.slice(0, 6).map((service, idx) => (
+                    <div
+                      key={service.service_id}
+                      className="rounded-xl border border-border/40 bg-background/30 backdrop-blur-md p-3 transition-all hover:bg-background/50 hover:border-primary/30"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="inline-flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-black text-primary">
+                            {idx + 1}
+                          </span>
+                          <p className="truncate text-xs sm:text-sm font-bold text-foreground">{service.service_name}</p>
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-primary font-mono shrink-0">{formatCurrency(service.realized_revenue)}</p>
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted-foreground pl-6.5">
+                        {service.appointment_count} lịch hẹn • {service.completed_count} hoàn thành
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{service.appointment_count} appointments • {service.completed_count} completed</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-border bg-card p-6 shadow-[0_18px_45px_-36px_rgba(28,24,18,0.45)]">
-              <div className="flex items-center gap-2">
-                <ReceiptIcon className="h-5 w-5 text-primary" />
-                <h3 className="text-xl font-bold text-foreground">Alert feed</h3>
+            {/* Alert Feed */}
+            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+              <div className="flex items-center justify-between pb-3 border-b border-border/30">
+                <div className="flex items-center gap-2">
+                  <ReceiptIcon className="h-4.5 w-4.5 text-primary" />
+                  <h3 className="text-base sm:text-lg font-bold text-foreground">Cảnh báo vận hành</h3>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground font-mono">
+                  {filteredAlerts.length} tin
+                </span>
               </div>
-              <div className="mt-4 space-y-3">
-                {alerts.slice(0, 6).map((alert) => (
-                  <div key={alert.alert_key} className="rounded-2xl border border-border/70 px-4 py-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="text-sm font-semibold text-foreground">{alert.title}</p>
-                      <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{alert.severity}</p>
+              <div className="mt-3.5 space-y-2">
+                {filteredAlerts.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-4 text-center">Hệ thống đang hoạt động tối ưu.</p>
+                ) : (
+                  filteredAlerts.slice(0, 6).map((alert) => (
+                    <div
+                      key={alert.alert_key}
+                      className="rounded-xl border border-border/40 bg-background/30 backdrop-blur-md p-3 transition-all hover:bg-background/50 hover:border-primary/30"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-xs sm:text-sm font-bold text-foreground">{alert.title}</p>
+                        <span
+                          className={`rounded-full px-2 py-0.2 text-[10px] font-bold uppercase tracking-wider ${
+                            alert.severity === 'critical'
+                              ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
+                              : 'bg-amber-500/15 text-amber-700 dark:text-amber-300'
+                          }`}
+                        >
+                          {alert.severity}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2">{alert.description}</p>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{alert.description}</p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
         </>
       )}
+
+      {/* 3. Scheduled Report Management (Lịch gửi email báo cáo thật) */}
+      <div
+        id="report-scheduler-card"
+        className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border/30">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <MailIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Scheduler Engine</p>
+              <h3 className="text-lg sm:text-xl font-bold text-foreground">Lịch gửi email báo cáo thật</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground max-w-md">
+            Worker cron quét mỗi giờ, tự động trích xuất dữ liệu từ D1 và đưa email báo cáo vào outbox gửi nền.
+          </p>
+        </div>
+
+        {/* Mini stats */}
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-border/40 bg-background/30 backdrop-blur-md px-3.5 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lịch active</p>
+            <p className="mt-1 text-base font-bold text-foreground">{activeScheduleCount} / {sortedSchedules.length} lịch</p>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-background/30 backdrop-blur-md px-3.5 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Email pool</p>
+            <p className="mt-1 text-base font-bold text-foreground">{totalRecipientCount} người nhận</p>
+          </div>
+          <div className="rounded-xl border border-border/40 bg-background/30 backdrop-blur-md px-3.5 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lần chạy kế tiếp</p>
+            <p className="mt-1 text-xs sm:text-sm font-bold text-foreground truncate">{nextSchedule?.name || 'Chưa có lịch'}</p>
+            <p className="text-[10px] text-muted-foreground">{formatDateTime(nextSchedule?.next_run_at)}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+          {/* Form Create / Edit */}
+          <div className="rounded-2xl border border-border/40 bg-background/30 p-4 backdrop-blur-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border/30">
+              <p className="text-xs font-bold text-foreground uppercase tracking-wider">
+                {scheduleForm.id ? 'Cập nhật lịch gửi' : 'Tạo lịch gửi mới'}
+              </p>
+              {scheduleForm.id && (
+                <button
+                  type="button"
+                  onClick={() => setScheduleForm(DEFAULT_FORM)}
+                  className="text-xs text-primary hover:underline font-semibold"
+                >
+                  Hủy sửa (Tạo mới)
+                </button>
+              )}
+            </div>
+            <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              <label className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-[11px] font-semibold text-foreground">Tên lịch</span>
+                <input
+                  aria-label="Tên lịch"
+                  value={scheduleForm.name}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Daily Ops Digest"
+                  className="w-full h-8.5 rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-3 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-foreground">Kỳ báo cáo</span>
+                <select
+                  value={scheduleForm.preset}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, preset: e.target.value as AdminReportPreset }))}
+                  className="w-full h-8.5 rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2.5 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                >
+                  {(Object.keys(PRESET_LABELS) as AdminReportPreset[]).map((k) => (
+                    <option key={k} value={k}>{PRESET_LABELS[k]}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-foreground">Tần suất gửi</span>
+                <select
+                  value={scheduleForm.frequency}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, frequency: e.target.value as AdminReportFrequency }))}
+                  className="w-full h-8.5 rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2.5 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                >
+                  {(Object.keys(FREQUENCY_LABELS) as AdminReportFrequency[]).map((k) => (
+                    <option key={k} value={k}>{FREQUENCY_LABELS[k]}</option>
+                  ))}
+                </select>
+              </label>
+              {scheduleForm.frequency === 'weekly' && (
+                <label className="flex flex-col gap-1 sm:col-span-2">
+                  <span className="text-[11px] font-semibold text-foreground">Ngày trong tuần</span>
+                  <select
+                    value={scheduleForm.dayOfWeek}
+                    onChange={(e) => setScheduleForm((prev) => ({ ...prev, dayOfWeek: Number(e.target.value) }))}
+                    className="w-full h-8.5 rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2.5 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                  >
+                    {WEEKDAY_LABELS.map((w, idx) => (
+                      <option key={w} value={idx}>{w}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-foreground">Giờ gửi</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="23"
+                  value={scheduleForm.hourLocal}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, hourLocal: Number(e.target.value) }))}
+                  className="w-full h-8.5 rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-3 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-[11px] font-semibold text-foreground">Phút gửi</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={scheduleForm.minuteLocal}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, minuteLocal: Number(e.target.value) }))}
+                  className="w-full h-8.5 rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-3 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                />
+              </label>
+              <label className="flex flex-col gap-1 sm:col-span-2">
+                <span className="text-[11px] font-semibold text-foreground">Email nhận báo cáo (phân cách bằng dấu phẩy)</span>
+                <textarea
+                  aria-label="Email nhận báo cáo"
+                  rows={2}
+                  value={scheduleForm.recipients}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, recipients: e.target.value }))}
+                  placeholder="admin@thegioitrimun.vn, ops@thegioitrimun.vn"
+                  className="w-full rounded-xl border-0 bg-background/40 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] p-2.5 text-xs focus:ring-1 focus:ring-primary/50 outline-none text-foreground"
+                />
+              </label>
+              <label className="flex items-center gap-2 sm:col-span-2 cursor-pointer py-1">
+                <input
+                  type="checkbox"
+                  checked={scheduleForm.enabled}
+                  onChange={(e) => setScheduleForm((prev) => ({ ...prev, enabled: e.target.checked }))}
+                  className="h-4 w-4 rounded border-border text-primary focus:ring-primary accent-primary"
+                />
+                <span className="text-xs font-semibold text-foreground">Bật kích hoạt lịch gửi tự động này</span>
+              </label>
+            </div>
+            <div className="mt-3.5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSaveSchedule}
+                disabled={savingSchedule}
+                className="inline-flex items-center justify-center h-9 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 active:scale-95 disabled:opacity-50 transition-all"
+              >
+                {savingSchedule ? 'Đang lưu...' : scheduleForm.id ? 'Cập nhật lịch' : 'Tạo lịch'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setScheduleForm(DEFAULT_FORM)}
+                className="inline-flex items-center justify-center h-9 px-3 rounded-xl border border-border/60 bg-background/40 text-muted-foreground text-xs font-semibold hover:bg-muted hover:text-foreground active:scale-95 transition-all"
+              >
+                Làm mới
+              </button>
+            </div>
+          </div>
+
+          {/* Active Schedules List */}
+          <div className="rounded-2xl border border-border/40 bg-background/30 p-4 backdrop-blur-xl">
+            <div className="flex items-center justify-between pb-3 border-b border-border/30">
+              <p className="text-xs font-bold text-foreground uppercase tracking-wider">
+                Danh sách lịch chạy
+              </p>
+              <span className="text-xs font-semibold text-primary font-mono">
+                {filteredSchedules.length} lịch
+              </span>
+            </div>
+            <div data-testid="admin-report-schedule-list" className="mt-3 space-y-2.5 max-h-[440px] overflow-y-auto pr-1">
+              {filteredSchedules.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-border/60 px-4 py-8 text-center text-xs text-muted-foreground">
+                  Chưa có lịch gửi báo cáo nào phù hợp.
+                </div>
+              ) : (
+                filteredSchedules.map((schedule) => (
+                  <div
+                    key={schedule.id}
+                    data-testid="admin-report-schedule-card"
+                    data-schedule-name={schedule.name}
+                    className="relative rounded-xl border border-white/70 bg-card/75 p-3.5 shadow-2xs backdrop-blur-xl transition-all hover:border-primary/40 dark:border-white/10"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p data-testid="admin-report-schedule-name" className="truncate text-xs sm:text-sm font-bold text-foreground">
+                          {schedule.name}
+                        </p>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
+                          <span className="font-semibold text-primary">{PRESET_LABELS[schedule.preset]}</span>
+                          <span>•</span>
+                          <span>{FREQUENCY_LABELS[schedule.frequency]}</span>
+                          {schedule.frequency === 'weekly' && schedule.day_of_week !== null && (
+                            <>
+                              <span>•</span>
+                              <span>{WEEKDAY_LABELS[schedule.day_of_week]}</span>
+                            </>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          {String(schedule.hour_local).padStart(2, '0')}:{String(schedule.minute_local).padStart(2, '0')} • {schedule.timezone}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex shrink-0 items-center rounded-full border px-2 py-0.2 text-[10px] font-semibold ${
+                          schedule.enabled
+                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                            : 'border-slate-500/30 bg-slate-500/10 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        {schedule.enabled ? 'Đang chạy' : 'Tạm dừng'}
+                      </span>
+                    </div>
+
+                    <div className="mt-2 space-y-0.5 border-t border-border/20 pt-1.5 text-[11px] text-muted-foreground">
+                      <p data-testid="admin-report-schedule-recipients" className="truncate">
+                        <span className="font-medium text-foreground">Email:</span> {schedule.recipients.join(', ') || 'Chưa có'}
+                      </p>
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-[10px]">
+                        <span>Tới: <span className="font-medium text-foreground">{formatDateTime(schedule.next_run_at)}</span></span>
+                        <span>Gần nhất: {formatDateTime(schedule.last_sent_at)}</span>
+                      </div>
+                      {schedule.last_error_message && (
+                        <p className="text-rose-600 dark:text-rose-400 font-medium">Lỗi: {schedule.last_error_message}</p>
+                      )}
+                    </div>
+
+                    <div className="mt-2.5 flex items-center justify-end gap-1.5 border-t border-border/20 pt-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setScheduleForm(scheduleToForm(schedule))}
+                        data-testid="admin-report-schedule-edit"
+                        className="inline-flex items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 py-0.8 text-[11px] font-bold text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
+                      >
+                        <PencilIcon className="h-3 w-3" />
+                        <span>Sửa</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void handleDeleteSchedule(schedule)}
+                        data-testid="admin-report-schedule-delete"
+                        disabled={deletingScheduleId === schedule.id}
+                        className="inline-flex items-center gap-1 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2 py-0.8 text-[11px] font-bold text-rose-700 dark:text-rose-400 transition-all hover:bg-rose-500 hover:text-white active:scale-95 disabled:opacity-50"
+                      >
+                        {deletingScheduleId === schedule.id ? <Spinner className="h-3 w-3" /> : <TrashIcon className="h-3 w-3" />}
+                        <span>Xóa</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

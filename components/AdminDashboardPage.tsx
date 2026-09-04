@@ -239,7 +239,7 @@ const TrendBoard: React.FC<{
   const avgOrders = points.length > 0 ? points.reduce((sum, point) => sum + point.totalOrders, 0) / points.length : 0;
 
   return (
-    <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Executive trend</p>
@@ -344,7 +344,7 @@ const RankedBarChart: React.FC<{
   }[accent];
 
   return (
-    <section className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl p-5 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] md:p-6">
+    <section className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">{eyebrow}</p>
       <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">{title}</h2>
       {rows.length === 0 ? (
@@ -390,7 +390,7 @@ const RevenueComparisonChart: React.FC<{
   const maxValue = Math.max(productRevenue, serviceRevenue, 1);
 
   return (
-    <section className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl p-5 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] md:p-7">
+    <section className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Doanh số</p>
@@ -428,7 +428,7 @@ const WeeklyRevenueTrendChart: React.FC<{ points: TrendBucket[] }> = ({ points }
   const areaPath = linePath ? `${linePath} L 616 196 L 24 196 Z` : '';
 
   return (
-    <section className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl p-5 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] md:p-7">
+    <section className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Nhịp bán hàng</p>
       <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">Doanh thu sản phẩm theo ngày</h2>
       {points.length === 0 ? (
@@ -497,7 +497,7 @@ const OperationsDigest: React.FC<{
   ];
 
   return (
-    <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Operations digest</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Điều hành ngắn gọn</h2>
       <div className="mt-5 space-y-3">
@@ -524,7 +524,7 @@ const AlertFeed: React.FC<{
   alerts: AdminDashboardAlert[];
   onTakeAction: (alert: AdminDashboardAlert) => void;
 }> = ({ alerts, onTakeAction }) => (
-  <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
     <div className="mb-4 flex items-center justify-between gap-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Alerts</p>
@@ -570,7 +570,7 @@ const MiniLeaderboard: React.FC<{
   kicker: string;
   rows: Array<{ label: string; value: string; meta?: string }>;
 }> = ({ title, kicker, rows }) => (
-  <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">{kicker}</p>
     <h2 className="mt-2 text-2xl font-bold text-foreground">{title}</h2>
     <div className="mt-5 space-y-3">
@@ -610,7 +610,7 @@ const QuickActionGrid: React.FC<{
   }>;
   onNavigate: (page: AdminNavigationView) => void;
 }> = ({ adminLinks, onNavigate }) => (
-  <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
     <div className="mb-5">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Workspace map</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Khu vực quản trị</h2>
@@ -663,7 +663,7 @@ const PriorityActionsCard: React.FC<{
   onOpenAppointments,
   onOpenAlerts,
 }) => (
-  <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
     <div className="mb-5">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Priority actions</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Tác vụ ưu tiên</h2>
@@ -736,7 +736,7 @@ const TodayWorkBoard: React.FC<{
     sla?: string;
   }>;
 }> = ({ items }) => (
-  <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
     <div className="mb-5">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Today queue</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Việc cần xử lý hôm nay</h2>
@@ -777,7 +777,7 @@ const OperationsInbox: React.FC<{
     onClick: () => void;
   }>;
 }> = ({ items }) => (
-  <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Operations inbox</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Việc mở theo mức ưu tiên</h2>
@@ -832,7 +832,7 @@ const RuntimeHealthCard: React.FC<{
   const latestEntry = logs[0] || null;
 
   return (
-    <div className="rounded-[2rem] bg-card/25 backdrop-blur-2xl p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)]">
+    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Runtime health</p>
@@ -924,7 +924,7 @@ const SystemOperationsCard: React.FC<{
     { label: 'Lịch báo cáo', value: data?.reportSchedules.length ?? 0, tone: 'text-emerald-700' },
   ];
   return (
-    <div className="rounded-[2rem] bg-card/25 p-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] backdrop-blur-2xl xl:col-span-2">
+    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 xl:col-span-2">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">System operations</p>
@@ -1445,16 +1445,52 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   }, [preset, productOrders]);
 
   const renderOverview = () => (
-    <div className="space-y-5 md:space-y-7">
-      <div className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl px-5 py-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] md:px-7">
-        <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">Dashboard kinh doanh</p>
-        <h1 className="mt-2 text-2xl font-bold text-foreground md:text-3xl">Doanh số {PRESET_LABELS[preset].toLowerCase()}</h1>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground md:text-base">
-          Theo dõi doanh thu bán hàng, dịch vụ, sản phẩm bán chạy và nơi phát sinh nhiều đơn nhất trong cùng một màn hình.
-        </p>
+    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
+      {/* 1. Header Card matching Apple Glass standard */}
+      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+        {/* Preset pills row */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          {(Object.keys(PRESET_LABELS) as DashboardPreset[]).map((key) => {
+            const isActive = preset === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setPreset(key)}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <span>{PRESET_LABELS[key]}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Status / Action row */}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground truncate">
+              {lastUpdated ? `Cập nhật lúc ${formatDateTime(lastUpdated)}` : 'Chưa có dữ liệu cập nhật'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void loadDashboardData()}
+            className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shrink-0 active:scale-95"
+            title="Làm mới dữ liệu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            <span className="hidden sm:inline">Làm mới</span>
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2 mx-1 sm:mx-0">
         <RevenueComparisonChart
           productRevenue={Number(snapshot?.net_revenue || 0)}
           serviceRevenue={Number(snapshot?.service_revenue || 0)}

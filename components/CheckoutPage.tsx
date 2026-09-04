@@ -5,7 +5,7 @@ import type { UserData, ShippingAddress, PaymentSettings, ProductOrder, Checkout
 import * as api from '../services/api';
 import { useToast } from '../hooks/useToast';
 import Spinner from './Spinner';
-import VietQRModal from './VietQRModal';
+import SepayPaymentModal from './SepayPaymentModal';
 import { useDebounce } from '../hooks/useDebounce';
 import BackIconButton from './BackIconButton';
 import VietnamAddressFields from './VietnamAddressFields';
@@ -47,6 +47,8 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
   const [isLoading, setIsLoading] = useState(false);
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<ProductOrder | null>(null);
+  const [isSepayEnabled, setIsSepayEnabled] = useState(false);
+  const [isSepayConfigLoading, setIsSepayConfigLoading] = useState(true);
   const { addToast } = useToast();
 
   const [shippingFee, setShippingFee] = useState(0);
@@ -66,6 +68,12 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
   }, 500);
 
   const isGuestCheckout = !currentUser;
+  const hasSepayBankDetails = Boolean(
+    (paymentSettings?.bank_code || paymentSettings?.bank_bin)
+    && paymentSettings?.account_number
+    && paymentSettings?.account_holder_name
+  );
+  const canPayWithSepay = isSepayEnabled && hasSepayBankDetails;
   const finalTotal = useMemo(
     () => pricingQuote?.grand_total ?? (total + shippingFee),
     [pricingQuote, total, shippingFee]
@@ -99,6 +107,23 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
       }));
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsSepayConfigLoading(true);
+    void api.getSepayPublicConfiguration()
+      .then((configuration) => {
+        if (!cancelled) setIsSepayEnabled(configuration.enabled);
+      })
+      .catch((error) => {
+        console.warn('Could not load SePay configuration:', error);
+        if (!cancelled) setIsSepayEnabled(false);
+      })
+      .finally(() => {
+        if (!cancelled) setIsSepayConfigLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const calculateFee = useCallback(async () => {
     const { street, province, district, ward } = debouncedAddressParts;
@@ -248,6 +273,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
       addToast(t('checkout.ghtk_requires_district'), { type: 'error' });
       return;
     }
+    if (paymentMethod === 'bank_transfer' && !canPayWithSepay) {
+      addToast(t('checkout.sepay_unavailable', 'SePay chưa sẵn sàng'), {
+        type: 'error',
+        description: t('checkout.sepay_unavailable_desc', 'Vui lòng chọn COD hoặc thử lại sau.'),
+      });
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -278,7 +310,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
       }, cartItems);
 
       void api.trackFunnelEvent(
-        'purchase',
+        paymentMethod === 'bank_transfer' ? 'payment_pending' : 'purchase',
         {
           order_id: order.id,
           order_code: order.order_code,
@@ -297,7 +329,10 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
         currentUser?.profile.id || null
       );
 
-      if (paymentMethod === 'bank_transfer' && paymentSettings) {
+      if (paymentMethod === 'bank_transfer') {
+        if (!order.payment || order.payment.provider !== 'sepay') {
+          throw new Error(t('checkout.sepay_session_error', 'Không thể khởi tạo phiên thanh toán SePay.'));
+        }
         setCreatedOrder(order);
         setIsQrModalOpen(true);
       } else {
@@ -320,10 +355,44 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
     }
   };
 
-  const handleQrConfirm = async () => {
+  const handleSepayPaid = useCallback(async (status: import('../types').SepayPaymentStatus) => {
+    if (!createdOrder) return;
+    const paidOrder: ProductOrder = {
+      ...createdOrder,
+      payment_status: 'paid',
+      status: status.order_status,
+      paid_at: status.paid_at,
+    };
+    void api.trackFunnelEvent(
+      'purchase',
+      {
+        order_id: paidOrder.id,
+        order_code: paidOrder.order_code,
+        total_price: paidOrder.total_price,
+        subtotal_price: paidOrder.subtotal_price ?? subtotal,
+        discount_code: paidOrder.discount_code || appliedDiscount?.code || null,
+        discount_amount: paidOrder.discount_amount ?? discountAmount,
+        shipping_fee: paidOrder.shipping_fee ?? shippingFee,
+        tax_amount: paidOrder.tax_amount ?? pricingQuote?.tax_amount ?? 0,
+        shipping_tax_amount: paidOrder.shipping_tax_amount ?? pricingQuote?.shipping_tax_amount ?? 0,
+        grand_total: paidOrder.grand_total ?? paidOrder.total_price,
+        currency: paidOrder.currency ?? pricingQuote?.currency ?? 'VND',
+        payment_method: 'bank_transfer',
+        payment_provider: 'sepay',
+        shipping_method: paidOrder.shipping_provider || shippingMethod,
+      },
+      currentUser?.profile.id || null
+    );
     setIsQrModalOpen(false);
-    await onCheckoutSuccess(createdOrder);
-  };
+    addToast(t('payment.paid', 'Thanh toán thành công'), {
+      type: 'success',
+      description: t('payment.paid_desc', 'SePay đã xác nhận giao dịch của bạn.'),
+    });
+    await onCheckoutSuccess(paidOrder);
+  }, [
+    addToast, appliedDiscount?.code, createdOrder, currentUser?.profile.id, discountAmount,
+    onCheckoutSuccess, pricingQuote, shippingFee, shippingMethod, subtotal, t,
+  ]);
 
   if (cartItems.length === 0) {
     return (
@@ -336,12 +405,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
 
   return (
     <>
-      <VietQRModal
+      <SepayPaymentModal
         isOpen={isQrModalOpen}
         onClose={() => setIsQrModalOpen(false)}
-        onConfirm={handleQrConfirm}
+        onPaid={handleSepayPaid}
         order={createdOrder}
-        paymentSettings={paymentSettings}
       />
       <div className="bg-background text-foreground transition-colors duration-300 animate-scale-in">
         <div className="container mx-auto px-6 py-12">
@@ -423,9 +491,18 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
                   <span className="ml-3 font-medium">{t('checkout.cod')}</span>
                 </label>
                 <label className="flex items-center p-4 border border-input rounded-lg has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                  <input type="radio" name="paymentMethod" value="bank_transfer" checked={paymentMethod === 'bank_transfer'} onChange={(e) => setPaymentMethod(e.target.value as OrderPaymentMethod)} className="h-4 w-4 text-primary border-muted-foreground focus:ring-primary" />
-                  <span className="ml-3 font-medium">{t('checkout.bank_transfer')}</span>
+                  <input type="radio" name="paymentMethod" value="bank_transfer" checked={paymentMethod === 'bank_transfer'} onChange={(e) => setPaymentMethod(e.target.value as OrderPaymentMethod)} disabled={!canPayWithSepay} className="h-4 w-4 text-primary border-muted-foreground focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50" />
+                  <span className={`ml-3 font-medium ${canPayWithSepay ? '' : 'text-muted-foreground'}`}>
+                    {t('checkout.sepay_transfer', 'SePay – chuyển khoản QR tự động')}
+                  </span>
                 </label>
+                {!canPayWithSepay && (
+                  <p className="mt-2 text-xs text-amber-700">
+                    {isSepayConfigLoading
+                      ? t('checkout.sepay_loading', 'Đang kiểm tra kết nối SePay…')
+                      : t('checkout.sepay_unavailable_desc', 'SePay đang tạm ngưng; vui lòng chọn COD.')}
+                  </p>
+                )}
               </div>
 
             </div>

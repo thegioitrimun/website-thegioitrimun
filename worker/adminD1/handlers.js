@@ -491,11 +491,36 @@ export async function getDashboardKpi(request, env) {
                 COALESCE(SUM(shipping_fee), 0) AS shipping_total,
                 COALESCE(AVG(CASE WHEN status NOT IN ('cancelled', 'refunded') THEN grand_total END), 0) AS average_order_value
                 FROM product_orders WHERE created_at >= ? AND created_at <= ?`).bind(start, end).first(),
-            db.prepare(`SELECT COUNT(DISTINCT customer_email) AS total_customers,
-                SUM(CASE WHEN first_order_at >= ? THEN 1 ELSE 0 END) AS new_customers,
-                SUM(CASE WHEN order_count > 1 THEN 1 ELSE 0 END) AS returning_customers
-                FROM (SELECT lower(customer_email) AS customer_email, MIN(created_at) AS first_order_at, COUNT(*) AS order_count
-                      FROM product_orders WHERE customer_email IS NOT NULL GROUP BY lower(customer_email))`).bind(start).first(),
+            db.prepare(`WITH order_customers AS (
+                    SELECT
+                        COALESCE(
+                            NULLIF(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(customer_phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+84', '0'), ''),
+                            NULLIF(lower(customer_email), ''),
+                            id
+                        ) AS customer_key,
+                        MIN(created_at) AS first_order_at,
+                        COUNT(*) AS order_count
+                    FROM product_orders
+                    GROUP BY customer_key
+                ), pancake_contacts AS (
+                    SELECT
+                        COALESCE(NULLIF(normalized_phone, ''), NULLIF(lower(email), ''), 'pancake:' || id) AS customer_key,
+                        MIN(first_seen_at) AS first_order_at,
+                        0 AS order_count
+                    FROM pancake_customers
+                    GROUP BY customer_key
+                ), unified_customers AS (
+                    SELECT * FROM order_customers
+                    UNION ALL
+                    SELECT pc.* FROM pancake_contacts pc
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM order_customers oc WHERE oc.customer_key = pc.customer_key
+                    )
+                )
+                SELECT COUNT(*) AS total_customers,
+                    SUM(CASE WHEN first_order_at >= ? THEN 1 ELSE 0 END) AS new_customers,
+                    SUM(CASE WHEN order_count > 1 THEN 1 ELSE 0 END) AS returning_customers
+                FROM unified_customers`).bind(start).first(),
             db.prepare(`SELECT COUNT(*) AS appointments_total,
                 SUM(CASE WHEN a.status = 'pending' THEN 1 ELSE 0 END) AS appointments_pending,
                 SUM(CASE WHEN a.status = 'completed' THEN 1 ELSE 0 END) AS appointments_completed,
@@ -602,18 +627,109 @@ export async function getCustomerMetrics(request, env) {
         const { start, end } = dateRange(url);
         const limit = boundedInteger(url.searchParams.get('limit'), 25, 1, 200);
         const offset = boundedInteger(url.searchParams.get('offset'), 0, 0, 100000);
-        const result = await db.prepare(`SELECT u.id AS patient_id, COALESCE(u.display_name, '') AS name, u.email, COALESCE(u.phone, '') AS phone, u.created_at,
-            COUNT(DISTINCT o.id) AS total_orders, COALESCE(SUM(o.grand_total), 0) AS total_spent,
-            COALESCE(AVG(o.grand_total), 0) AS average_order_value, MIN(o.created_at) AS first_order_at, MAX(o.created_at) AS last_order_at,
-            COUNT(DISTINCT a.id) AS total_appointments, MAX(a.created_at) AS last_appointment_at,
-            COUNT(DISTINCT CASE WHEN o.created_at >= ? AND o.created_at <= ? THEN o.id END) AS orders_in_period,
-            COALESCE(SUM(CASE WHEN o.created_at >= ? AND o.created_at <= ? THEN o.grand_total ELSE 0 END), 0) AS spent_in_period
-            FROM users u LEFT JOIN product_orders o ON o.user_id = u.id AND o.status NOT IN ('cancelled', 'refunded')
-            LEFT JOIN appointments a ON a.user_id = u.id GROUP BY u.id
-            ORDER BY total_spent DESC, u.created_at DESC LIMIT ? OFFSET ?`).bind(start, end, start, end, limit, offset).all();
+        const result = await db.prepare(`
+            WITH registered_orders AS (
+                SELECT user_id,
+                    COUNT(*) AS total_orders,
+                    COALESCE(SUM(grand_total), 0) AS total_spent,
+                    COALESCE(AVG(grand_total), 0) AS average_order_value,
+                    MIN(created_at) AS first_order_at,
+                    MAX(created_at) AS last_order_at,
+                    SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 ELSE 0 END) AS orders_in_period,
+                    COALESCE(SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN grand_total ELSE 0 END), 0) AS spent_in_period
+                FROM product_orders
+                WHERE user_id IS NOT NULL AND status NOT IN ('cancelled', 'refunded')
+                GROUP BY user_id
+            ), registered_appointments AS (
+                SELECT user_id, COUNT(*) AS total_appointments, MAX(created_at) AS last_appointment_at
+                FROM appointments WHERE user_id IS NOT NULL GROUP BY user_id
+            ), guest_orders AS (
+                SELECT
+                    COALESCE(
+                        NULLIF(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(customer_phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+84', '0'), ''),
+                        NULLIF(lower(customer_email), ''),
+                        id
+                    ) AS contact_key,
+                    COUNT(*) AS total_orders,
+                    COALESCE(SUM(grand_total), 0) AS total_spent,
+                    COALESCE(AVG(grand_total), 0) AS average_order_value,
+                    MIN(created_at) AS first_order_at,
+                    MAX(created_at) AS last_order_at,
+                    SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN 1 ELSE 0 END) AS orders_in_period,
+                    COALESCE(SUM(CASE WHEN created_at >= ? AND created_at <= ? THEN grand_total ELSE 0 END), 0) AS spent_in_period
+                FROM product_orders
+                WHERE user_id IS NULL AND status NOT IN ('cancelled', 'refunded')
+                GROUP BY contact_key
+            ), pancake_ranked AS (
+                SELECT pc.*,
+                    COALESCE(NULLIF(pc.normalized_phone, ''), NULLIF(lower(pc.email), ''), 'pancake:' || pc.id) AS contact_key,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY COALESCE(NULLIF(pc.normalized_phone, ''), NULLIF(lower(pc.email), ''), 'pancake:' || pc.id)
+                        ORDER BY pc.updated_at DESC, pc.id
+                    ) AS contact_rank
+                FROM pancake_customers pc
+            ), unified AS (
+                SELECT
+                    u.id AS patient_id,
+                    COALESCE(u.display_name, '') AS name,
+                    COALESCE(u.email, '') AS email,
+                    COALESCE(u.phone, '') AS phone,
+                    u.created_at,
+                    COALESCE(ro.total_orders, 0) AS total_orders,
+                    COALESCE(ro.total_spent, 0) AS total_spent,
+                    COALESCE(ro.average_order_value, 0) AS average_order_value,
+                    ro.first_order_at,
+                    ro.last_order_at,
+                    COALESCE(ra.total_appointments, 0) AS total_appointments,
+                    ra.last_appointment_at,
+                    COALESCE(ro.orders_in_period, 0) AS orders_in_period,
+                    COALESCE(ro.spent_in_period, 0) AS spent_in_period,
+                    'website' AS customer_source
+                FROM users u
+                LEFT JOIN registered_orders ro ON ro.user_id = u.id
+                LEFT JOIN registered_appointments ra ON ra.user_id = u.id
+
+                UNION ALL
+
+                SELECT
+                    'pancake:' || pc.id AS patient_id,
+                    pc.name,
+                    COALESCE(pc.email, '') AS email,
+                    COALESCE(pc.phone, pc.normalized_phone, '') AS phone,
+                    pc.created_at,
+                    COALESCE(go.total_orders, 0) AS total_orders,
+                    COALESCE(go.total_spent, 0) AS total_spent,
+                    COALESCE(go.average_order_value, 0) AS average_order_value,
+                    go.first_order_at,
+                    go.last_order_at,
+                    0 AS total_appointments,
+                    NULL AS last_appointment_at,
+                    COALESCE(go.orders_in_period, 0) AS orders_in_period,
+                    COALESCE(go.spent_in_period, 0) AS spent_in_period,
+                    pc.source AS customer_source
+                FROM pancake_ranked pc
+                LEFT JOIN guest_orders go ON go.contact_key = pc.contact_key
+                WHERE pc.contact_rank = 1
+                  AND NOT EXISTS (
+                      SELECT 1 FROM users u
+                      WHERE (pc.email IS NOT NULL AND lower(u.email) = lower(pc.email))
+                         OR (pc.normalized_phone IS NOT NULL AND
+                             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(u.phone, ''), ' ', ''), '-', ''), '(', ''), ')', ''), '+84', '0') = pc.normalized_phone)
+                  )
+            )
+            SELECT * FROM unified
+            ORDER BY total_spent DESC, created_at DESC
+            LIMIT ? OFFSET ?
+        `).bind(
+            start, end, start, end,
+            start, end, start, end,
+            limit, offset,
+        ).all();
         return json({ customers: (result.results || []).map((row) => ({
             ...row,
-            segment: number(row.total_orders) > 1 ? 'returning_customer' : number(row.total_orders) > 0 ? 'first_time_customer' : 'lead_only_customer',
+            segment: number(row.total_orders) > 0
+                ? (number(row.total_appointments) > 0 ? 'hybrid_customer' : 'product_only_customer')
+                : number(row.total_appointments) > 0 ? 'service_only_customer' : 'lead_only_customer',
             is_at_risk: Boolean(row.last_order_at && new Date(row.last_order_at).getTime() < Date.now() - 90 * 86400000),
             is_returning: number(row.total_orders) > 1,
         })) });

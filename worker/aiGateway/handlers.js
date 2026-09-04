@@ -1,5 +1,6 @@
 const GEMINI_MODEL = 'gemini-2.5-flash';
 const GEMINI_TIMEOUT_MS = 45_000;
+const WORKERS_AI_MODEL = '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
 const MAX_REQUEST_BYTES = 8 * 1024 * 1024;
 const MAX_TEXT_PROMPT_LENGTH = 120_000;
 const ADMIN_ACTIONS = new Set([
@@ -12,6 +13,14 @@ const ADMIN_ACTIONS = new Set([
 ]);
 const USER_ACTIONS = new Set(['ask_skin', 'summarize_document']);
 const ALLOWED_ACTIONS = new Set([...ADMIN_ACTIONS, ...USER_ACTIONS]);
+const WORKERS_AI_TEXT_FALLBACK_ACTIONS = new Set([
+    'generate_product_details',
+    'generate_product_faq',
+    'generate_seo_metadata',
+    'translate_blog_category_en',
+    'translate_blog_category_all',
+    'translate_blog_content',
+]);
 const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
     'application/pdf',
     'image/jpeg',
@@ -153,6 +162,97 @@ function buildClientResponse(payload) {
     };
 }
 
+function normalizeJsonSchema(schema) {
+    if (Array.isArray(schema)) return schema.map(normalizeJsonSchema);
+    if (!schema || typeof schema !== 'object') return schema;
+
+    const normalized = {};
+    for (const [key, value] of Object.entries(schema)) {
+        if (key === 'type' && typeof value === 'string') {
+            normalized.type = value.toLowerCase();
+        } else {
+            normalized[key] = normalizeJsonSchema(value);
+        }
+    }
+    return normalized;
+}
+
+function workersAiMessages(geminiRequest, wantsJson) {
+    const messages = (geminiRequest?.contents || []).map((entry) => ({
+        role: entry.role === 'model' ? 'assistant' : 'user',
+        content: (entry.parts || [])
+            .map((part) => (typeof part?.text === 'string' ? part.text : ''))
+            .filter(Boolean)
+            .join('\n\n'),
+    })).filter((message) => message.content);
+
+    if (wantsJson) {
+        messages.unshift({
+            role: 'system',
+            content: 'Follow the user instructions carefully. Return one valid JSON value only, with no Markdown fence or commentary.',
+        });
+    }
+    return messages;
+}
+
+function canUseWorkersAiFallback(env, action, geminiRequest) {
+    return Boolean(env.AI?.run)
+        && WORKERS_AI_TEXT_FALLBACK_ACTIONS.has(action)
+        && !(geminiRequest?.contents || []).some((entry) => (
+            (entry.parts || []).some((part) => part.inline_data)
+        ));
+}
+
+function isLocationUnsupported(payload) {
+    return String(payload?.error?.message || payload?.message || '').toLowerCase()
+        .includes('location is not supported');
+}
+
+function isFallbackEligibleStatus(status) {
+    return [400, 429, 500, 502, 503, 504].includes(Number(status));
+}
+
+async function fetchWorkersAi(env, action, geminiRequest) {
+    if (!canUseWorkersAiFallback(env, action, geminiRequest)) return null;
+
+    const responseSchema = geminiRequest?.generation_config?.response_schema;
+    const request = {
+        messages: workersAiMessages(geminiRequest, Boolean(responseSchema)),
+        max_tokens: 8_192,
+        temperature: 0.2,
+    };
+    if (responseSchema) {
+        request.response_format = {
+            type: 'json_schema',
+            json_schema: normalizeJsonSchema(responseSchema),
+        };
+    }
+
+    const result = await env.AI.run(
+        String(env.WORKERS_AI_MODEL || WORKERS_AI_MODEL),
+        request,
+    );
+    const generated = result?.response ?? result;
+    const text = typeof generated === 'string' ? generated : JSON.stringify(generated);
+    if (!text || !text.trim()) throw new Error('Workers AI returned an empty response.');
+    return {
+        text,
+        candidates: [{ groundingMetadata: null }],
+    };
+}
+
+async function tryWorkersAiFallback(env, action, geminiRequest) {
+    try {
+        return await fetchWorkersAi(env, action, geminiRequest);
+    } catch (error) {
+        console.warn('Workers AI fallback failed.', {
+            action,
+            error: error instanceof Error ? error.name : 'UnknownError',
+        });
+        return null;
+    }
+}
+
 export async function handleAiGenerate(request, env, deps) {
     const { jsonResponse, authorizeAuthenticatedRequest, authorizeRequestByRole } = deps;
     const respond = (payload, status = 200, headers = {}) => jsonResponse(payload, status, {
@@ -186,7 +286,7 @@ export async function handleAiGenerate(request, env, deps) {
         : await authorizeAuthenticatedRequest(request);
     if (auth.error) return noStoreResponse(auth.error);
 
-    if (!env.GEMINI_API_KEY) {
+    if (!env.GEMINI_API_KEY && !env.AI?.run) {
         return respond({ error: 'AI service is not configured.' }, 503);
     }
 
@@ -207,16 +307,29 @@ export async function handleAiGenerate(request, env, deps) {
         return respond({ error: error instanceof Error ? error.message : 'Invalid AI request.' }, 400);
     }
 
+    if (!env.GEMINI_API_KEY) {
+        const fallback = await tryWorkersAiFallback(env, action, geminiRequest);
+        return fallback
+            ? respond(fallback)
+            : respond({ error: 'AI service is not configured for this action.' }, 503);
+    }
+
     let upstream;
     try {
         upstream = await fetchGemini(env.GEMINI_API_KEY, geminiRequest, env.GEMINI_MODEL);
     } catch (error) {
+        const fallback = await tryWorkersAiFallback(env, action, geminiRequest);
+        if (fallback) return respond(fallback);
         const timedOut = error instanceof Error && error.name === 'AbortError';
         return respond({ error: timedOut ? 'AI request timed out.' : 'AI service is unavailable.' }, 503);
     }
 
     if (!upstream.ok) {
         const payload = await upstream.json().catch(() => null);
+        if (isLocationUnsupported(payload) || isFallbackEligibleStatus(upstream.status)) {
+            const fallback = await tryWorkersAiFallback(env, action, geminiRequest);
+            if (fallback) return respond(fallback);
+        }
         const status = [400, 429, 500, 502, 503, 504].includes(upstream.status) ? upstream.status : 502;
         return respond({
             error: payload?.error?.message || 'AI service returned an error.',

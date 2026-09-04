@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { UserIcon, ProfileIcon, MedicalRecordIcon, CalendarIcon, DocumentDuplicateIcon, LogoutIcon, HeartIcon, CogIcon, ReceiptIcon } from './icons';
 import type { UserData } from '../types';
 
-type UserPage = 'administrativeProfile' | 'medicalRecords' | 'myMedicalRecords' | 'appointments' | 'wishlist' | 'adminDashboard' | 'orderHistory';
+type UserPage = 'administrativeProfile' | 'medicalRecords' | 'myMedicalRecords' | 'appointments' | 'wishlist' | 'adminDashboard' | 'adminVatManagement' | 'orderHistory';
 
 interface UserAvatarProps {
   user: UserData | null;
@@ -62,7 +62,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
   ];
 
   const adminMenuItems = [
-    { label: t('nav.admin_dashboard'), action: () => handleNavigation('adminDashboard'), icon: <CogIcon className="w-5 h-5" /> },
+    { label: user?.profile.role === 'accountant' ? 'Kế toán VAT' : t('nav.admin_dashboard'), action: () => handleNavigation(user?.profile.role === 'accountant' ? 'adminVatManagement' : 'adminDashboard'), icon: <CogIcon className="w-5 h-5" /> },
   ];
 
   const triggerClass = `utility-trigger h-10 w-10 shrink-0 overflow-hidden p-0 ${isOpen ? 'is-active' : ''}`;
@@ -88,7 +88,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
           ))}
         </div>
       )}
-      {user && ['admin', 'master_admin'].includes(user.profile.role) && (
+      {user && ['admin', 'master_admin', 'accountant'].includes(user.profile.role) && (
         <div className="border-t border-border p-1.5">
           {adminMenuItems.map((item) => (
             <button

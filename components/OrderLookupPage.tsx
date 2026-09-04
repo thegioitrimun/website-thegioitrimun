@@ -38,8 +38,11 @@ const getOrderPaymentStatus = (order: ProductOrder): OrderPaymentStatus => {
   return 'unpaid';
 };
 
-const getOrderPaymentMethod = (order: ProductOrder): OrderPaymentMethod =>
-  order.payment_method === 'bank_transfer' ? 'bank_transfer' : 'cod';
+const getOrderPaymentMethod = (order: ProductOrder): OrderPaymentMethod => {
+  if (order.payment_method === 'bank_transfer') return 'bank_transfer';
+  if (order.payment_method === 'cash') return 'cash';
+  return 'cod';
+};
 
 const OrderLookupPage: React.FC<OrderLookupPageProps> = ({ onBackToHome, onGoToProducts }) => {
   const { t, i18n } = useTranslation();
@@ -95,6 +98,7 @@ const OrderLookupPage: React.FC<OrderLookupPageProps> = ({ onBackToHome, onGoToP
 
   const getPaymentMethodText = (method: OrderPaymentMethod) => {
     if (method === 'bank_transfer') return t('orders.payment_method_bank_transfer');
+    if (method === 'cash') return t('orders.payment_method_cash', 'Tiền mặt');
     return t('orders.payment_method_cod');
   };
 

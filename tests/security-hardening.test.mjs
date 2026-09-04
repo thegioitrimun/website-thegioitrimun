@@ -79,30 +79,22 @@ test('R2 upload stores only re-encoded WebP bytes and metadata', async () => {
     assert.equal(new Uint8Array(stored.bytes)[0], 0x52);
 });
 
-test('Guest order lookup requires rate limiting and a server secret', async () => {
+test('Guest order lookup requires rate limiting and the D1 OTP service', async () => {
     const request = new Request('https://example.test/api/orders/guest-lookup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderCode: 'DF07ABC', phone: '0901234567', otp: '123456' }),
     });
-    const missingLimiter = await handleGuestOrderLookup(request.clone(), {}, {
-        jsonResponse,
-        SUPABASE_URL: 'https://project.supabase.co',
-    });
+    const missingLimiter = await handleGuestOrderLookup(request.clone(), {}, { jsonResponse });
     assert.equal(missingLimiter.status, 503);
 
     const missingSecret = await handleGuestOrderLookup(request.clone(), {
         ORDER_LOOKUP_RATE_LIMITER: { limit: async () => ({ success: true }) },
-        ORDER_LOOKUP_SMS_ENABLED: 'true',
-    }, {
-        jsonResponse,
-        SUPABASE_URL: 'https://project.supabase.co',
-        SUPABASE_ANON_KEY: 'publishable-key',
-    });
+    }, { jsonResponse });
     assert.equal(missingSecret.status, 503);
 });
 
-test('Guest order lookup fails closed until SMS OTP is configured', async () => {
+test('Guest order lookup fails closed until APP_DB is configured', async () => {
     let fetchCalled = false;
     const request = new Request('https://example.test/api/orders/guest-lookup/request-otp', {
         method: 'POST',
@@ -111,11 +103,9 @@ test('Guest order lookup fails closed until SMS OTP is configured', async () => 
     });
     const response = await handleGuestOrderOtpRequest(request, {
         ORDER_LOOKUP_RATE_LIMITER: { limit: async () => ({ success: true }) },
-        ORDER_LOOKUP_SMS_ENABLED: 'false',
+        DATA_BACKEND: 'd1',
     }, {
         jsonResponse,
-        SUPABASE_URL: 'https://project.supabase.co',
-        SUPABASE_ANON_KEY: 'publishable-key',
         fetchImpl: async () => { fetchCalled = true; },
     });
 
@@ -123,35 +113,11 @@ test('Guest order lookup fails closed until SMS OTP is configured', async () => 
     assert.equal(fetchCalled, false);
 });
 
-test('Guest order data is returned only after a valid SMS OTP for the same phone', async () => {
-    const calls = [];
-    const request = new Request('https://example.test/api/orders/guest-lookup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderCode: 'DF07ABC', phone: '0901234567', otp: '123456' }),
-    });
-    const response = await handleGuestOrderLookup(request, {
-        ORDER_LOOKUP_RATE_LIMITER: { limit: async () => ({ success: true }) },
-        ORDER_LOOKUP_SMS_ENABLED: 'true',
-        SUPABASE_SERVICE_ROLE_KEY: 'server-secret',
-    }, {
-        jsonResponse,
-        SUPABASE_URL: 'https://project.supabase.co',
-        SUPABASE_ANON_KEY: 'publishable-key',
-        fetchImpl: async (url) => {
-            calls.push(url);
-            if (url.endsWith('/auth/v1/verify')) {
-                return jsonResponse({ user: { phone: '+84901234567' } });
-            }
-            return jsonResponse([{ order_code: 'DF07ABC' }]);
-        },
-    });
-
-    assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), [{ order_code: 'DF07ABC' }]);
-    assert.equal(calls.length, 2);
-    assert.match(calls[0], /\/auth\/v1\/verify$/);
-    assert.match(calls[1], /lookup_guest_product_order_secure$/);
+test('Guest order lookup has no external database or SMS fallback', async () => {
+    const handler = await textFile('worker/orderLookup/handlers.js');
+    assert.match(handler, /requestD1EmailOtp/);
+    assert.match(handler, /verifyD1EmailOtp/);
+    assert.doesNotMatch(handler, /SUPABASE|\/auth\/v1|\/rest\/v1|fetchImpl/);
 });
 
 test('Guest order lookup rejects missing OTP before any upstream request', async () => {
@@ -163,12 +129,9 @@ test('Guest order lookup rejects missing OTP before any upstream request', async
     });
     const response = await handleGuestOrderLookup(request, {
         ORDER_LOOKUP_RATE_LIMITER: { limit: async () => ({ success: true }) },
-        ORDER_LOOKUP_SMS_ENABLED: 'true',
-        SUPABASE_SERVICE_ROLE_KEY: 'server-secret',
+        DATA_BACKEND: 'd1',
     }, {
         jsonResponse,
-        SUPABASE_URL: 'https://project.supabase.co',
-        SUPABASE_ANON_KEY: 'publishable-key',
         fetchImpl: async () => { fetchCalled = true; },
     });
 
@@ -208,7 +171,8 @@ test('Security-critical source invariants stay enforced', async () => {
     assert.match(wranglerConfig, /"run_worker_first": true/);
     assert.match(wranglerConfig, /"thegioitrimun\.vn\/\*"/);
     assert.match(wranglerConfig, /"www\.thegioitrimun\.vn\/\*"/);
-    assert.match(wranglerConfig, /"ORDER_LOOKUP_SMS_ENABLED": "false"/);
+    assert.match(wranglerConfig, /"DATA_BACKEND": "d1"/);
+    assert.match(packageJson, /qa:d1-worker/);
     assert.match(orderRoutes, /\/api\/orders\/guest-lookup\/request-otp/);
     assert.match(orderClient, /requestGuestProductOrderOtp/);
     assert.match(orderClient, /otp: String\(otp/);

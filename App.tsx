@@ -70,6 +70,7 @@ import {
     loadAdminServiceManagementPage,
     loadAdminSiteManagementPage,
     loadAdminUserManagementPage,
+    loadAdminVatManagementPage,
     preloadAdminWorkspace,
 } from './src/adminPageLoaders';
 
@@ -102,6 +103,7 @@ const AdminServiceManagementPage = lazy(loadAdminServiceManagementPage);
 const AdminImageLibraryPage = lazy(loadAdminImageLibraryPage);
 const AdminProductImageImporterPage = lazy(loadAdminProductImageImporterPage);
 const AdminPharmacyManagementPage = lazy(loadAdminPharmacyManagementPage);
+const AdminVatManagementPage = lazy(loadAdminVatManagementPage);
 const AccountPage = lazy(() => import('./components/AccountPage'));
 const OrderHistoryPage = lazy(() => import('./components/OrderHistoryPage'));
 const ProductsPage = lazy(() => import('./components/ProductsPage'));
@@ -131,6 +133,7 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
     'adminPharmacyManagement',
     'adminPancakeManagement',
     'adminSiteManagement',
+    'adminVatManagement',
 ]);
 
 // These admin pages own their API loading and error states internally. Routing
@@ -138,6 +141,7 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
 // tasks stuck in the global loading state forever.
 const SELF_MANAGED_ADMIN_PAGES = new Set<View['page']>([
     'adminPancakeManagement',
+    'adminVatManagement',
 ]);
 
 const fileToBas64 = (file: Blob): Promise<string> => {
@@ -202,9 +206,11 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const role = currentUser?.profile.role;
-        if (role !== 'admin' && role !== 'master_admin') return;
-
-        const timerId = window.setTimeout(preloadAdminWorkspace, 50);
+        if (!['admin', 'master_admin', 'accountant'].includes(String(role))) return;
+        const timerId = window.setTimeout(() => {
+            if (role === 'accountant') void loadAdminVatManagementPage();
+            else preloadAdminWorkspace();
+        }, 50);
         return () => window.clearTimeout(timerId);
     }, [currentUser?.profile.role]);
 
@@ -1371,9 +1377,9 @@ const App: React.FC = () => {
 
     const handleNavLinkClick = (action: () => void, href?: string) => {
         action();
-        if (href && href.length > 1) {
+        if (href?.startsWith('#') && href.length > 1) {
             setTimeout(() => {
-                const element = document.querySelector(href);
+                const element = document.getElementById(decodeURIComponent(href.slice(1)));
                 if (element) {
                     element.scrollIntoView({ behavior: 'smooth' });
                 }
@@ -1502,6 +1508,7 @@ const App: React.FC = () => {
         if (currentUser) {
             const isContentCreator = ['admin', 'master_admin'].includes(currentUser.profile.role);
             const isAdmin = ['admin', 'master_admin'].includes(currentUser.profile.role);
+            const isVatStaff = ['accountant', 'master_admin'].includes(currentUser.profile.role);
             switch (view.page) {
                 case 'account':
                     return <AccountPage user={currentUser} onNavigate={setView as any} onLogout={handleLogout} />;
@@ -1567,6 +1574,7 @@ const App: React.FC = () => {
                             initialSection={view.section}
                             initialAction={view.action}
                             initialOrderId={view.orderId}
+                            initialOrderChannel={view.orderChannel}
                             initialOrderPreset={view.orderPreset}
                             initialProductFilter={view.productFilter}
                             onUpdateOrders={setAllProductOrders}
@@ -1586,6 +1594,11 @@ const App: React.FC = () => {
                 case 'adminPancakeManagement':
                     if (isAdmin) {
                         return <AdminPancakeManagementPage />;
+                    }
+                    setView({ page: 'main' }); return null;
+                case 'adminVatManagement':
+                    if (isVatStaff) {
+                        return <AdminVatManagementPage currentRole={currentUser.profile.role} />;
                     }
                     setView({ page: 'main' }); return null;
                 case 'adminSiteManagement':
@@ -1661,8 +1674,9 @@ const App: React.FC = () => {
             <AdminLayoutProvider>
                 <AdminWorkspaceLayout
                     currentPage={(view.page === 'adminPharmacyManagement' && view.section === 'orders' ? 'adminDashboard' : view.page) as any}
+                    currentRole={currentUser.profile.role}
                     onNavigate={setView}
-                    onBack={() => setView({ page: 'adminDashboard' })}
+                    onBack={() => setView(currentUser.profile.role === 'accountant' ? { page: 'account' } : { page: 'adminDashboard' })}
                 >
                     {adminContent}
                 </AdminWorkspaceLayout>
@@ -1896,20 +1910,20 @@ const App: React.FC = () => {
                                         className="h-9 w-9 object-contain lg:h-10 lg:w-10"
                                     />
                                 </span>
-                                <div className="min-w-0 leading-none">
-                                    <span className={`block whitespace-nowrap text-[10px] font-black tracking-[0.055em] transition-colors duration-500 sm:text-xs lg:text-sm lg:tracking-[0.07em] ${
+                                <div className="min-w-0 flex flex-col items-center text-center leading-[1.15]">
+                                    <span className={`block whitespace-nowrap font-['Playfair_Display',_serif] text-[11px] font-black tracking-[-0.01em] transition-colors duration-500 sm:text-[13px] lg:text-[15px] ${
                                         isHomeInvertedHeader
                                             ? 'text-slate-900 dark:text-slate-900'
                                             : 'text-foreground dark:text-white'
                                     }`}>
-                                        {HEADER_BRAND_PRIMARY}
+                                        Thế Giới <span className="text-[#ef4444] dark:text-[#f87171]">Trị</span> Mụn
                                     </span>
-                                    <span className={`mt-1 block whitespace-nowrap text-[10px] font-bold tracking-[0.12em] transition-colors duration-500 sm:text-[11px] lg:text-xs lg:tracking-[0.14em] ${
+                                    <span className={`mt-0.5 block whitespace-nowrap font-sans text-[8.5px] font-bold tracking-[0.06em] transition-colors duration-500 sm:text-[9.5px] lg:text-[11px] ${
                                         isHomeInvertedHeader
-                                            ? 'text-[#1b7a6d] dark:text-[#1b7a6d]'
-                                            : 'text-primary/78 dark:text-[#35b7a5]'
+                                            ? 'text-slate-700 dark:text-slate-700'
+                                            : 'text-foreground/80 dark:text-slate-300'
                                     }`}>
-                                        {HEADER_BRAND_SECONDARY}
+                                        Da Liễu <span className="text-[#1b7a6d] dark:text-[#35b7a5] font-bold">Phú Quốc</span>
                                     </span>
                                 </div>
                             </a>

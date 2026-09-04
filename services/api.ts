@@ -66,7 +66,9 @@ import type {
     ObservabilityMetricsSummaryResponse, ObservabilityCleanupResult, AdminEditorDraftRecord, AdminEditorDraftResponse,
     AdminEditorDraftDeleteResult, ProductContentReviewListResponse,
     ProductContentReviewRecord, ProductContentReviewStatus, ProductContentIssue,
-    ProductContentReviewUpsertResponse
+    ProductContentReviewUpsertResponse, AdminOrderCreateInput,
+    SalesInvoice, PurchaseInvoice, VatAdjustment, VatCategory, VatImportPreview,
+    VatMethod, VatPeriod, VatReturnVersion
 } from '../types';
 import { isPlaceholderOrderProductName } from '../src/orderItemPresentation';
 import { normalizeFooterSocialUrls } from '../src/socialLinks';
@@ -3658,6 +3660,10 @@ export interface PancakeSyncSettings {
     inventoryEnabled: boolean;
     customersEnabled: boolean;
     ordersEnabled: boolean;
+    inboundEnabled: boolean;
+    inboundOrdersEnabled: boolean;
+    inboundCustomersEnabled: boolean;
+    inboundPollEnabled: boolean;
     updatedBy: string | null;
     updatedAt: string | null;
 }
@@ -3667,7 +3673,11 @@ export type PancakeSyncSettingKey =
     | 'productsEnabled'
     | 'inventoryEnabled'
     | 'customersEnabled'
-    | 'ordersEnabled';
+    | 'ordersEnabled'
+    | 'inboundEnabled'
+    | 'inboundOrdersEnabled'
+    | 'inboundCustomersEnabled'
+    | 'inboundPollEnabled';
 
 export interface PancakeQueueSummary {
     total: number;
@@ -3691,8 +3701,8 @@ export interface PancakeIntegrationStatus {
         warehouseId: string | null;
         queueConfigured: boolean;
         baseUrl: string;
-        direction: 'website_to_pancake';
-        sourceOfTruth: 'website_d1';
+        direction: 'bidirectional';
+        sourceOfTruth: 'shared_by_origin';
         resources: string[];
     };
     settings: PancakeSyncSettings;
@@ -3701,13 +3711,78 @@ export interface PancakeIntegrationStatus {
     links: Array<Record<string, unknown>>;
     lastCompleted: { entity_type: string; entity_id: string; completed_at: string } | null;
     lastError: { entity_type: string; entity_id: string; status: string; last_error: string; updated_at: string } | null;
-    webhook: { configured: boolean; processingEnabled: boolean; endpoint: string };
+    inbound: {
+        events: Array<{ resource_type: 'order' | 'customer'; status: string; count: number }>;
+        cursors: Array<{
+            resource_type: 'order' | 'customer';
+            cursor_timestamp: string | null;
+            window_end_at: string | null;
+            next_page: number;
+            last_polled_at: string | null;
+            consecutive_failures: number;
+            last_error: string | null;
+        }>;
+        lastError: { resource_type: string; remote_id: string; status: string; last_error: string; updated_at: string } | null;
+        pollSeconds: number;
+        pageSize: number;
+    };
+    webhook: { configured: boolean; receivingEnabled: boolean; processingEnabled: boolean; endpoint: string };
 }
 
 export interface PancakeConnectionTestResult {
     ok: boolean;
     warehouseCount: number;
     configuredWarehouseFound: boolean | null;
+}
+
+export interface DeplaoAutomationJob {
+    id: string;
+    event_type: 'order.created' | 'order.paid';
+    order_id: string;
+    order_code: string;
+    status: 'pending' | 'leased' | 'waiting_friend' | 'retrying' | 'completed' | 'failed' | 'delivery_unknown' | 'expired';
+    attempts: number;
+    available_at: string;
+    expires_at: string;
+    lease_owner?: string | null;
+    lease_expires_at?: string | null;
+    last_error?: string | null;
+    result_json?: string | null;
+    completed_at?: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface DeplaoAutomationStatus {
+    config: {
+        automationEnabled: boolean;
+        telegramEnabled: boolean;
+        deviceConfigured: boolean;
+        telegramConfigured: boolean;
+        queueConfigured: boolean;
+    };
+    jobs: Array<{ status: string; count: number }>;
+    telegram: Array<{ status: string; count: number }>;
+    devices: Array<{
+        device_id: string;
+        app_version?: string | null;
+        selected_zalo_account_id?: string | null;
+        selected_zalo_connected: number;
+        backlog_count: number;
+        offline_notified_at?: string | null;
+        last_seen_at: string;
+    }>;
+    recentJobs: DeplaoAutomationJob[];
+}
+
+export async function getDeplaoAutomationStatus(): Promise<DeplaoAutomationStatus> {
+    return fetchAdminWorkerJson<DeplaoAutomationStatus>('/api/admin/integrations/deplao/status');
+}
+
+export async function retryDeplaoAutomationJob(jobId: string): Promise<void> {
+    await fetchAdminWorkerJson(`/api/admin/integrations/deplao/jobs/${encodeURIComponent(jobId)}/retry`, {
+        method: 'POST',
+    });
 }
 
 export async function getPancakeIntegrationStatus(): Promise<PancakeIntegrationStatus> {
@@ -3811,6 +3886,25 @@ export async function syncOrdersToPancake(orderIds?: string[]): Promise<PancakeP
     });
 }
 
+export async function pollPancakeInbound(): Promise<{
+    poll: {
+        skipped: boolean;
+        resources: Array<{
+            resourceType: 'order' | 'customer';
+            received?: number;
+            accepted?: number;
+            duplicates?: number;
+            failed?: boolean;
+            error?: string;
+        }>;
+    };
+    dispatch: { queued: number };
+}> {
+    return fetchAdminWorkerJson('/api/admin/integrations/pancake/inbound/poll', {
+        method: 'POST',
+    });
+}
+
 
 export async function saveProductCategory(category: Partial<ProductCategory>) {
     if (USE_D1_API) {
@@ -3868,7 +3962,8 @@ export async function createAppointment(
 }
 
 const normalizeOrderPaymentMethod = (value: any): OrderPaymentMethod => {
-    return value === 'bank_transfer' ? 'bank_transfer' : 'cod';
+    if (value === 'bank_transfer' || value === 'cash') return value;
+    return 'cod';
 };
 
 const normalizeOrderPaymentStatus = (value: any, fallbackStatus?: ProductOrder['status']): OrderPaymentStatus => {
@@ -3940,6 +4035,7 @@ const normalizeProductOrderItemRow = (row: any): ProductOrderItem => {
 
 const normalizeProductOrderRow = (row: any): ProductOrder => ({
     ...row,
+    order_channel: row?.order_channel === 'pos' ? 'pos' : 'online',
     subtotal_price: row?.subtotal_price != null ? Number(row.subtotal_price) : undefined,
     discount_amount: row?.discount_amount != null ? Number(row.discount_amount) : undefined,
     total_price: Number(row?.total_price || 0),
@@ -3954,6 +4050,10 @@ const normalizeProductOrderRow = (row: any): ProductOrder => ({
     payment_method: normalizeOrderPaymentMethod(row?.payment_method),
     payment_status: normalizeOrderPaymentStatus(row?.payment_status, row?.status),
     fulfillment_status: normalizeOrderFulfillmentStatus(row?.fulfillment_status, row?.status),
+    payment: row?.payment ? {
+        ...row.payment,
+        amount: Number(row.payment.amount || 0),
+    } : undefined,
     order_items: Array.isArray(row?.order_items)
         ? row.order_items.map(normalizeProductOrderItemRow)
         : undefined,
@@ -4096,6 +4196,21 @@ export async function createProductOrder(orderData: Omit<ProductOrder, 'id' | 'c
     return normalizeProductOrderRow(createdOrder);
 }
 
+export async function getSepayPublicConfiguration(): Promise<import('../types').SepayPublicConfiguration> {
+    return d1ApiFetch<import('../types').SepayPublicConfiguration>('/api/payments/sepay/config');
+}
+
+export async function getSepayPaymentStatus(
+    orderId: string,
+    statusToken: string,
+): Promise<import('../types').SepayPaymentStatus> {
+    const response = await d1ApiFetch<{ payment: import('../types').SepayPaymentStatus }>(
+        `/api/payments/sepay/orders/${encodeURIComponent(orderId)}/status`,
+        { headers: { 'X-Payment-Token': statusToken } },
+    );
+    return response.payment;
+}
+
 export async function requestGuestProductOrderOtp(orderCode: string, phone: string): Promise<{ channel: 'sms' | 'email' }> {
     const response = await fetch('/api/orders/guest-lookup/request-otp', {
         method: 'POST',
@@ -4219,6 +4334,32 @@ export async function getAllProductOrders(options: { force?: boolean } = {}): Pr
 
         return orders.map(normalizeProductOrderRow);
     });
+}
+
+export async function quoteAdminProductOrderTotals(params: Pick<
+    AdminOrderCreateInput,
+    'channel' | 'items' | 'discountAmount' | 'shippingFee' | 'shippingProvince' | 'shippingDistrict'
+>): Promise<CheckoutPricingQuote> {
+    if (!USE_D1_API) throw new Error('Tạo đơn quản trị chỉ khả dụng khi dùng D1.');
+    const payload = await fetchAdminWorkerJson<{ quote: any }>('/api/admin/orders/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+    });
+    return normalizeCheckoutPricingQuote(payload.quote || {});
+}
+
+export async function createAdminProductOrder(input: AdminOrderCreateInput): Promise<ProductOrder> {
+    if (!USE_D1_API) throw new Error('Tạo đơn quản trị chỉ khả dụng khi dùng D1.');
+    const payload = await fetchAdminWorkerJson<{ order: ProductOrder }>('/api/admin/orders', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Idempotency-Key': input.idempotencyKey,
+        },
+        body: JSON.stringify(input),
+    });
+    return normalizeProductOrderRow(payload.order);
 }
 
 export async function updateProductOrder(orderId: string, updates: Partial<ProductOrder>) {
@@ -4458,6 +4599,7 @@ const normalizeAdminCustomerMetricRow = (row: any): AdminCustomerMetric => ({
     segment: row?.segment || 'lead_only_customer',
     is_at_risk: Boolean(row?.is_at_risk),
     is_returning: Boolean(row?.is_returning),
+    customer_source: row?.customer_source || 'website',
 });
 
 const normalizeAdminDashboardAlertRow = (row: any): AdminDashboardAlert => ({
@@ -6125,4 +6267,156 @@ export async function deleteBrand(id: number, logoPath?: string): Promise<void> 
         .eq('id', id);
 
     if (error) throw error;
+}
+
+export interface VatTaxEntity {
+    id: string;
+    legal_name: string;
+    tax_code?: string | null;
+    address?: string | null;
+    tax_authority?: string | null;
+    default_method: VatMethod;
+    filing_cycle: 'monthly' | 'quarterly';
+    go_live_date?: string | null;
+    htkk_version: string;
+    is_active: number | boolean;
+}
+
+export interface VatBootstrapResponse {
+    entity: VatTaxEntity;
+    categories: VatCategory[];
+    directRates: Array<{ id: string; revenue_category: string; rate_bps: number; approved_at?: string | null }>;
+    periods: VatPeriod[];
+    summary: {
+        sales: { count: number; net_amount: number; vat_amount: number; gross_amount: number };
+        purchases: { count: number; net_amount: number; vat_amount: number; deductible_vat_amount: number };
+        warnings: { salesCandidates: number; nonCashPayment: number };
+    };
+    migration: {
+        sourceTables: { expected: number; mapped: number; verified: number };
+        sourceViews: { expected: number; replacementsMapped: number; verified: number };
+        rows: { source: number; imported: number; conflicts: number };
+        openIssues: number;
+        d1Orders: number;
+        protectedD1MinimumOrders: number;
+        cutoverReady: boolean;
+        additionalTables: Array<{ table: string; count: number }>;
+    };
+    permissions: { canManage: boolean; canLock: boolean; canConfigure: boolean };
+    safeguards: { historicalRecalculation: false; xmlStatus: string; nonCashWarningThreshold: number };
+    pendingClassifications: {
+        products: Array<{ id: number; name: string; sku?: string | null; vat_rate?: number; vat_category_code?: string | null }>;
+        services: Array<{ id: number; name: string; price?: number; vat_category_code?: string | null }>;
+    };
+}
+
+export async function getVatBootstrap(): Promise<VatBootstrapResponse> {
+    return fetchAdminWorkerJson<VatBootstrapResponse>('/api/admin/vat/bootstrap');
+}
+
+export async function saveVatTaxEntity(input: Partial<VatTaxEntity>): Promise<VatTaxEntity> {
+    const response = await fetchAdminWorkerJson<{ entity: VatTaxEntity }>('/api/admin/vat/entity', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.entity;
+}
+
+export async function saveVatCategory(input: Partial<VatCategory>): Promise<VatCategory> {
+    const response = await fetchAdminWorkerJson<{ category: VatCategory }>('/api/admin/vat/categories', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.category;
+}
+
+export async function approveVatClassifications(input: {
+    resource_type: 'products' | 'services'; ids: number[]; vat_category_code: string;
+}): Promise<{ updated: number; category: VatCategory }> {
+    return fetchAdminWorkerJson('/api/admin/vat/classifications/approve', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+}
+
+export async function approveVatDirectRates(rates: Record<string, number>): Promise<{ directRates: VatBootstrapResponse['directRates'] }> {
+    return fetchAdminWorkerJson('/api/admin/vat/direct-rates/approve', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ rates }),
+    });
+}
+
+export async function listVatSalesInvoices(search = new URLSearchParams()): Promise<{ data: SalesInvoice[]; meta: { page: number; pageSize: number; total: number } }> {
+    return fetchAdminWorkerJson(`/api/admin/vat/sales-invoices?${search.toString()}`);
+}
+
+export async function listVatPurchaseInvoices(search = new URLSearchParams()): Promise<{ data: PurchaseInvoice[]; meta: { page: number; pageSize: number; total: number } }> {
+    return fetchAdminWorkerJson(`/api/admin/vat/purchase-invoices?${search.toString()}`);
+}
+
+export async function saveVatSalesInvoice(input: Partial<SalesInvoice> & Record<string, unknown>): Promise<SalesInvoice> {
+    const response = await fetchAdminWorkerJson<{ invoice: SalesInvoice }>('/api/admin/vat/sales-invoices', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.invoice;
+}
+
+export async function saveVatPurchaseInvoice(input: Partial<PurchaseInvoice> & Record<string, unknown>): Promise<PurchaseInvoice> {
+    const response = await fetchAdminWorkerJson<{ invoice: PurchaseInvoice }>('/api/admin/vat/purchase-invoices', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.invoice;
+}
+
+export async function previewVatImport(input: {
+    import_type: 'sales' | 'purchase'; file_name: string; file_sha256: string;
+    idempotency_key: string; rows: Record<string, unknown>[];
+}): Promise<VatImportPreview> {
+    const response = await fetchAdminWorkerJson<{ preview: VatImportPreview }>('/api/admin/vat/imports/preview', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.preview;
+}
+
+export async function commitVatImport(jobId: string): Promise<{ committed: number }> {
+    return fetchAdminWorkerJson(`/api/admin/vat/imports/${encodeURIComponent(jobId)}/commit`, { method: 'POST' });
+}
+
+export async function createVatPeriod(input: { year: number; period_number: number; method?: VatMethod; opening_credit_amount?: number }): Promise<VatPeriod> {
+    const response = await fetchAdminWorkerJson<{ period: VatPeriod }>('/api/admin/vat/periods', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.period;
+}
+
+export async function runVatPeriodAction(periodId: string, action: 'rebuild' | 'submit-review' | 'lock' | 'filed' | 'amend'): Promise<{ period: VatPeriod; returnVersion?: VatReturnVersion }> {
+    return fetchAdminWorkerJson(`/api/admin/vat/periods/${encodeURIComponent(periodId)}/${action}`, { method: 'POST' });
+}
+
+export async function listVatAdjustments(periodId?: string): Promise<VatAdjustment[]> {
+    const search = periodId ? `?periodId=${encodeURIComponent(periodId)}` : '';
+    const response = await fetchAdminWorkerJson<{ data: VatAdjustment[] }>(`/api/admin/vat/adjustments${search}`);
+    return response.data;
+}
+
+export async function saveVatAdjustment(input: Partial<VatAdjustment> & { period_id: string; approve?: boolean }): Promise<VatAdjustment> {
+    const response = await fetchAdminWorkerJson<{ adjustment: VatAdjustment }>('/api/admin/vat/adjustments', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input),
+    });
+    return response.adjustment;
+}
+
+export async function getVatExportData(periodId: string): Promise<{
+    period: VatPeriod;
+    returnVersion: VatReturnVersion & { snapshot: Record<string, any> };
+    acceptance: { xlsx: string; pdf: string; xml: string; canImportToHtkk: boolean };
+}> {
+    return fetchAdminWorkerJson(`/api/admin/vat/periods/${encodeURIComponent(periodId)}/export`);
+}
+
+export async function uploadVatDocument(file: File, ownerType: string, ownerId: string): Promise<Record<string, unknown>> {
+    const form = new FormData();
+    form.set('file', file);
+    form.set('owner_type', ownerType);
+    form.set('owner_id', ownerId);
+    const response = await fetchAdminWorkerJson<{ document: Record<string, unknown> }>('/api/admin/vat/documents', {
+        method: 'POST', body: form,
+    });
+    return response.document;
 }

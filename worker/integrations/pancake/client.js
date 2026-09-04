@@ -161,6 +161,21 @@ export class PancakeClient {
         });
     }
 
+    listCustomersUpdated(startTime, endTime, pageNumber = 1, pageSize = 25) {
+        return this.request('GET', this.shopPath('/customers'), {
+            query: {
+                start_time_updated_at: Math.max(0, Math.trunc(Number(startTime) || 0)),
+                end_time_updated_at: Math.max(0, Math.trunc(Number(endTime) || 0)),
+                page_number: Math.max(1, Math.trunc(Number(pageNumber) || 1)),
+                page_size: Math.max(1, Math.min(30, Math.trunc(Number(pageSize) || 25))),
+            },
+        });
+    }
+
+    getCustomer(customerId) {
+        return this.request('GET', this.shopPath(`/customers/${encodeURIComponent(customerId)}`));
+    }
+
     createCustomer(customer) {
         return this.request('POST', this.shopPath('/customers'), { body: customer });
     }
@@ -183,6 +198,30 @@ export class PancakeClient {
                 page_size: 30,
                 'extra_fields[]': ['custom_id'],
             },
+        });
+    }
+
+    listOrdersUpdated(startTime, endTime, pageNumber = 1, pageSize = 25) {
+        return this.request('GET', this.shopPath('/orders'), {
+            query: {
+                updateStatus: 'updated_at',
+                startDateTime: Math.max(0, Math.trunc(Number(startTime) || 0)),
+                endDateTime: Math.max(0, Math.trunc(Number(endTime) || 0)),
+                option_sort: 'last_updated_order_asc',
+                page_number: Math.max(1, Math.trunc(Number(pageNumber) || 1)),
+                page_size: Math.max(1, Math.min(30, Math.trunc(Number(pageSize) || 25))),
+            },
+        });
+    }
+
+    getOrder(orderId) {
+        return this.request('GET', this.shopPath(`/orders/${encodeURIComponent(orderId)}`));
+    }
+
+    getShippingDocumentUrls(orderId, documentType = 'SHIPPING_LABEL') {
+        return this.request('POST', this.shopPath('/products/get_logistics_shipping_document'), {
+            query: { document_type: documentType },
+            body: { params: [{ order_id: String(orderId) }] },
         });
     }
 

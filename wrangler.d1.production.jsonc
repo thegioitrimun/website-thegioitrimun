@@ -54,6 +54,10 @@
       {
         "binding": "PANCAKE_QUEUE",
         "queue": "thegioitrimun-pancake"
+      },
+      {
+        "binding": "TELEGRAM_QUEUE",
+        "queue": "thegioitrimun-telegram-orders"
       }
     ],
     "consumers": [
@@ -80,11 +84,22 @@
         "max_retries": 8,
         "max_concurrency": 2,
         "dead_letter_queue": "thegioitrimun-pancake-dlq"
+      },
+      {
+        "queue": "thegioitrimun-telegram-orders",
+        "max_batch_size": 5,
+        "max_batch_timeout": 5,
+        "max_retries": 6,
+        "max_concurrency": 2,
+        "dead_letter_queue": "thegioitrimun-telegram-orders-dlq"
       }
     ]
   },
   "images": {
     "binding": "IMAGES"
+  },
+  "ai": {
+    "binding": "AI"
   },
   "ratelimits": [
     {
@@ -108,6 +123,7 @@
     "DATA_BACKEND": "d1",
     "INCI_SHARD_COUNT": "2",
     "D1_SHADOW_READ": "false",
+    "D1_PROTECTED_MINIMUM_ORDERS": "54",
     "R2_PUBLIC_BASE_URL": "https://thegioitrimun.vn/r2",
     "ORDER_LOOKUP_SMS_ENABLED": "false",
     "PRODUCT_SOURCE_PROJECT": "thegioitrimun.vn",
@@ -118,7 +134,13 @@
     "PANCAKE_ENABLED": "true",
     "PANCAKE_SHOP_ID": "101066893",
     "PANCAKE_WAREHOUSE_ID": "c97ee7ba-282d-4b71-9673-07610972f1f9",
-    "PANCAKE_API_BASE_URL": "https://pos.pages.fm/api/v1"
+    "PANCAKE_API_BASE_URL": "https://pos.pages.fm/api/v1",
+    "SEPAY_ENABLED": "true",
+    "SEPAY_PAYMENT_PREFIX": "TGTM",
+    "SEPAY_PAYMENT_TTL_MINUTES": "15",
+    "TELEGRAM_ORDER_ALERTS_ENABLED": "true",
+    "SPX_LABEL_TELEGRAM_ENABLED": "true",
+    "DEPLAO_ORDER_AUTOMATION_ENABLED": "true"
   },
   "triggers": {
     "crons": [

@@ -6,6 +6,7 @@ import { maybeHandleAnalyticsRoute } from '../worker/analytics/routes.js';
 import { handleGuestOrderLookup, handleGuestOrderOtpRequest } from '../worker/orderLookup/handlers.js';
 import { decryptText } from '../worker/platform/crypto.js';
 import { renderEmail } from '../worker/email/templates.js';
+import { paymentStateAfterFulfillment } from '../worker/orders/paymentState.js';
 
 const root = new URL('../', import.meta.url);
 const source = (file) => readFile(new URL(file, root), 'utf8');
@@ -199,12 +200,12 @@ test('transactional email templates cover every lifecycle event and locale', () 
     const payload = {
         order_id: 'order-1', order_code: 'TG-1001', customer_name: '<script>alert(1)</script>',
         shipping_address: '1 Đường Biển, Phú Quốc', payment_method: 'cod', tracking_code: 'GHTK-1',
-        grand_total: 250000, reason: 'Khách yêu cầu', refund_amount: 250000,
+        payment_status: 'unpaid', grand_total: 250000, reason: 'Khách yêu cầu', refund_amount: 250000,
         items: [{ product_id: 1, name: 'Gel trị mụn', quantity: 1, price_at_purchase: 250000 }],
     };
     for (const locale of ['vi', 'en', 'ru', 'cn']) {
-        for (const event of ['order.created', 'order.processing', 'order.shipped', 'order.completed', 'order.cancelled', 'order.refunded']) {
-            const rendered = renderEmail(event, payload, locale);
+        for (const event of ['order.created', 'order.paid', 'order.processing', 'order.shipped', 'order.completed', 'order.cancelled', 'order.refunded']) {
+            const rendered = renderEmail(event, event === 'order.paid' ? { ...payload, payment_status: 'paid' } : payload, locale);
             assert.ok(rendered.subject.length > 3, `${event}/${locale} subject`);
             assert.match(rendered.html, /TG-1001/);
             assert.doesNotMatch(rendered.html, /<script>alert\(1\)<\/script>/);
@@ -237,6 +238,40 @@ test('order email includes product image and transparent price breakdown', () =>
     assert.match(rendered.html, /Phí vận chuyển/);
     assert.match(rendered.html, /Thuế vận chuyển/);
     assert.match(rendered.html, /456\.500/);
+});
+
+test('order email always shows the current payment method and payment status', () => {
+    const unpaid = renderEmail('order.created', {
+        order_id: 'order-unpaid', order_code: 'TG-UNPAID', payment_method: 'bank_transfer',
+        payment_status: 'unpaid', grand_total: 250000, items: [],
+    }, 'vi');
+    assert.match(unpaid.html, /Chuyển khoản qua SePay/);
+    assert.match(unpaid.html, /Trạng thái thanh toán/);
+    assert.match(unpaid.html, /Chưa thanh toán/);
+
+    const paid = renderEmail('order.paid', {
+        order_id: 'order-paid', order_code: 'TG-PAID', payment_method: 'bank_transfer',
+        payment_status: 'paid', transaction_ref: 'FT123456', grand_total: 250000, items: [],
+    }, 'vi');
+    assert.match(paid.subject, /Thanh toán đơn hàng thành công/);
+    assert.match(paid.html, /Đã thanh toán/);
+    assert.match(paid.html, /FT123456/);
+});
+
+test('COD becomes paid only after successful fulfillment', () => {
+    const order = { payment_method: 'cod', payment_status: 'unpaid', paid_at: null };
+    assert.deepEqual(paymentStateAfterFulfillment(order, 'shipped', '2026-08-20T06:00:00.000Z'), {
+        payment_status: 'unpaid', paid_at: null, changed: false,
+    });
+    assert.deepEqual(paymentStateAfterFulfillment(order, 'completed', '2026-08-20T06:00:00.000Z'), {
+        payment_status: 'paid', paid_at: '2026-08-20T06:00:00.000Z', changed: true,
+    });
+    assert.deepEqual(paymentStateAfterFulfillment({ ...order, payment_method: 'bank_transfer' }, 'completed', '2026-08-20T06:00:00.000Z'), {
+        payment_status: 'unpaid', paid_at: null, changed: false,
+    });
+    assert.deepEqual(paymentStateAfterFulfillment({ ...order, payment_method: 'cash' }, 'completed', '2026-08-20T06:00:00.000Z'), {
+        payment_status: 'paid', paid_at: '2026-08-20T06:00:00.000Z', changed: true,
+    });
 });
 
 function createOrderLookupDb() {

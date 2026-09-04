@@ -322,11 +322,11 @@ const AdminSiteManagementPage: React.FC<AdminSiteManagementPageProps> = (props) 
 
         if (activeTab === 'payment') {
             return {
-                title: 'Thanh toán & VietQR',
+                title: 'Thanh toán & SePay',
                 description: 'Thông tin nhận tiền được gom thành task riêng để finance/admin chỉnh nhanh mà không cần mở cả khối site settings.',
                 eyebrow: 'Payment operations',
                 insights: [
-                    { label: 'Bank BIN', value: props.paymentSettings?.bank_bin ? 'Đã cấu hình' : 'Thiếu', hint: 'Thông tin QR và tài khoản nhận tiền' },
+                    { label: 'Ngân hàng SePay', value: props.paymentSettings?.bank_bin ? 'Đã cấu hình' : 'Thiếu', hint: 'QR động và tài khoản nhận tiền qua SePay' },
                     { label: 'Màn hiện tại', value: 'Thanh toán', hint: 'Tách khỏi branding và footer' },
                     { label: 'Footer link', value: props.footerContent?.phone ? 'Sẵn sàng' : 'Thiếu contact', hint: 'Nên giữ contact đồng bộ với payment' },
                 ],
@@ -818,11 +818,14 @@ const AdminSiteManagementPage: React.FC<AdminSiteManagementPageProps> = (props) 
                     {activeTab === 'payment' && (
                         <div className="space-y-8">
                             <div className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-6">
-                                <h3 className="text-xl font-bold mb-4">{t('admin.payment_info', 'Thông tin Thanh toán (VietQR)')}</h3>
-                                <div className="space-y-4">
-                                    <div><label className="text-sm font-medium">Bank BIN (e.g., Vietcombank is 970436)</label><input name="bank_bin" value={paymentSettingsForm?.bank_bin || ''} onChange={handlePaymentSettingsChange} className="mt-1 w-full admin-glass-input" /></div>
+                                <h3 className="text-xl font-bold mb-2">{t('admin.payment_info', 'Thông tin thanh toán SePay')}</h3>
+                                <p className="mb-4 text-sm text-muted-foreground">QR được SePay tạo theo từng đơn và chỉ tự xác nhận sau khi webhook báo tiền vào.</p>
+                                <div className="grid gap-4 md:grid-cols-2">
+                                    <div><label className="text-sm font-medium">Mã ngân hàng / BIN trên SePay</label><input name="bank_bin" value={paymentSettingsForm?.bank_bin || ''} onChange={handlePaymentSettingsChange} placeholder="Ví dụ: 970436 hoặc Vietcombank" className="mt-1 w-full admin-glass-input" /></div>
+                                    <div><label className="text-sm font-medium">Tên ngân hàng hiển thị</label><input name="bank_name" value={paymentSettingsForm?.bank_name || ''} onChange={handlePaymentSettingsChange} placeholder="Ví dụ: Vietcombank" className="mt-1 w-full admin-glass-input" /></div>
                                     <div><label className="text-sm font-medium">{t('admin.account_number', 'Số tài khoản')}</label><input name="account_number" value={paymentSettingsForm?.account_number || ''} onChange={handlePaymentSettingsChange} className="mt-1 w-full admin-glass-input" /></div>
                                     <div><label className="text-sm font-medium">{t('admin.account_holder_name', 'Tên chủ tài khoản')}</label><input name="account_holder_name" value={paymentSettingsForm?.account_holder_name || ''} onChange={handlePaymentSettingsChange} className="mt-1 w-full admin-glass-input" /></div>
+                                    <div className="md:col-span-2"><label className="text-sm font-medium">Tiền tố nội dung riêng của ngân hàng (nếu có)</label><input name="sepay_description_prefix" value={paymentSettingsForm?.sepay_description_prefix || ''} onChange={handlePaymentSettingsChange} placeholder="Để trống; VietinBank cá nhân dùng SEVQR" className="mt-1 w-full admin-glass-input" /><p className="mt-1 text-xs text-muted-foreground">Mã nhận diện đơn TGTM… luôn được hệ thống tự thêm phía sau.</p></div>
                                 </div>
                                 <button onClick={() => props.onUpdatePaymentSettings(paymentSettingsForm!)} className="mt-4 bg-primary text-primary-foreground font-bold py-2 px-5 rounded-lg">{t('admin.save_payment_info', 'Lưu thông tin thanh toán')}</button>
                             </div>

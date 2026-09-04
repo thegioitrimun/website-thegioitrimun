@@ -13,7 +13,6 @@ export async function handlePublicBootstrap(request, env, ctx, deps) {
         HOMEPAGE_BRAND_LIMIT,
         BLOG_HOMEPAGE_SELECT,
         HOMEPAGE_BLOG_SOURCE_LIMIT,
-        supabaseFetchWithMeta,
         mapBlogLiteRecord,
         selectHomepageProductRows,
         mapServiceRecord,
@@ -53,7 +52,6 @@ export async function handlePublicBootstrap(request, env, ctx, deps) {
         return cachedResponse;
     }
 
-    const timeoutMs = PUBLIC_BOOTSTRAP_QUERY_TIMEOUT_MS;
     const bootstrapFetches = [
         ['blogCategories', 'blog_categories?select=*&order=name.asc'],
         ['homepageHero', 'homepage_hero?select=*&limit=1'],
@@ -101,9 +99,8 @@ export async function handlePublicBootstrap(request, env, ctx, deps) {
         );
     }
 
-    const runtimeFetch = String(env.DATA_BACKEND || '').toLowerCase() === 'd1'
-        ? (endpoint) => fetchD1PublicEndpoint(env, endpoint)
-        : (endpoint) => supabaseFetchWithMeta(endpoint, { timeoutMs });
+    if (!env.APP_DB) return jsonResponse({ error: 'APP_DB is not configured.' }, 503, { 'Cache-Control': 'no-store' });
+    const runtimeFetch = (endpoint) => fetchD1PublicEndpoint(env, endpoint);
     const bootstrapResults = await Promise.all(
         bootstrapFetches.map(async ([key, endpoint]) => ({
             key,

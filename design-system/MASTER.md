@@ -8,7 +8,8 @@ Based on **UI-UX Pro Max** intelligence.
 - **Tone**: Trustworthy, Premium, Clean, Professional
 
 ## 2. Style Recommendations
-- **Primary Style**: **Clean Minimalism**
+- **Primary Style**: **Clean Minimalism & Apple Glass**
+- **Detailed Specifications**: Xem chi tiết toàn bộ quy tắc tại [APPLE_GLASS_DESIGN_SYSTEM.md](../APPLE_GLASS_DESIGN_SYSTEM.md)
 - **Secondary Accents**: **Glassmorphism** (for interactive cards and overlays)
 - **Pattern**: **Grid Layout** (structured and organized)
 

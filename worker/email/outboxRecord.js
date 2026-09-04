@@ -2,7 +2,7 @@ import { randomId } from '../platform/crypto.js';
 
 export function createOutboxStatement(db, input) {
     const id = input.id || randomId();
-    const now = new Date().toISOString();
+    const now = input.now || new Date().toISOString();
     return db.prepare(`
         INSERT OR IGNORE INTO notification_outbox (
             id, event_type, aggregate_type, aggregate_id, audience, recipient_email,

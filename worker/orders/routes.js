@@ -1,7 +1,9 @@
 import { methodNotAllowed } from '../platform/http.js';
 import {
+    createAdminOrder,
     createOrder,
     getProductWithIngredientSnapshot,
+    quoteAdminOrder,
     quoteOrderTotals,
     refundOrder,
     validateDiscountCode,
@@ -11,6 +13,15 @@ import {
 export async function maybeHandleD1CommerceRoute(route) {
     const { request, env, path } = route;
     if (String(env.DATA_BACKEND || '').toLowerCase() !== 'd1') return null;
+
+    if (path === '/api/admin/orders/quote') {
+        if (request.method !== 'POST') return methodNotAllowed(['POST']);
+        return quoteAdminOrder(request, env);
+    }
+
+    if (path === '/api/admin/orders' && request.method === 'POST') {
+        return createAdminOrder(request, env);
+    }
 
     if (path === '/api/orders') {
         if (request.method !== 'POST') return methodNotAllowed(['POST']);

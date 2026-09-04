@@ -1000,6 +1000,38 @@ export const useAppBootstrap = ({
     }, [currentUser, fetchAdminData, view.page]);
 
     useEffect(() => {
+        if (!currentUser || !PRIVILEGED_ROLES.has(currentUser.profile.role)) return;
+        if (!['adminDashboard', 'adminPharmacyManagement'].includes(view.page)) return;
+
+        let cancelled = false;
+        let refreshing = false;
+        const refreshOrders = async () => {
+            if (cancelled || refreshing || document.visibilityState === 'hidden') return;
+            refreshing = true;
+            try {
+                const orders = await api.getAllProductOrders({ force: true });
+                if (!cancelled) setAllProductOrders(orders);
+            } catch {
+                // The next interval or focus event retries without disrupting the admin workflow.
+            } finally {
+                refreshing = false;
+            }
+        };
+        const refreshWhenVisible = () => {
+            if (document.visibilityState === 'visible') void refreshOrders();
+        };
+        const timer = window.setInterval(() => void refreshOrders(), 15_000);
+        window.addEventListener('focus', refreshOrders);
+        document.addEventListener('visibilitychange', refreshWhenVisible);
+        return () => {
+            cancelled = true;
+            window.clearInterval(timer);
+            window.removeEventListener('focus', refreshOrders);
+            document.removeEventListener('visibilitychange', refreshWhenVisible);
+        };
+    }, [currentUser?.profile.role, setAllProductOrders, view.page]);
+
+    useEffect(() => {
         if (!view.page.startsWith('admin') || adminModuleStates[view.page]?.status !== 'ready') return;
         if (adminPrefetchRef.current.has(view.page)) return;
         adminPrefetchRef.current.add(view.page);

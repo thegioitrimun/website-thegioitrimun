@@ -54,21 +54,21 @@ const SettingsDropdown: React.FC = () => {
                         <div className="grid grid-cols-3 gap-2">
                             <button
                                 onClick={() => setTheme('light')}
-                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'light' ? 'bg-accent text-accent-foreground ring-1 ring-ring/20' : 'hover:bg-accent/50'}`}
+                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'light' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
                             >
                                 <SunIcon className="w-5 h-5" />
                                 <span>{t('account.light')}</span>
                             </button>
                             <button
                                 onClick={() => setTheme('dark')}
-                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'dark' ? 'bg-accent text-accent-foreground ring-1 ring-ring/20' : 'hover:bg-accent/50'}`}
+                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'dark' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
                             >
                                 <MoonIcon className="w-5 h-5" />
                                 <span>{t('account.dark')}</span>
                             </button>
                             <button
                                 onClick={() => setTheme('system')}
-                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'system' ? 'bg-accent text-accent-foreground ring-1 ring-ring/20' : 'hover:bg-accent/50'}`}
+                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'system' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
                             >
                                 <SystemIcon className="w-5 h-5" />
                                 <span>{t('account.system')}</span>
@@ -85,9 +85,9 @@ const SettingsDropdown: React.FC = () => {
                                     key={fontKey}
                                     onClick={() => setFont(fontKey as Font)}
                                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors duration-150 ${font === fontKey
-                                        ? 'bg-accent text-accent-foreground'
-                                        : 'text-popover-foreground'
-                                        } hover:bg-accent/50`}
+                                        ? 'bg-primary/10 text-primary font-bold'
+                                        : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'
+                                        }`}
                                     style={{ fontFamily: FONT_OPTIONS[fontKey as Font].stack }}
                                     role="menuitem"
                                 >

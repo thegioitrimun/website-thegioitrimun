@@ -126,7 +126,7 @@ export const ProductSliderSection: React.FC<Props> = ({
                     {viewAllLink && viewAllText && (
                         <button
                             onClick={() => setView({ page: viewAllLink })}
-                            className="hidden items-center rounded-full border border-border bg-white px-5 py-2.5 text-sm font-bold text-foreground transition-colors hover:border-primary/35 hover:text-primary md:inline-flex btn-press"
+                            className="hidden items-center rounded-full border border-border bg-white px-5 py-2.5 text-sm font-bold text-foreground transition-colors hover:border-primary/35 hover:text-primary md:inline-flex btn-press dark:border-white/10 dark:bg-card dark:hover:border-primary/40"
                         >
                             {viewAllText}
                             <ArrowRightIcon className="ml-2 h-4 w-4" />
@@ -190,7 +190,7 @@ export const ProductSliderSection: React.FC<Props> = ({
                     <div className="mt-4 text-center md:hidden">
                         <button
                             onClick={() => setView({ page: viewAllLink })}
-                            className="inline-flex w-full items-center justify-center rounded-full border border-border bg-white px-5 py-3 text-sm font-bold text-foreground transition-colors hover:border-primary/35 hover:text-primary btn-press"
+                            className="inline-flex w-full items-center justify-center rounded-full border border-border bg-white px-5 py-3 text-sm font-bold text-foreground transition-colors hover:border-primary/35 hover:text-primary btn-press dark:border-white/10 dark:bg-card dark:hover:border-primary/40"
                         >
                             {viewAllText}
                             <ArrowRightIcon className="ml-2 h-4 w-4" />

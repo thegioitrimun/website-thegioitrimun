@@ -7,10 +7,14 @@ import path from 'node:path';
 const remote = process.argv.includes('--remote');
 const root = process.cwd();
 const wranglerConfig = process.env.D1_WRANGLER_CONFIG || (!remote ? 'wrangler.d1.local.jsonc' : '');
+const target = String(process.env.D1_MIGRATION_TARGET || 'all').toLowerCase();
+const onlyVersion = String(process.env.D1_MIGRATION_ONLY || '').trim();
+const inciNames = String(process.env.INCI_D1_DATABASE_NAMES || process.env.INCI_D1_DATABASE_NAME || 'thegioitrimun-inci-runtime')
+    .split(',').map((value) => value.trim()).filter(Boolean);
 const databases = [
     { name: process.env.APP_D1_DATABASE_NAME || 'thegioitrimun-app', dir: 'd1/app/migrations' },
-    { name: process.env.INCI_D1_DATABASE_NAME || 'thegioitrimun-inci-runtime', dir: 'd1/inci/migrations' },
-];
+    ...inciNames.map((name) => ({ name, dir: 'd1/inci/migrations' })),
+].filter((database) => target === 'all' || (target === 'app' ? database.dir.includes('/app/') : database.dir.includes('/inci/')));
 
 function wranglerArgs(database, mode, operationArgs) {
     const args = ['wrangler', 'd1', 'execute', database, mode];
@@ -58,7 +62,10 @@ function getAppliedMigration(database, version) {
 
 for (const database of databases) {
     const directory = path.join(root, database.dir);
-    const files = (await readdir(directory)).filter((file) => file.endsWith('.sql')).sort();
+    const files = (await readdir(directory))
+        .filter((file) => file.endsWith('.sql') && (!onlyVersion || file.replace(/\.sql$/, '') === onlyVersion))
+        .sort();
+    if (onlyVersion && files.length !== 1) throw new Error(`${database.name}: migration ${onlyVersion} was not found in ${database.dir}.`);
     for (const file of files) {
         const absolute = path.join(directory, file);
         const sql = await readFile(absolute, 'utf8');

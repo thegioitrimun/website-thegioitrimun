@@ -18,6 +18,7 @@ import * as api from '../services/api';
 import Spinner from './Spinner';
 import BackIconButton from './BackIconButton';
 import { getOrderItemDisplayName } from '../src/orderItemPresentation';
+import { printProductOrder } from '../src/orderReceipt';
 
 interface OrderHistoryPageProps {
   orders: ProductOrder[];
@@ -28,14 +29,6 @@ interface OrderHistoryPageProps {
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
-
-const escapeHtml = (value: string): string =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 
 const getOrderFulfillmentStatus = (order: ProductOrder): OrderFulfillmentStatus => {
   if (order.fulfillment_status) return order.fulfillment_status;
@@ -55,7 +48,9 @@ const getOrderPaymentStatus = (order: ProductOrder): OrderPaymentStatus => {
 };
 
 const getOrderPaymentMethod = (order: ProductOrder): OrderPaymentMethod => {
-  return order.payment_method === 'bank_transfer' ? 'bank_transfer' : 'cod';
+  if (order.payment_method === 'bank_transfer') return 'bank_transfer';
+  if (order.payment_method === 'cash') return 'cash';
+  return 'cod';
 };
 
 const getFulfillmentStatusStyles = (status: OrderFulfillmentStatus) => {
@@ -171,6 +166,7 @@ const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ orders, onNavigate,
 
   const getPaymentMethodText = (method: OrderPaymentMethod) => {
     if (method === 'bank_transfer') return t('orders.payment_method_bank_transfer');
+    if (method === 'cash') return t('orders.payment_method_cash', 'Tiền mặt');
     return t('orders.payment_method_cod');
   };
 
@@ -251,99 +247,7 @@ const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ orders, onNavigate,
     };
 
     const handleDownloadInvoice = () => {
-      if (typeof window === 'undefined') return;
-
-      const invoiceDate = formatDateTime(order.created_at);
-      const shippingAddress = formatShippingAddress(order);
-      const itemRows = (order.order_items || [])
-        .map((item) => {
-          const itemName = getOrderItemName(item);
-          const lineTotal = Number(item.price_at_purchase || 0) * Number(item.quantity || 0);
-          return `
-            <tr>
-              <td>${escapeHtml(itemName)}</td>
-              <td style="text-align:center;">${Number(item.quantity || 0)}</td>
-              <td style="text-align:right;">${formatCurrency(Number(item.price_at_purchase || 0))}</td>
-              <td style="text-align:right;">${formatCurrency(lineTotal)}</td>
-            </tr>
-          `;
-        })
-        .join('');
-
-      const html = `
-<!doctype html>
-<html lang="${escapeHtml(i18n.language || 'vi')}">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapeHtml(t('orders.invoice_title'))} - ${escapeHtml(order.order_code || '')}</title>
-  <style>
-    :root { color-scheme: light; }
-    body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
-    h1 { font-size: 20px; margin: 0 0 8px; }
-    .meta { margin-bottom: 16px; font-size: 14px; }
-    .meta p { margin: 4px 0; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { border: 1px solid #d1d5db; padding: 8px; font-size: 13px; vertical-align: top; }
-    th { background: #f3f4f6; text-align: left; }
-    .totals { width: 340px; margin-left: auto; margin-top: 16px; }
-    .totals td { border: none; padding: 4px 0; }
-    .totals .label { color: #4b5563; }
-    .totals .total { border-top: 1px solid #d1d5db; padding-top: 8px; font-weight: 700; font-size: 14px; }
-    .small { font-size: 12px; color: #6b7280; margin-top: 16px; }
-  </style>
-</head>
-<body>
-  <h1>${escapeHtml(t('orders.invoice_title'))}</h1>
-  <div class="meta">
-    <p><strong>${escapeHtml(t('orders.order_code'))}:</strong> ${escapeHtml(order.order_code || '')}</p>
-    <p><strong>${escapeHtml(t('orders.order_date'))}:</strong> ${escapeHtml(invoiceDate)}</p>
-    <p><strong>${escapeHtml(t('checkout.full_name'))}:</strong> ${escapeHtml(order.customer_name)}</p>
-    <p><strong>${escapeHtml(t('checkout.phone'))}:</strong> ${escapeHtml(order.customer_phone)}</p>
-    <p><strong>${escapeHtml(t('orders.shipping_address'))}:</strong> ${escapeHtml(shippingAddress)}</p>
-    <p><strong>${escapeHtml(t('orders.payment_method'))}:</strong> ${escapeHtml(getPaymentMethodText(paymentMethod))}</p>
-    <p><strong>${escapeHtml(t('orders.payment_status'))}:</strong> ${escapeHtml(getPaymentStatusText(paymentStatus))}</p>
-    <p><strong>${escapeHtml(t('orders.fulfillment_status'))}:</strong> ${escapeHtml(getFulfillmentStatusText(fulfillmentStatus))}</p>
-  </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>${escapeHtml(t('orders.products'))}</th>
-        <th style="text-align:center;">${escapeHtml(t('checkout.qty'))}</th>
-        <th style="text-align:right;">${escapeHtml(t('orders.price'))}</th>
-        <th style="text-align:right;">${escapeHtml(t('orders.line_total'))}</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${itemRows}
-    </tbody>
-  </table>
-
-  <table class="totals">
-    <tbody>
-      <tr><td class="label">${escapeHtml(t('cart.subtotal'))}</td><td style="text-align:right;">${formatCurrency(subtotal)}</td></tr>
-      <tr><td class="label">${escapeHtml(t('cart.discount'))}</td><td style="text-align:right;">- ${formatCurrency(discount)}</td></tr>
-      <tr><td class="label">${escapeHtml(t('checkout.tax', 'Thuế'))}</td><td style="text-align:right;">${formatCurrency(taxAmount)}</td></tr>
-      <tr><td class="label">${escapeHtml(t('cart.shipping'))}</td><td style="text-align:right;">${formatCurrency(shipping)}</td></tr>
-      <tr><td class="label total">${escapeHtml(t('cart.total'))}</td><td class="total" style="text-align:right;">${formatCurrency(totalAmount)}</td></tr>
-    </tbody>
-  </table>
-
-  <p class="small">${escapeHtml(t('orders.invoice_print_hint'))}</p>
-</body>
-</html>`;
-
-      const invoiceWindow = window.open('', '_blank', 'width=960,height=760');
-      if (!invoiceWindow) {
-        alert(t('orders.invoice_popup_blocked'));
-        return;
-      }
-
-      invoiceWindow.document.write(html);
-      invoiceWindow.document.close();
-      invoiceWindow.focus();
-      setTimeout(() => invoiceWindow.print(), 250);
+      if (!printProductOrder(order, 'a4')) alert(t('orders.invoice_popup_blocked'));
     };
 
     const handleNavigateToReview = (productIdOrSlug: number | string) => {

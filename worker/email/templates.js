@@ -18,9 +18,11 @@ function money(value, locale) {
 const COPY = {
     vi: {
         created: 'Đơn hàng đã được tiếp nhận', processing: 'Đơn hàng đang được chuẩn bị', shipped: 'Đơn hàng đang được giao',
-        completed: 'Đơn hàng đã giao thành công', cancelled: 'Đơn hàng đã hủy', refunded: 'Đơn hàng đã được hoàn tiền',
+        completed: 'Đơn hàng đã giao thành công', cancelled: 'Đơn hàng đã hủy', refunded: 'Đơn hàng đã được hoàn tiền', paid: 'Thanh toán đơn hàng thành công',
         appointment: 'Thông tin lịch hẹn', code: 'Mã đơn', total: 'Tổng thanh toán', status: 'Trạng thái', items: 'Sản phẩm',
         address: 'Địa chỉ nhận hàng', payment: 'Phương thức thanh toán', tracking: 'Tra cứu đơn hàng', review: 'Đánh giá sản phẩm',
+        paymentStatus: 'Trạng thái thanh toán', paymentUnpaid: 'Chưa thanh toán', paymentPaid: 'Đã thanh toán',
+        paymentFailed: 'Thanh toán lỗi', paymentRefunded: 'Đã hoàn tiền', transaction: 'Mã giao dịch',
         customer: 'Khách hàng', phone: 'Số điện thoại', unitPrice: 'Đơn giá', quantity: 'Số lượng', lineTotal: 'Thành tiền',
         productTax: 'Thuế sản phẩm', subtotal: 'Tạm tính', discount: 'Giảm giá', taxable: 'Giá tính thuế', tax: 'Thuế sản phẩm',
         shipping: 'Phí vận chuyển', shippingNet: 'Phí vận chuyển trước thuế', shippingTax: 'Thuế vận chuyển', sku: 'SKU',
@@ -28,9 +30,11 @@ const COPY = {
     },
     en: {
         created: 'Order received', processing: 'Order is being prepared', shipped: 'Order is on the way',
-        completed: 'Order delivered', cancelled: 'Order cancelled', refunded: 'Order refunded',
+        completed: 'Order delivered', cancelled: 'Order cancelled', refunded: 'Order refunded', paid: 'Payment received',
         appointment: 'Appointment update', code: 'Order code', total: 'Total', status: 'Status', items: 'Items',
         address: 'Delivery address', payment: 'Payment method', tracking: 'Track order', review: 'Review products',
+        paymentStatus: 'Payment status', paymentUnpaid: 'Unpaid', paymentPaid: 'Paid',
+        paymentFailed: 'Payment failed', paymentRefunded: 'Refunded', transaction: 'Transaction reference',
         customer: 'Customer', phone: 'Phone', unitPrice: 'Unit price', quantity: 'Quantity', lineTotal: 'Line total',
         productTax: 'Product tax', subtotal: 'Subtotal', discount: 'Discount', taxable: 'Taxable amount', tax: 'Product tax',
         shipping: 'Shipping fee', shippingNet: 'Shipping before tax', shippingTax: 'Shipping tax', sku: 'SKU',
@@ -38,9 +42,11 @@ const COPY = {
     },
     ru: {
         created: 'Заказ принят', processing: 'Заказ готовится', shipped: 'Заказ отправлен',
-        completed: 'Заказ доставлен', cancelled: 'Заказ отменен', refunded: 'Возврат оформлен',
+        completed: 'Заказ доставлен', cancelled: 'Заказ отменен', refunded: 'Возврат оформлен', paid: 'Оплата получена',
         appointment: 'Информация о записи', code: 'Номер заказа', total: 'Итого', status: 'Статус', items: 'Товары',
         address: 'Адрес доставки', payment: 'Способ оплаты', tracking: 'Отследить заказ', review: 'Оценить товары',
+        paymentStatus: 'Статус оплаты', paymentUnpaid: 'Не оплачено', paymentPaid: 'Оплачено',
+        paymentFailed: 'Ошибка оплаты', paymentRefunded: 'Возвращено', transaction: 'Номер транзакции',
         customer: 'Клиент', phone: 'Телефон', unitPrice: 'Цена за единицу', quantity: 'Количество', lineTotal: 'Сумма',
         productTax: 'Налог на товар', subtotal: 'Подытог', discount: 'Скидка', taxable: 'Налогооблагаемая сумма', tax: 'Налог на товар',
         shipping: 'Доставка', shippingNet: 'Доставка без налога', shippingTax: 'Налог на доставку', sku: 'SKU',
@@ -48,9 +54,11 @@ const COPY = {
     },
     cn: {
         created: '订单已收到', processing: '订单准备中', shipped: '订单配送中',
-        completed: '订单已送达', cancelled: '订单已取消', refunded: '订单已退款',
+        completed: '订单已送达', cancelled: '订单已取消', refunded: '订单已退款', paid: '付款成功',
         appointment: '预约更新', code: '订单号', total: '总计', status: '状态', items: '商品',
         address: '收货地址', payment: '支付方式', tracking: '查询订单', review: '评价商品',
+        paymentStatus: '支付状态', paymentUnpaid: '未支付', paymentPaid: '已支付',
+        paymentFailed: '支付失败', paymentRefunded: '已退款', transaction: '交易编号',
         customer: '客户', phone: '电话', unitPrice: '单价', quantity: '数量', lineTotal: '金额',
         productTax: '商品税', subtotal: '小计', discount: '折扣', taxable: '计税金额', tax: '商品税',
         shipping: '运费', shippingNet: '税前运费', shippingTax: '运费税', sku: 'SKU',
@@ -148,12 +156,36 @@ export function renderEmail(eventType, payload, requestedLocale) {
     const reason = reasonText ? `<div style="margin:14px 0;padding:12px 14px;border-radius:12px;background:#fff6f3;color:#c65d45;font-size:14px"><strong>${escapeHtml(copy.status)}:</strong> ${escapeHtml(reasonText)}</div>` : '';
     const refund = payload.refund_amount ? `<div style="margin:14px 0;padding:12px 14px;border-radius:12px;background:#eef8f5;color:#218b76;font-size:14px"><strong>${escapeHtml(copy.refunded)}:</strong> ${escapeHtml(money(payload.refund_amount, locale))}</div>` : '';
     const address = payload.shipping_address ? `<div style="padding:14px 16px;border-radius:14px;background:#f7faf9"><div style="margin-bottom:5px;color:#667085;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">${escapeHtml(copy.address)}</div><div style="color:#172033;font-size:14px;line-height:1.55">${escapeHtml(payload.shipping_address)}</div></div>` : '';
-    const paymentLabels = { cod: 'COD', bank_transfer: locale === 'en' ? 'Bank transfer' : locale === 'cn' ? '银行转账' : locale === 'ru' ? 'Банковский перевод' : 'Chuyển khoản ngân hàng' };
+    const paymentLabels = {
+        cod: 'COD',
+        cash: locale === 'en' ? 'Cash' : locale === 'cn' ? '现金' : locale === 'ru' ? 'Наличные' : 'Tiền mặt',
+        bank_transfer: locale === 'en' ? 'SePay bank transfer' : locale === 'cn' ? 'SePay 银行转账' : locale === 'ru' ? 'Банковский перевод SePay' : 'Chuyển khoản qua SePay',
+    };
     const paymentValue = paymentLabels[payload.payment_method] || payload.payment_method;
-    const payment = payload.payment_method ? `<div style="padding:14px 16px;border-radius:14px;background:#f7faf9"><div style="margin-bottom:5px;color:#667085;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">${escapeHtml(copy.payment)}</div><div style="color:#172033;font-size:14px;font-weight:700">${escapeHtml(paymentValue)}</div></div>` : '';
+    const suppliedPaymentStatus = String(payload.payment_status || '').trim().toLowerCase();
+    const paymentStatus = ['unpaid', 'paid', 'failed', 'refunded'].includes(suppliedPaymentStatus)
+        ? suppliedPaymentStatus
+        : key === 'refunded' ? 'refunded' : (payload.paid_at || payload.transaction_ref ? 'paid' : 'unpaid');
+    const paymentStatusLabels = {
+        unpaid: copy.paymentUnpaid,
+        paid: copy.paymentPaid,
+        failed: copy.paymentFailed,
+        refunded: copy.paymentRefunded,
+    };
+    const paymentStatusColors = {
+        unpaid: { background: '#fff4e5', color: '#a15c00' },
+        paid: { background: '#e7f5ef', color: '#218b76' },
+        failed: { background: '#fff0ed', color: '#c2412d' },
+        refunded: { background: '#eef2ff', color: '#4754a6' },
+    };
+    const paymentTone = paymentStatusColors[paymentStatus];
+    const transaction = payload.transaction_ref
+        ? `<div style="margin-top:9px;color:#667085;font-size:12px;line-height:1.45">${escapeHtml(copy.transaction)}: <strong style="color:#172033">${escapeHtml(payload.transaction_ref)}</strong></div>`
+        : '';
+    const payment = `<div style="padding:14px 16px;border-radius:14px;background:#f7faf9"><div style="margin-bottom:5px;color:#667085;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">${escapeHtml(copy.payment)}</div><div style="color:#172033;font-size:14px;font-weight:700">${escapeHtml(paymentValue || '—')}</div><div style="margin-top:12px;padding-top:11px;border-top:1px solid #e4ece9"><div style="margin-bottom:6px;color:#667085;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">${escapeHtml(copy.paymentStatus)}</div><span style="display:inline-block;padding:6px 10px;border-radius:999px;background:${paymentTone.background};color:${paymentTone.color};font-size:12px;font-weight:700">${escapeHtml(paymentStatusLabels[paymentStatus])}</span>${transaction}</div></div>`;
     const trackingUrl = escapeHtml(payload.tracking_url || 'https://thegioitrimun.vn/tra-cuu-don-hang');
     const actionLabel = key === 'completed' ? copy.review : copy.tracking;
-    const action = ['created', 'processing', 'shipped', 'completed'].includes(key)
+    const action = ['created', 'paid', 'processing', 'shipped', 'completed'].includes(key)
         ? `<p style="margin:24px 0 0"><a href="${trackingUrl}" style="display:inline-block;padding:13px 22px;border-radius:999px;background:#218b76;color:#fff;text-decoration:none;font-weight:700;font-size:14px">${escapeHtml(actionLabel)}</a></p>`
         : '';
     const customer = payload.customer_name || payload.customer_phone

@@ -21,10 +21,10 @@ const InventoryPanel: React.FC<InventoryPanelProps> = ({
   onVatRatePercentChange,
 }) => {
   return (
-    <section id={id} className="scroll-mt-32 rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5">
+    <section id={id} className="scroll-mt-32 rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5">
       <div>
         <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">Commerce</p>
-        <h3 className="mt-2 text-lg font-bold text-foreground">Giá và tồn kho</h3>
+        <h3 className="mt-1 text-lg font-bold text-foreground">Giá và tồn kho</h3>
       </div>
 
       <div className="mt-5 space-y-4">

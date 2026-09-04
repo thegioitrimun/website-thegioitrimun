@@ -2,6 +2,7 @@ import { apiError, json, readJson, requireD1 } from '../platform/http.js';
 import { randomId, sha256, timingSafeEqual } from '../platform/crypto.js';
 import { createOutboxStatement } from '../email/outbox.js';
 import { getSession, requireCsrf, requireGuestCsrf, requireRole } from '../auth/session.js';
+import { paymentStateAfterFulfillment } from '../orders/paymentState.js';
 import {
     calculateFee,
     cancelShipment,
@@ -59,7 +60,22 @@ function notificationPayload(order, extra = {}) {
         order_id: order.id,
         order_code: order.order_code,
         customer_name: order.customer_name,
+        customer_phone: order.customer_phone,
         grand_total: order.grand_total,
+        subtotal_price: order.subtotal_price,
+        discount_amount: order.discount_amount,
+        taxable_amount: order.taxable_amount,
+        tax_amount: order.tax_amount,
+        tax_rate: order.tax_rate,
+        shipping_fee: order.shipping_fee,
+        shipping_tax_rate: order.shipping_tax_rate,
+        shipping_tax_amount: order.shipping_tax_amount,
+        shipping_address: [order.shipping_street, order.shipping_ward, order.shipping_district, order.shipping_province].filter(Boolean).join(', '),
+        payment_method: order.payment_method,
+        payment_status: order.payment_status || 'unpaid',
+        payment_provider: order.payment_provider || null,
+        payment_reference: order.payment_reference || null,
+        paid_at: order.paid_at || null,
         items: order.items.map((item) => ({
             product_id: item.product_id,
             name: item.product_name,
@@ -256,18 +272,34 @@ export async function handleWebhook(request, env) {
             db.prepare(`UPDATE webhook_receipts SET status = 'processed', processed_at = ? WHERE id = ?`).bind(now, receiptId),
         ];
         if (mapped && mapped !== order.status) {
+            const paymentState = paymentStateAfterFulfillment(order, mapped, now);
             statements.push(
-                db.prepare('UPDATE product_orders SET status = ?, fulfillment_status = ?, updated_at = ? WHERE id = ?')
-                    .bind(mapped, mapped, now, order.id),
+                db.prepare(`UPDATE product_orders SET status = ?, fulfillment_status = ?,
+                    payment_status = CASE WHEN ? = 1 THEN 'paid' ELSE payment_status END,
+                    paid_at = CASE WHEN ? = 1 THEN COALESCE(paid_at, ?) ELSE paid_at END,
+                    updated_at = ? WHERE id = ?`)
+                    .bind(mapped, mapped, paymentState.changed ? 1 : 0, paymentState.changed ? 1 : 0,
+                        paymentState.paid_at, now, order.id),
                 db.prepare(`INSERT INTO order_status_history (id, order_id, from_status, to_status, actor_id, actor_role, note, created_at) VALUES (?, ?, ?, ?, NULL, 'ghtk', ?, ?)`)
                     .bind(randomId(), order.id, order.status, mapped, `GHTK ${providerStatus}: ${statusText}`, now),
             );
+            if (paymentState.changed) {
+                statements.push(db.prepare(`UPDATE order_payment_logs SET status = 'paid', paid_at = ?,
+                    transaction_ref = COALESCE(transaction_ref, 'COD'), metadata_json = ?
+                    WHERE order_id = ? AND status = 'unpaid'`)
+                    .bind(paymentState.paid_at, JSON.stringify({ provider: 'cod', confirmation: 'delivery_completed' }), order.id));
+            }
             if (['processing', 'shipped', 'completed', 'cancelled'].includes(mapped) && order.customer_email) {
                 const items = await db.prepare('SELECT * FROM product_order_items WHERE order_id = ?').bind(order.id).all();
                 statements.push(createOutboxStatement(db, {
                     eventType: `order.${mapped}`, aggregateType: 'order', aggregateId: order.id, audience: 'customer',
                     recipientEmail: order.customer_email, locale: order.locale,
-                    payload: notificationPayload({ ...order, items: items.results || [] }, { tracking_code: order.shipping_code, ghtk_status_text: statusText }),
+                    payload: notificationPayload({
+                        ...order,
+                        items: items.results || [],
+                        payment_status: paymentState.payment_status,
+                        paid_at: paymentState.paid_at,
+                    }, { tracking_code: order.shipping_code, ghtk_status_text: statusText }),
                     idempotencyKey: `customer/order.${mapped}/${order.id}`,
                 }));
             }
@@ -308,7 +340,9 @@ async function processCreate(db, env, row, order) {
             tel: order.customer_phone,
             note: order.notes || 'Không có ghi chú',
             is_freeship: '0',
-            pick_money: order.payment_method === 'bank_transfer' ? 0 : Math.round(order.grand_total),
+            pick_money: order.payment_method === 'cod' && order.payment_status !== 'paid'
+                ? Math.round(order.grand_total)
+                : 0,
             value: Math.round(order.grand_total),
             transport: 'road',
         },

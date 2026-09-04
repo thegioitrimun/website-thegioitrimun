@@ -18,11 +18,14 @@ interface AdminMobileCardProps {
   className?: string;
 }
 
-export const AdminMobileCard: React.FC<AdminMobileCardProps> = ({ children, className }) => (
-  <article className={joinClasses('relative border-b border-border/40 last:border-0 p-4 transition-colors hover:bg-muted/20', className)}>
-    {children}
-  </article>
-);
+export const AdminMobileCard: React.FC<AdminMobileCardProps> = ({ children, className }) => {
+  const hasCustomPadding = className && /\bp[xytrbl]?-/.test(className);
+  return (
+    <article className={joinClasses('relative border-b border-border/40 last:border-0 transition-colors hover:bg-muted/20', !hasCustomPadding && 'py-2.5 px-3', className)}>
+      {children}
+    </article>
+  );
+};
 
 interface AdminMobileMetaProps {
   label: string;

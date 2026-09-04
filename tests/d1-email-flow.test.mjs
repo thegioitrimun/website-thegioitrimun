@@ -32,11 +32,12 @@ test('orders and appointments create D1 notification outbox events', async () =>
 
 test('D1 outbox is dispatched through Queue and SMTP sockets', async () => {
   const outbox = await read('worker/email/outbox.js');
+  const dispatcher = await read('worker/email/dispatcher.js');
   const mailer = await read('worker/email/smtpMailer.js');
   const scheduler = await read('workers/admin-report-scheduler/index.mjs');
 
-  assert.match(outbox, /NOTIFICATION_QUEUE/);
-  assert.match(outbox, /notification_outbox/i);
+  assert.match(dispatcher, /NOTIFICATION_QUEUE/);
+  assert.match(dispatcher, /notification_outbox/i);
   assert.match(outbox, /consumeNotificationQueue/);
   assert.match(mailer, /cloudflare:sockets/);
   assert.match(mailer, /secureTransport:\s*['"]on['"]/);

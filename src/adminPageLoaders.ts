@@ -31,6 +31,7 @@ export const loadAdminServiceManagementPage = once(() => import('../components/A
 export const loadAdminImageLibraryPage = once(() => import('../components/AdminImageLibraryPage'));
 export const loadAdminProductImageImporterPage = once(() => import('../components/AdminProductImageImporterPage'));
 export const loadAdminPharmacyManagementPage = once(() => import('../components/AdminPharmacyManagementPage'));
+export const loadAdminVatManagementPage = once(() => import('../components/AdminVatManagementPage'));
 export const loadAdminPancakeManagementPage: AdminPageLoader = () => Promise.resolve({
   default: AdminPancakeManagementPage,
 });
@@ -45,6 +46,7 @@ const adminPageLoaders: Record<AdminWorkspacePage, AdminPageLoader> = {
   adminProductImageImporter: loadAdminProductImageImporterPage,
   adminPharmacyManagement: loadAdminPharmacyManagementPage,
   adminPancakeManagement: loadAdminPancakeManagementPage,
+  adminVatManagement: loadAdminVatManagementPage,
 };
 
 export const preloadAdminPage = (page: AdminWorkspacePage) => adminPageLoaders[page]();

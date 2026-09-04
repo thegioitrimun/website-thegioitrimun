@@ -338,7 +338,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{t('search.quick_overview', 'Tổng quan nhanh')}</p>
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             {resultSummary.map((entry) => (
-                                                <span key={entry.key} className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground">
+                                                <span key={entry.key} className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground dark:border-white/10 dark:bg-card">
                                                     {entry.count} {entry.label}
                                                 </span>
                                             ))}
@@ -355,7 +355,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                                                                     key={brand.name}
                                                                     type="button"
                                                                     onClick={() => setSearchTerm(brand.name)}
-                                                                    className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/35 hover:text-primary"
+                                                                    className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/35 hover:text-primary dark:border-white/10 dark:bg-card"
                                                                 >
                                                                     {brand.name}
                                                                 </button>
@@ -372,7 +372,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                                                                     key={concern.name}
                                                                     type="button"
                                                                     onClick={() => setSearchTerm(concern.name)}
-                                                                    className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/35 hover:text-primary"
+                                                                    className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/35 hover:text-primary dark:border-white/10 dark:bg-card"
                                                                 >
                                                                     {concern.name}
                                                                 </button>

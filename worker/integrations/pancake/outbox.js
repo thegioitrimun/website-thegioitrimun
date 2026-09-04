@@ -1,5 +1,6 @@
 import { randomId, sha256 } from '../../platform/crypto.js';
 import { PancakeApiError, PancakeClient, getPancakeConfig } from './client.js';
+import { consumePancakeInboundMessage } from './inbound.js';
 import {
     getEnabledPancakeEntityTypes,
     getPancakeSettingColumn,
@@ -371,6 +372,13 @@ export async function syncOrderById(db, client, env, orderId, settings = null) {
     if (!order) throw Object.assign(new Error(`Order ${orderId} was not found.`), { retryable: false });
     const productLinks = new Map();
     for (const item of order.order_items) {
+        if (item.product_id == null && item.external_variation_id) {
+            productLinks.set(`external:${String(item.external_variation_id)}`, {
+                pancake_entity_id: item.external_product_id || '',
+                pancake_variation_id: item.external_variation_id,
+            });
+            continue;
+        }
         let link = await getLink(db, 'product', item.product_id);
         if (!link?.pancake_variation_id) {
             const product = await loadProduct(db, env, item.product_id);
@@ -492,6 +500,17 @@ export async function dispatchPendingPancakeSync(env, limit = 50) {
     }
 }
 
+export async function dispatchPendingPancakeSyncBestEffort(env, limit = 50) {
+    try {
+        return await dispatchPendingPancakeSync(env, limit);
+    } catch (error) {
+        console.error('[pancake-outbox] Immediate dispatch failed:', {
+            message: String(error?.message || error).slice(0, 500),
+        });
+        return { skipped: false, queued: 0, failed: true };
+    }
+}
+
 export async function consumePancakeQueue(batch, env) {
     if (!env.APP_DB) {
         for (const message of batch.messages) message.retry({ delaySeconds: 300 });
@@ -505,11 +524,16 @@ export async function consumePancakeQueue(batch, env) {
             if (id) await env.APP_DB.prepare(`UPDATE pancake_sync_outbox
                 SET status = 'blocked', last_error = ?, updated_at = ? WHERE id = ?`)
                 .bind(String(error?.message || error).slice(0, 1000), new Date().toISOString(), id).run();
+            const inboundId = message.body?.inboundEventId;
+            if (inboundId) await env.APP_DB.prepare(`UPDATE pancake_inbound_events
+                SET status = 'failed', last_error = ?, processed_at = ?, updated_at = ? WHERE id = ?`)
+                .bind(String(error?.message || error).slice(0, 1000), new Date().toISOString(), new Date().toISOString(), inboundId).run();
             message.ack();
         }
         return;
     }
     for (const message of batch.messages) {
+        if (await consumePancakeInboundMessage(message, env, settings, client)) continue;
         const outboxId = message.body?.outboxId;
         const row = outboxId
             ? await env.APP_DB.prepare('SELECT * FROM pancake_sync_outbox WHERE id = ? LIMIT 1').bind(outboxId).first()
