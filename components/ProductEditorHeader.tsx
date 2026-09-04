@@ -557,17 +557,15 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
       <div className={`sticky top-2 sm:top-3 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 mx-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden ${showMobileMenu ? 'z-0 pointer-events-none' : 'z-10'}`}>
         {/* Badge trạng thái đồng bộ */}
         <span
-          className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-2.5 py-1.5 text-xs font-bold transition-all dark:border-white/10 ${
-            isSaving
-              ? 'text-primary'
-              : isDirty
-                ? 'text-amber-700 dark:text-amber-400'
-                : 'text-emerald-700 dark:text-emerald-400'
-          }`}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground transition-all dark:border-white/10"
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isSaving ? 'bg-primary animate-pulse' : isDirty ? 'bg-amber-500' : 'bg-emerald-500'
+              isSaving
+                ? 'bg-primary animate-pulse'
+                : isDirty
+                  ? 'bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]'
+                  : 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.7)]'
             }`}
           />
           <span>{isSaving ? 'Đang lưu...' : isDirty ? 'Chưa lưu' : 'Đã đồng bộ'}</span>
@@ -579,11 +577,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
             type="button"
             onClick={onTogglePublished}
             disabled={disabledActions}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-all active:scale-95 shadow-xs backdrop-blur-2xl ${
-              isPublished
-                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                : 'border-white/80 bg-card/85 text-muted-foreground hover:text-foreground dark:border-white/10'
-            }`}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted hover:border-primary/40 active:scale-95 dark:border-white/10 disabled:opacity-50"
             title={isPublished ? 'Đang hiện web (Click để ẩn)' : 'Đang ẩn web (Click để hiện)'}
           >
             <img
@@ -595,11 +589,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
           </button>
         ) : (
           <span
-            className={`inline-flex shrink-0 items-center gap-1 rounded-xl border px-2.5 py-1.5 text-xs font-bold shadow-xs backdrop-blur-2xl ${
-              isPublished
-                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                : 'border-white/80 bg-card/85 text-muted-foreground dark:border-white/10'
-            }`}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground dark:border-white/10"
           >
             <img
               src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
@@ -617,7 +607,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
               type="button"
               onClick={onToggleFeatured}
               disabled={disabledActions}
-              className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 transition-all active:scale-95 shadow-xs backdrop-blur-2xl"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground transition-all hover:bg-muted hover:border-primary/40 active:scale-95 dark:border-white/10 disabled:opacity-50"
               title="Đang nổi bật (Click để bỏ)"
             >
               <img
@@ -628,7 +618,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
               <span>Nổi bật</span>
             </button>
           ) : (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 shadow-xs backdrop-blur-2xl">
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground dark:border-white/10">
               <img
                 src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
                 alt=""
