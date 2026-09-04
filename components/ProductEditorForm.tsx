@@ -805,7 +805,7 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
         disabledActions={isLoading || isGenerating}
       />
 
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-10 sm:pb-16">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-10 sm:pb-16 mx-1">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
           <ProductMainForm
             formData={formData}
