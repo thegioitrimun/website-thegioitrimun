@@ -110,7 +110,7 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
   }
 
   return (
-    <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
+    <div className="space-y-4 -mx-3 sm:mx-0">
       {/* Unified Filter & Action Card (Apple Glass Standard) */}
       <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
         {/* Row 1: Preset Pills */}
