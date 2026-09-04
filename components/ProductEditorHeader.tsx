@@ -466,54 +466,42 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
             </div>
           </div>
 
-          {/* Row 2: Autosave time + Nút HỦY & LƯU VÀ CẬP NHẬT TRÊN TOP */}
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40">
-            {/* Autosave thời gian */}
-            <div className="min-w-0">
-              {formattedDraftTime ? (
-                <span className="text-[11px] text-muted-foreground font-medium truncate">
-                  Auto {formattedDraftTime}
+          {/* Row 2: Nút HỦY & LƯU ĐƯỢC CĂN GIỮA TRÊN MOBILE */}
+          <div className="flex items-center justify-center gap-2.5 pt-2 border-t border-border/40 w-full">
+            {handleCancel ? (
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="inline-flex h-9 items-center justify-center gap-2 px-4 rounded-xl border border-border/70 bg-background/50 text-sm font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
+              >
+                <img src={DELETE_ICON} alt="" className="w-5 h-5 object-contain shrink-0" />
+                <span>Hủy</span>
+              </button>
+            ) : null}
+
+            {onSave ? (
+              <button
+                type="button"
+                onClick={onSave}
+                disabled={isSaving || isUploadingImages || disabledActions}
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 text-sm font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+              >
+                {isSaving ? (
+                  <Spinner className="h-5 w-5" />
+                ) : (
+                  <img src={SAVE_ICON} alt="" className="w-5 h-5 object-contain shrink-0" />
+                )}
+                <span>
+                  {isSaving
+                    ? 'Đang lưu...'
+                    : isUploadingImages
+                      ? 'Đợi ảnh'
+                      : publishState
+                        ? 'Lưu & xuất bản'
+                        : 'Lưu sản phẩm'}
                 </span>
-              ) : null}
-            </div>
-
-            {/* Nút Hủy & Lưu */}
-            <div className="flex items-center gap-2 shrink-0">
-              {handleCancel ? (
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 px-3.5 rounded-xl border border-border/70 bg-background/50 text-sm font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
-                >
-                  <img src={DELETE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
-                  <span>Hủy</span>
-                </button>
-              ) : null}
-
-              {onSave ? (
-                <button
-                  type="button"
-                  onClick={onSave}
-                  disabled={isSaving || isUploadingImages || disabledActions}
-                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 sm:px-4 text-sm font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
-                >
-                  {isSaving ? (
-                    <Spinner className="h-4 w-4" />
-                  ) : (
-                    <img src={SAVE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
-                  )}
-                  <span>
-                    {isSaving
-                      ? 'Đang lưu...'
-                      : isUploadingImages
-                        ? 'Đợi ảnh'
-                        : publishState
-                          ? 'Lưu & xuất bản'
-                          : 'Lưu sản phẩm'}
-                  </span>
-                </button>
-              ) : null}
-            </div>
+              </button>
+            ) : null}
           </div>
         </div>
 
