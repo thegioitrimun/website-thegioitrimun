@@ -4289,7 +4289,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground"
                                             title="Xuất danh sách chuyên mục ra Excel"
                                         >
-                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-xuat-excel.webp" alt="Xuất Excel" className="w-5 h-5 object-contain" />
+                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-outputexcel.webp" alt="Xuất Excel" className="w-5 h-5 object-contain" />
                                         </button>
 
                                         <div className="relative shrink-0">
@@ -4309,7 +4309,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                     <div className="fixed inset-0 z-40" onClick={() => setShowCategoryActionsMenu(false)} />
                                                     <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-white/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 z-50 animate-in fade-in zoom-in-95">
                                                         <label className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted cursor-pointer transition-colors">
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-nhap-excel.webp" alt="" className="w-4 h-4 object-contain" />
+                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-inputexcel.webp" alt="" className="w-4 h-4 object-contain" />
                                                             <span>Nhập từ Excel</span>
                                                             <input type="file" accept=".xlsx, .xls" onChange={(e) => { void handleImportFile(e, 'category'); setShowCategoryActionsMenu(false); }} className="hidden" />
                                                         </label>
@@ -4318,7 +4318,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                             onClick={() => { void handleDownloadCategoryTemplate(); setShowCategoryActionsMenu(false); }}
                                                             className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors text-left"
                                                         >
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-xuat-excel.webp" alt="" className="w-4 h-4 object-contain" />
+                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-taifilemau.webp" alt="" className="w-4 h-4 object-contain" />
                                                             <span>Tải file mẫu Excel</span>
                                                         </button>
                                                     </div>
