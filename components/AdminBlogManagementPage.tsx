@@ -912,8 +912,8 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
   return (
     <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
       {/* Unified Filter & Toolbar Card (Apple Glass Standard) */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-2.5 sm:p-4 mx-1 sm:mx-0">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Search Input */}
           <div className="relative flex-1 min-w-0">
             <input
@@ -921,7 +921,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm theo tiêu đề, slug, tóm tắt..."
-              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-7 sm:pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
             />
             <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
             {searchQuery && (
@@ -935,95 +935,93 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* Category Dropdown */}
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50 flex-1 sm:flex-initial sm:w-44 shrink-0"
-            >
-              <option value="all">Tất cả chuyên mục</option>
-              {categories.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+          {/* Category Dropdown */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2 sm:px-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50 max-w-[110px] sm:max-w-[170px] shrink-0"
+          >
+            <option value="all">Tất cả chuyên mục</option>
+            {categories.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
 
-            {/* Excel Utility Popover (Section 4 Apple Glass) */}
-            <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowExcelMenu(!showExcelMenu)}
-                className={iconButton}
-                title="Tiện ích Excel"
-              >
-                <img src={OUTPUT_EXCEL_ICON} alt="Excel" className="h-4.5 w-4.5 object-contain" />
-              </button>
-
-              {showExcelMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40 bg-transparent"
-                    onClick={() => setShowExcelMenu(false)}
-                  />
-                  <div
-                    className="absolute right-0 top-10 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div className="space-y-0.5">
-                      <button
-                        type="button"
-                        onClick={handleExportPosts}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
-                      >
-                        <img src={OUTPUT_EXCEL_ICON} alt="" className="h-4 w-4 object-contain" />
-                        <span>Xuất bài viết Excel</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowExcelMenu(false);
-                          postFileInputRef.current?.click();
-                        }}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
-                      >
-                        <img src={INPUT_EXCEL_ICON} alt="" className="h-4 w-4 object-contain" />
-                        <span>Nhập từ Excel</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleDownloadPostTemplate}
-                        className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
-                      >
-                        <img src={TEMPLATE_EXCEL_ICON} alt="" className="h-4 w-4 object-contain" />
-                        <span>Tải file mẫu Excel</span>
-                      </button>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <input
-              type="file"
-              ref={postFileInputRef}
-              onChange={(e) => handleImportFile(e, 'post')}
-              accept=".xlsx, .xls"
-              className="hidden"
-            />
-
-            {/* Add Post Button */}
+          {/* Excel Utility Popover (Section 4 Apple Glass) */}
+          <div className="relative shrink-0">
             <button
               type="button"
-              onClick={openNewPost}
-              className={primaryButton}
+              onClick={() => setShowExcelMenu(!showExcelMenu)}
+              className={iconButton}
+              title="Tiện ích Excel"
             >
-              <PlusCircleIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Viết bài mới</span>
-              <span className="sm:hidden">Viết bài</span>
+              <img src={OUTPUT_EXCEL_ICON} alt="Excel" className="h-4.5 w-4.5 object-contain" />
             </button>
+
+            {showExcelMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-transparent"
+                  onClick={() => setShowExcelMenu(false)}
+                />
+                <div
+                  className="absolute right-0 top-10 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="space-y-0.5">
+                    <button
+                      type="button"
+                      onClick={handleExportPosts}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                    >
+                      <img src={OUTPUT_EXCEL_ICON} alt="" className="h-4 w-4 object-contain" />
+                      <span>Xuất bài viết Excel</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowExcelMenu(false);
+                        postFileInputRef.current?.click();
+                      }}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                    >
+                      <img src={INPUT_EXCEL_ICON} alt="" className="h-4 w-4 object-contain" />
+                      <span>Nhập từ Excel</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadPostTemplate}
+                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                    >
+                      <img src={TEMPLATE_EXCEL_ICON} alt="" className="h-4 w-4 object-contain" />
+                      <span>Tải file mẫu Excel</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
+
+          <input
+            type="file"
+            ref={postFileInputRef}
+            onChange={(e) => handleImportFile(e, 'post')}
+            accept=".xlsx, .xls"
+            className="hidden"
+          />
+
+          {/* Add Post Button */}
+          <button
+            type="button"
+            onClick={openNewPost}
+            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-2.5 sm:px-4 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs backdrop-blur-md transition-all hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+          >
+            <PlusCircleIcon className="h-4 w-4" />
+            <span className="hidden sm:inline">Viết bài mới</span>
+            <span className="sm:hidden">Viết bài</span>
+          </button>
         </div>
       </div>
 
