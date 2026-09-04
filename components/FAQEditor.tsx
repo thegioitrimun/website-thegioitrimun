@@ -10,18 +10,16 @@ interface FAQEditorProps {
 
 const FAQEditor: React.FC<FAQEditorProps> = ({ id, value, onChange }) => {
   return (
-    <section id={id} className="scroll-mt-32 rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5 md:p-6">
-      <div className="mb-5">
+    <section id={id} className="scroll-mt-32 rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 md:p-6">
+      <div className="mb-4 sm:mb-5">
         <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">FAQ & SEO</p>
-        <h3 className="mt-2 text-xl font-bold text-foreground">FAQ sản phẩm</h3>
-
+        <h3 className="mt-1 text-lg sm:text-xl font-bold text-foreground">FAQ sản phẩm</h3>
       </div>
 
       <DetailFaqEditor
         value={value}
         onChange={onChange}
         title="Câu hỏi thường gặp"
-        description="FAQ này ưu tiên hiển thị trên trang chi tiết và schema SEO tiếng Việt. Nếu để trống, hệ thống sẽ fallback sang FAQ dựng từ hồ sơ sản phẩm."
         addLabel="Thêm câu hỏi"
       />
     </section>
