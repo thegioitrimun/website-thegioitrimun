@@ -78,11 +78,16 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
         setShowMobileMenu(false);
       }
     };
+    const handleScroll = () => {
+      setShowMobileMenu(false);
+    };
     document.addEventListener('click', handleOutside);
     document.addEventListener('touchstart', handleOutside);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       document.removeEventListener('click', handleOutside);
       document.removeEventListener('touchstart', handleOutside);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [showMobileMenu]);
 
@@ -98,9 +103,9 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
   const handleCancel = onCancel || onBack;
 
   return (
-    <div className="mb-3 sm:mb-4 space-y-2.5 sm:space-y-3">
+    <div className={`mb-3 sm:mb-4 space-y-2.5 sm:space-y-3 relative ${showMobileMenu ? 'z-50' : ''}`}>
       {/* 1. Glass Header Banner */}
-      <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3 sm:p-4 md:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 relative z-30">
+      <div className={`rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3 sm:p-4 md:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 relative transition-[z-index] ${showMobileMenu ? 'z-50' : 'z-30'}`}>
         {/* DESKTOP LAYOUT (md+) */}
         <div className="hidden md:flex md:items-center md:justify-between md:gap-4">
           {/* Left: Nút quay lại + Tên sản phẩm + Badge trạng thái */}
@@ -352,7 +357,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
               ) : null}
 
               {/* Nút Ba Chấm [ ⋯ ] chứa Nổi bật, Hiện web, Tạo mới trên mobile */}
-              <div className="relative" data-mobile-header-menu>
+              <div className={`relative ${showMobileMenu ? 'z-50' : ''}`} data-mobile-header-menu>
                 <button
                   type="button"
                   onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -381,7 +386,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                     />
 
                     {/* Dropdown Popover */}
-                    <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="absolute right-0 top-full mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
                       {/* Toggle Hiển thị web */}
                       {onTogglePublished && (
                         <button
@@ -569,7 +574,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
 
       {/* 2. Apple Glass Section Navigator (Đã ẩn thanh cuộn xấu) */}
       {sections.length > 0 ? (
-        <div className="sticky top-2 sm:top-3 z-30 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        <div className="sticky top-2 sm:top-3 z-20 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {sections.map((section) => (
             <a
               key={section.id}
