@@ -2,6 +2,9 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Spinner from './Spinner';
 
+const DELETE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp';
+const SAVE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-save.webp';
+
 interface StickyActionBarProps {
   isDirty: boolean;
   isSaving: boolean;
@@ -64,17 +67,22 @@ const StickyActionBar: React.FC<StickyActionBarProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="h-9 px-4 rounded-xl border border-border/60 bg-background/40 text-xs font-bold text-foreground transition-all hover:bg-muted/50 active:scale-95"
+            className="inline-flex h-9 items-center justify-center gap-1.5 px-4 rounded-xl border border-border/60 bg-background/40 text-sm font-bold text-foreground transition-all hover:bg-muted/50 active:scale-95"
           >
-            {t('common.cancel', 'Hủy')}
+            <img src={DELETE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+            <span>{t('common.cancel', 'Hủy')}</span>
           </button>
           <button
             type="button"
             onClick={handleSave}
             disabled={isSaving || isUploadingImages}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-xs font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isSaving ? <Spinner className="h-3.5 w-3.5" /> : null}
+            {isSaving ? (
+              <Spinner className="h-4 w-4" />
+            ) : (
+              <img src={SAVE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+            )}
             <span>
               {isSaving
                 ? t('admin.sticky_action_saving', 'Đang lưu...')

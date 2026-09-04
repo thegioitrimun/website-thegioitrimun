@@ -3,6 +3,9 @@ import Spinner from './Spinner';
 import type { Product } from '../types';
 import type { ProductEditorSection } from '../src/productEditorTypes';
 
+const DELETE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp';
+const SAVE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-save.webp';
+
 interface DraftState {
   lastSavedAt?: string | null;
   hasRestorableDraft?: boolean;
@@ -261,9 +264,10 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
               <button
                 type="button"
                 onClick={handleCancel}
-                className="h-9 px-3.5 sm:px-4 rounded-xl border border-border/70 bg-background/50 text-xs font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
+                className="inline-flex h-9 items-center justify-center gap-1.5 px-3.5 sm:px-4 rounded-xl border border-border/70 bg-background/50 text-sm font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
               >
-                Hủy
+                <img src={DELETE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+                <span>Hủy</span>
               </button>
             ) : null}
 
@@ -273,9 +277,13 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                 type="button"
                 onClick={onSave}
                 disabled={isSaving || isUploadingImages || disabledActions}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-primary px-4 sm:px-5 text-sm font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
               >
-                {isSaving ? <Spinner className="h-3.5 w-3.5" /> : null}
+                {isSaving ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <img src={SAVE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+                )}
                 <span>
                   {isSaving
                     ? 'Đang lưu...'
@@ -475,9 +483,10 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="h-8.5 px-3 rounded-xl border border-border/70 bg-background/50 text-xs font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
+                  className="inline-flex h-9 items-center justify-center gap-1.5 px-3.5 rounded-xl border border-border/70 bg-background/50 text-sm font-bold text-foreground hover:bg-muted active:scale-95 transition-all shadow-2xs"
                 >
-                  Hủy
+                  <img src={DELETE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+                  <span>Hủy</span>
                 </button>
               ) : null}
 
@@ -486,9 +495,13 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                   type="button"
                   onClick={onSave}
                   disabled={isSaving || isUploadingImages || disabledActions}
-                  className="inline-flex h-8.5 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+                  className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 sm:px-4 text-sm font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
                 >
-                  {isSaving ? <Spinner className="h-3.5 w-3.5" /> : null}
+                  {isSaving ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <img src={SAVE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+                  )}
                   <span>
                     {isSaving
                       ? 'Đang lưu...'
