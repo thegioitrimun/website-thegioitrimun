@@ -5,6 +5,7 @@ import type { ProductEditorSection } from '../src/productEditorTypes';
 
 const DELETE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp';
 const SAVE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-save.webp';
+const PANCAKE_ICON = 'https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp';
 
 interface DraftState {
   lastSavedAt?: string | null;
@@ -29,6 +30,8 @@ interface ProductEditorHeaderProps {
   isFeatured?: boolean;
   onTogglePublished?: () => void;
   onToggleFeatured?: () => void;
+  onSyncPancake?: () => void;
+  isSyncingPancake?: boolean;
   sections?: ProductEditorSection[];
   draftState?: DraftState;
   onBack?: () => void;
@@ -57,6 +60,8 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
   isFeatured = false,
   onTogglePublished,
   onToggleFeatured,
+  onSyncPancake,
+  isSyncingPancake = false,
   sections = [],
   draftState,
   onBack,
@@ -240,6 +245,24 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                   className="w-4 h-4 object-contain shrink-0"
                 />
                 <span className="hidden lg:inline">{isFeatured ? 'Nổi bật' : 'Bình thường'}</span>
+              </button>
+            ) : null}
+
+            {/* Đồng bộ POS Pancake */}
+            {onSyncPancake ? (
+              <button
+                type="button"
+                onClick={onSyncPancake}
+                disabled={isSyncingPancake || disabledActions}
+                className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl border border-border/70 bg-background/50 px-2.5 sm:px-3 text-xs font-bold text-foreground hover:bg-muted hover:border-primary/40 active:scale-95 disabled:opacity-50 transition-all shadow-2xs"
+                title="Đồng bộ sản phẩm này với Pancake POS"
+              >
+                {isSyncingPancake ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <img src={PANCAKE_ICON} alt="" className="w-4 h-4 object-contain shrink-0" />
+                )}
+                <span className="hidden xl:inline">Đồng bộ POS</span>
               </button>
             ) : null}
 
@@ -436,6 +459,37 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                           }`}>
                             {isFeatured ? 'Đang bật' : 'Đang tắt'}
                           </span>
+                        </button>
+                      )}
+
+                      {/* Đồng bộ POS Pancake */}
+                      {onSyncPancake && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onSyncPancake();
+                            setShowMobileMenu(false);
+                          }}
+                          disabled={isSyncingPancake || disabledActions}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left disabled:opacity-50"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            {isSyncingPancake ? (
+                              <Spinner className="w-4 h-4 text-primary shrink-0" />
+                            ) : (
+                              <img
+                                src={PANCAKE_ICON}
+                                alt=""
+                                className="w-4 h-4 object-contain shrink-0"
+                              />
+                            )}
+                            <span>Đồng bộ POS Pancake</span>
+                          </div>
+                          {isSyncingPancake ? (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary animate-pulse">
+                              Đang gửi...
+                            </span>
+                          ) : null}
                         </button>
                       )}
 

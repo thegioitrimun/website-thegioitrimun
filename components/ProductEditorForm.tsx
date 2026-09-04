@@ -35,6 +35,7 @@ interface ProductEditorFormProps {
   onSelectPreviousProduct?: () => void;
   onSelectNextProduct?: () => void;
   productPositionLabel?: string | null;
+  onSyncPancake?: () => Promise<void> | void;
 }
 
 const DEFAULT_PRODUCT_VAT_RATE = 0.1;
@@ -64,6 +65,7 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
   onSelectPreviousProduct,
   onSelectNextProduct,
   productPositionLabel = null,
+  onSyncPancake: propOnSyncPancake,
 }) => {
   const { t } = useTranslation();
   const { addToast } = useToast();
@@ -75,6 +77,43 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
   const [formData, setFormData] = useState<Partial<Product>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSyncingPancake, setIsSyncingPancake] = useState(false);
+
+  const handleSyncPancake = async () => {
+    if (propOnSyncPancake) {
+      try {
+        setIsSyncingPancake(true);
+        await propOnSyncPancake();
+      } finally {
+        setIsSyncingPancake(false);
+      }
+      return;
+    }
+
+    if (!product?.id) {
+      addToast('Vui lòng lưu sản phẩm trước khi đồng bộ sang Pancake POS', { type: 'info' });
+      return;
+    }
+    if (isSyncingPancake) return;
+
+    try {
+      setIsSyncingPancake(true);
+      const result = await api.syncProductToPancake(product.id);
+      addToast(
+        result?.queued
+          ? `${product.name || 'Sản phẩm'} đã được đưa vào Pancake Queue và đang được xử lý.`
+          : `Đã đưa ${product.name || 'sản phẩm'} vào hàng đợi đồng bộ Pancake.`,
+        { type: 'info' }
+      );
+    } catch (error) {
+      addToast(
+        error instanceof Error ? error.message : 'Không thể đồng bộ sản phẩm sang Pancake POS',
+        { type: 'error' }
+      );
+    } finally {
+      setIsSyncingPancake(false);
+    }
+  };
   const [imageList, setImageList] = useState<UnifiedImage[]>([]);
   const [imagesToDelete, setImagesToDelete] = useState<ProductImage[]>([]);
   const [contentBlocks, setContentBlocks] = useState<TempContentBlock[]>([]);
@@ -784,6 +823,8 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
         isFeatured={Boolean(formData.is_featured)}
         onTogglePublished={handleTogglePublished}
         onToggleFeatured={handleToggleFeatured}
+        onSyncPancake={handleSyncPancake}
+        isSyncingPancake={isSyncingPancake}
         sections={sections}
         draftState={{
           lastSavedAt: productDraftSavedAt,

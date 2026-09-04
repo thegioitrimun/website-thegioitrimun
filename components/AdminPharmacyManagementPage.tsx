@@ -3226,6 +3226,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                         onSelectPreviousProduct={previousProduct ? () => openProductEditor(previousProduct) : undefined}
                         onSelectNextProduct={nextProduct ? () => openProductEditor(nextProduct) : undefined}
                         productPositionLabel={productPositionLabel}
+                        onSyncPancake={selectedProduct?.id ? () => handleSyncProductToPancake(selectedProduct) : undefined}
                     />
                 </div>
             );
@@ -6608,6 +6609,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                             onSelectPreviousProduct={previousProduct ? () => openProductEditor(previousProduct) : undefined}
                             onSelectNextProduct={nextProduct ? () => openProductEditor(nextProduct) : undefined}
                             productPositionLabel={productPositionLabel}
+                            onSyncPancake={selectedProduct?.id ? () => handleSyncProductToPancake(selectedProduct) : undefined}
                         />
                     </div>
                 </AnimatedSection>
