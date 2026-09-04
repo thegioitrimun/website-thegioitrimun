@@ -853,17 +853,6 @@ const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }
     );
   }
 
-  // Preset Pills Counts
-  const tabCounts: Record<Tab, number | null> = {
-    overview: null,
-    sales: sales.length,
-    purchases: purchases.length,
-    periods: data.periods.length,
-    adjustments: adjustments.length,
-    rules: data.categories.length,
-    entity: null,
-    migration: data.migration.openIssues > 0 ? data.migration.openIssues : null,
-  };
 
   const renderOverview = () => (
     <div className="space-y-4">
@@ -1352,64 +1341,6 @@ const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }
 
   return (
     <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
-      {/* Top Glass Toolbar Card (Apple Glass Standard) */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        <div className="flex flex-wrap items-center justify-between gap-2.5">
-          {/* Preset Pills Row */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {tabs.map((tab) => {
-              const isActive = activeTab === tab.key;
-              const count = tabCounts[tab.key];
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground shadow-xs'
-                      : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                  {count !== null && count !== undefined && count > 0 && (
-                    <span
-                      className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                        isActive
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted text-foreground'
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => void load(true)}
-              disabled={busy || loading}
-              className={iconButton}
-              title="Làm mới dữ liệu VAT"
-            >
-              {loading ? (
-                <LoadingIcon className="h-4 w-4 animate-spin text-primary" />
-              ) : (
-                <img
-                  src={VAT_ICON_URL}
-                  alt="Làm mới"
-                  className="h-4 w-4 object-contain"
-                />
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Main Tab Content */}
       {activeTab === 'overview'
