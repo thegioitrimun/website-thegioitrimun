@@ -13,7 +13,6 @@ import ProductEditorHeader from './ProductEditorHeader';
 import ProductMainForm from './ProductMainForm';
 import ProductMetaPanel from './ProductMetaPanel';
 import InventoryPanel from './InventoryPanel';
-import StickyActionBar from './StickyActionBar';
 import ProductContentReviewPanel from './ProductContentReviewPanel';
 import * as api from '../services/api';
 import { useToast } from '../hooks/useToast';
@@ -273,6 +272,16 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
       ...prev,
       vat_rate: Math.min(1, Math.max(0, percent / 100)),
     }));
+  };
+
+  const handleTogglePublished = () => {
+    markDirty();
+    setFormData((prev) => ({ ...prev, is_published: !prev.is_published }));
+  };
+
+  const handleToggleFeatured = () => {
+    markDirty();
+    setFormData((prev) => ({ ...prev, is_featured: !prev.is_featured }));
   };
 
   const handleGenerateDetails = async () => {
@@ -764,10 +773,17 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
     <>
       <ProductEditorHeader
         title={product?.id ? t('product_form.edit_title', 'Chỉnh sửa sản phẩm') : t('product_form.new_title', 'Tạo sản phẩm mới')}
+        productName={formData.name || product?.name || ''}
         subtitle="Editor này ưu tiên tốc độ nhập liệu và duyệt catalog trên desktop: cột trái cho nội dung và media, cột phải cho inventory, publish và checklist."
         positionLabel={productPositionLabel}
         isDirty={hasUnsavedChanges}
         isSaving={isLoading}
+        isUploadingImages={isAnyImageUploading}
+        publishState={Boolean(formData.is_published)}
+        isPublished={Boolean(formData.is_published)}
+        isFeatured={Boolean(formData.is_featured)}
+        onTogglePublished={handleTogglePublished}
+        onToggleFeatured={handleToggleFeatured}
         sections={sections}
         draftState={{
           lastSavedAt: productDraftSavedAt,
@@ -776,55 +792,20 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
           onDiscard: discardProductDraft,
           label: 'Autosave local + server',
           status: productDraftStatus,
-          note: `${productDraftNote} Ảnh local chưa upload sẽ không được khôi phục từ autosave.`,
+          note: '',
         }}
-        secondaryActionSlot={
-          <button
-            type="button"
-            onClick={handleCancelRequest}
-            className="rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/35 hover:text-primary"
-          >
-            Về danh sách
-          </button>
-        }
-        actionSlot={
-          <div className="flex flex-wrap gap-2">
-            {product?.id ? (
-              <button
-                type="button"
-                onClick={onCreateNewProduct}
-                disabled={isLoading || isGenerating}
-                className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <PlusCircleIcon className="h-4 w-4" />
-                Tạo sản phẩm mới
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              onClick={onSelectPreviousProduct}
-              disabled={!previousProduct || isLoading || isGenerating}
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/35 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <ArrowLeftIcon className="h-4 w-4" />
-              <span className="max-w-[160px] truncate">{previousProduct?.name || 'Sản phẩm trước'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={onSelectNextProduct}
-              disabled={!nextProduct || isLoading || isGenerating}
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:border-primary/35 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <span className="max-w-[160px] truncate">{nextProduct?.name || 'Sản phẩm sau'}</span>
-              <ArrowRightIcon className="h-4 w-4" />
-            </button>
-          </div>
-        }
+        onBack={handleCancelRequest}
+        onCancel={handleCancelRequest}
+        onSave={requestSubmit}
+        onCreateNew={onCreateNewProduct}
+        previousProduct={previousProduct}
+        nextProduct={nextProduct}
+        onSelectPreviousProduct={onSelectPreviousProduct}
+        onSelectNextProduct={onSelectNextProduct}
+        disabledActions={isLoading || isGenerating}
       />
 
-      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 pb-36">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 pb-10 sm:pb-16">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px] 2xl:grid-cols-[minmax(0,1fr)_400px]">
           <ProductMainForm
             formData={formData}
@@ -873,47 +854,6 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
             priceLabel={formatCurrency(Number(formData.price || 0))}
             validationItems={validationItems}
           >
-            <section className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5">
-              <div>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">Hiển thị</p>
-                <h3 className="mt-2 text-lg font-bold text-foreground">Publish & nổi bật</h3>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                <label className="flex items-start gap-3 rounded-[1.25rem] bg-card/25 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] border-0 px-4 py-4 text-sm">
-                  <input
-                    type="checkbox"
-                    name="is_published"
-                    checked={Boolean(formData.is_published)}
-                    onChange={handleChange}
-                    className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
-                  />
-                  <span>
-                    <span className="block font-semibold text-foreground">Hiển thị trên website</span>
-                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                      Bật khi reviewer đã kiểm tra đủ nội dung, media và tồn kho.
-                    </span>
-                  </span>
-                </label>
-
-                <label className="flex items-start gap-3 rounded-[1.25rem] bg-card/25 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] border-0 px-4 py-4 text-sm">
-                  <input
-                    type="checkbox"
-                    name="is_featured"
-                    checked={Boolean(formData.is_featured)}
-                    onChange={handleChange}
-                    className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
-                  />
-                  <span>
-                    <span className="block font-semibold text-foreground">Đánh dấu nổi bật</span>
-                    <span className="mt-1 block text-xs leading-5 text-muted-foreground">
-                      Chỉ bật khi sản phẩm cần đẩy ra homepage hoặc listing ưu tiên.
-                    </span>
-                  </span>
-                </label>
-              </div>
-            </section>
-
             <div id="product-editor-review" className="scroll-mt-32">
               <ProductContentReviewPanel
                 productId={currentProductId}
@@ -944,10 +884,10 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
               onVatRatePercentChange={handleVatRatePercentChange}
             />
 
-            <section id="product-editor-details" className="scroll-mt-32 rounded-[1.7rem] bg-card/25 backdrop-blur-2xl shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] border-0 p-5">
+            <section id="product-editor-details" className="scroll-mt-32 rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.26em] text-muted-foreground">Metadata</p>
-                <h3 className="mt-2 text-lg font-bold text-foreground">Thương hiệu và thông tin chi tiết</h3>
+                <h3 className="mt-1.5 text-lg font-bold text-foreground">Thương hiệu và thông tin chi tiết</h3>
               </div>
 
               <div className="mt-5 space-y-4">
@@ -1021,15 +961,6 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
           </ProductMetaPanel>
         </div>
       </form>
-
-      <StickyActionBar
-        isDirty={hasUnsavedChanges}
-        isSaving={isLoading}
-        isUploadingImages={isAnyImageUploading}
-        publishState={Boolean(formData.is_published)}
-        onCancel={handleCancelRequest}
-        onSave={requestSubmit}
-      />
     </>
   );
 };
