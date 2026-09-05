@@ -273,9 +273,48 @@ function useHomepageProductRiskSummaries(
 function HomepageProductRiskBar({ summary }: { summary: HomepageRiskSummary }) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ left: 0 });
+    const [isFilled, setIsFilled] = useState(false);
+    const barRef = useRef<HTMLDivElement>(null);
 
     const isReady = summary.status === 'ready' && summary.segments.length > 0;
     const isLoading = summary.status === 'loading';
+
+    useEffect(() => {
+        if (!isReady) {
+            setIsFilled(false);
+            return;
+        }
+
+        let timerId: ReturnType<typeof setTimeout> | null = null;
+        let observer: IntersectionObserver | null = null;
+
+        const triggerFill = () => {
+            timerId = setTimeout(() => {
+                setIsFilled(true);
+            }, 60);
+        };
+
+        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    const [entry] = entries;
+                    if (entry && entry.isIntersecting) {
+                        triggerFill();
+                        if (observer) observer.disconnect();
+                    }
+                },
+                { rootMargin: '80px', threshold: 0.05 }
+            );
+            observer.observe(barRef.current);
+        } else {
+            triggerFill();
+        }
+
+        return () => {
+            if (timerId) clearTimeout(timerId);
+            if (observer) observer.disconnect();
+        };
+    }, [isReady]);
 
     const handleMouseEnter = (index: number, e: React.MouseEvent<HTMLSpanElement>) => {
         const segEl = e.currentTarget;
@@ -295,6 +334,7 @@ function HomepageProductRiskBar({ summary }: { summary: HomepageRiskSummary }) {
 
     return (
         <div
+            ref={barRef}
             className="relative mt-2.5 w-full"
             onMouseLeave={handleMouseLeave}
             onClick={(e) => e.stopPropagation()}
@@ -308,15 +348,19 @@ function HomepageProductRiskBar({ summary }: { summary: HomepageRiskSummary }) {
                     summary.segments.map((segment, index) => {
                         const isHovered = hoveredIndex === index;
                         const hasHover = hoveredIndex !== null;
+                        const widthValue = isFilled ? segment.basis : '0%';
                         return (
                             <span
                                 key={`${segment.key}-${index}`}
                                 style={{
-                                    width: segment.basis,
+                                    width: widthValue,
                                     backgroundColor: segment.color,
+                                    transition: isFilled
+                                        ? `width 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease`
+                                        : 'none',
                                 }}
                                 onMouseEnter={(e) => handleMouseEnter(index, e)}
-                                className={`h-full cursor-pointer transition-all duration-200 first:rounded-l-full last:rounded-r-full transform-gpu ${
+                                className={`h-full cursor-pointer first:rounded-l-full last:rounded-r-full transform-gpu ${
                                     hasHover
                                         ? isHovered
                                             ? 'scale-y-125 z-10 brightness-110 shadow-xs ring-1 ring-white/50'

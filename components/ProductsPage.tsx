@@ -770,7 +770,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
       : null;
 
   return (
-    <div className="animate-scale-in bg-background text-foreground transition-colors duration-300">
+    <div className="animate-page-enter bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
 
         <CategoryHeader

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 export type ProductRiskBandKey = 'score-1-2' | 'score-3-4' | 'score-5' | 'score-6' | 'score-7-10' | 'unknown';
 export type ProductRiskSummaryStatus = 'loading' | 'ready' | 'empty' | 'error';
@@ -212,9 +212,48 @@ export const ProductRiskBar: React.FC<{
 }> = ({ summary, className = '' }) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ left: 0 });
+    const [isFilled, setIsFilled] = useState(false);
+    const barRef = useRef<HTMLDivElement>(null);
 
     const isReady = summary.status === 'ready' && summary.segments.length > 0;
     const isLoading = summary.status === 'loading';
+
+    useEffect(() => {
+        if (!isReady) {
+            setIsFilled(false);
+            return;
+        }
+
+        let timerId: ReturnType<typeof setTimeout> | null = null;
+        let observer: IntersectionObserver | null = null;
+
+        const triggerFill = () => {
+            timerId = setTimeout(() => {
+                setIsFilled(true);
+            }, 60);
+        };
+
+        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    const [entry] = entries;
+                    if (entry && entry.isIntersecting) {
+                        triggerFill();
+                        if (observer) observer.disconnect();
+                    }
+                },
+                { rootMargin: '80px', threshold: 0.05 }
+            );
+            observer.observe(barRef.current);
+        } else {
+            triggerFill();
+        }
+
+        return () => {
+            if (timerId) clearTimeout(timerId);
+            if (observer) observer.disconnect();
+        };
+    }, [isReady]);
 
     const handleMouseEnter = (index: number, e: React.MouseEvent<HTMLSpanElement>) => {
         const segEl = e.currentTarget;
@@ -234,6 +273,7 @@ export const ProductRiskBar: React.FC<{
 
     return (
         <div 
+            ref={barRef}
             className={`relative mt-2.5 w-full ${className}`}
             onMouseLeave={handleMouseLeave}
             onClick={(e) => e.stopPropagation()}
@@ -253,15 +293,19 @@ export const ProductRiskBar: React.FC<{
                     summary.segments.map((seg, index) => {
                         const isHovered = hoveredIndex === index;
                         const hasHover = hoveredIndex !== null;
+                        const widthValue = isFilled ? seg.basis : '0%';
                         return (
                             <span
                                 key={`${seg.key}-${index}`}
                                 style={{
-                                    width: seg.basis,
+                                    width: widthValue,
                                     backgroundColor: seg.color,
+                                    transition: isFilled
+                                        ? `width 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease`
+                                        : 'none',
                                 }}
                                 onMouseEnter={(e) => handleMouseEnter(index, e)}
-                                className={`h-full cursor-pointer transition-all duration-200 first:rounded-l-full last:rounded-r-full transform-gpu ${
+                                className={`h-full cursor-pointer first:rounded-l-full last:rounded-r-full transform-gpu ${
                                     hasHover
                                         ? isHovered
                                             ? 'scale-y-125 z-10 brightness-110 shadow-xs ring-1 ring-white/50'

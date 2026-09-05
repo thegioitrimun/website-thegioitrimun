@@ -122,10 +122,46 @@
     animation: none;
   }
   .animate-doll-jump,
-  .animate-doll-jump:hover {
+  .animate-doll-jump:hover,
+  .animate-page-enter,
+  .animate-card-enter {
     animation: none !important;
     transform: none !important;
+    opacity: 1 !important;
   }
 }
+
+/* Page & Product Card Enter Transitions */
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: page-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+}
+
 
 

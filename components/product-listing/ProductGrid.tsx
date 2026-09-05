@@ -91,15 +91,23 @@ const ProductGrid: React.FC<ProductGridProps> = ({
 
   return (
     <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
-      {items.map((item) => (
-        <ProductCard
+      {items.map((item, index) => (
+        <div
           key={item.product.id}
-          item={item}
-          formatCurrency={formatCurrency}
-          isWishlisted={isWishlisted(item.product.id)}
-          onViewProduct={() => onViewProduct(item)}
-          onToggleWishlist={(event) => onToggleWishlist(event, item)}
-        />
+          className="animate-card-enter h-full"
+          style={{
+            animationDelay: `${Math.min(index, 11) * 45}ms`,
+            animationFillMode: 'both',
+          }}
+        >
+          <ProductCard
+            item={item}
+            formatCurrency={formatCurrency}
+            isWishlisted={isWishlisted(item.product.id)}
+            onViewProduct={() => onViewProduct(item)}
+            onToggleWishlist={(event) => onToggleWishlist(event, item)}
+          />
+        </div>
       ))}
     </div>
   );

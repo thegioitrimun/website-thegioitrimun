@@ -45,7 +45,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   };
 
   return (
-    <section className="relative flex flex-col justify-start overflow-hidden aspect-square md:aspect-auto md:min-h-[320px] -mx-3 sm:-mx-4 md:mx-0 rounded-none md:rounded-[28px] border-none md:border md:border-border/80 px-5 py-6 shadow-[0_18px_40px_-34px_rgba(36,46,57,0.12)] md:px-8 md:py-8 lg:px-10">
+    <section className="relative flex flex-col justify-start overflow-hidden aspect-square md:aspect-auto md:min-h-[320px] -mx-3 sm:-mx-4 md:mx-0 rounded-none md:rounded-[28px] border-none md:border md:border-border/80 px-5 py-6 shadow-[0_18px_40px_-34px_rgba(36,46,57,0.12)] md:px-8 md:py-8 lg:px-10 animate-fade-rise">
       {/* Mobile Banner */}
       <div 
         className="absolute inset-0 bg-cover bg-center md:hidden" 
