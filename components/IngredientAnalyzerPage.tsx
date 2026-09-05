@@ -11,6 +11,7 @@ import {
     XCircleIcon,
 } from './icons';
 import { useBiDirectionalSticky } from '../hooks/useBiDirectionalSticky';
+import { AnimatedCounter, AnimatedConicScoreGauge } from './AnimatedCounter';
 
 export type AnalyzerLanguage = 'vi' | 'en';
 export type EwgBucket = 'low' | 'moderate' | 'high' | 'unknown';
@@ -303,14 +304,16 @@ function skinHeading(prefix: string, label: string, lang: 'vi' | 'en') {
 
 function ScoreRing({ score }: { score: number }) {
     return (
-        <div
-            className="mx-auto grid h-32 w-32 shrink-0 place-items-center rounded-full md:mx-0 md:h-44 md:w-44"
-            style={{ background: `conic-gradient(hsl(var(--primary)) ${Math.max(0, Math.min(score, 100))}%, #d8e2e7 0)` }}
-            aria-label={`${score}%`}
-        >
-            <div className="grid h-[72%] w-[72%] place-items-center rounded-full bg-white dark:bg-[#0f1722] shadow-inner">
-                <span className="text-3xl font-bold leading-none tracking-normal text-foreground md:text-5xl">{score}%</span>
-            </div>
+        <div className="mx-auto flex shrink-0 items-center justify-center md:mx-0">
+            <AnimatedConicScoreGauge
+                score={score}
+                size={140}
+                innerSize={102}
+                color="hsl(var(--primary))"
+                bgColor="#d8e2e7"
+                textSize="text-3xl md:text-4xl"
+                className="!h-32 !w-32 md:!h-40 md:!w-40"
+            />
         </div>
     );
 }
@@ -319,6 +322,38 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
     const [expanded, setExpanded] = useState(false);
     const [hoveredSegment, setHoveredSegment] = useState<EwgBucket | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [isAnimated, setIsAnimated] = useState(false);
+    const gaugeRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let observer: IntersectionObserver | null = null;
+
+        const trigger = () => {
+            timer = setTimeout(() => {
+                setIsAnimated(true);
+            }, 60);
+        };
+
+        if (typeof IntersectionObserver !== 'undefined' && gaugeRef.current) {
+            observer = new IntersectionObserver((entries) => {
+                const [entry] = entries;
+                if (entry && entry.isIntersecting) {
+                    trigger();
+                    if (observer) observer.disconnect();
+                }
+            }, { threshold: 0.1 });
+            observer.observe(gaugeRef.current);
+        } else {
+            trigger();
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            if (observer) observer.disconnect();
+        };
+    }, [total]);
+
     const values: Array<{ key: EwgBucket; label: string; count: number }> = [
         { key: 'low', label: labels.low, count: ewg.low || 0 },
         { key: 'moderate', label: labels.moderate, count: ewg.moderate || 0 },
@@ -344,12 +379,13 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
                     </p>
                 </div>
                 <div 
+                    ref={gaugeRef}
                     className={cx('relative mx-auto w-full', compact ? 'max-w-[250px]' : 'max-w-[360px] lg:mx-0')}
                     onMouseLeave={() => setHoveredSegment(null)}
                 >
                     <svg viewBox="0 0 264 156" className="h-auto w-full" role="img" aria-label={labels.riskDistribution}>
                         <path d="M24 132 A108 108 0 0 1 240 132" fill="none" className="stroke-[#edf2f5] dark:stroke-slate-800" strokeWidth="24" strokeLinecap="butt" pathLength="100" />
-                        {values.map((item) => {
+                        {values.map((item, index) => {
                             const percent = total ? (item.count / total) * 100 : 0;
                             const dashOffset = -offset;
                             offset += percent;
@@ -362,8 +398,13 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
                                     strokeWidth="24"
                                     strokeLinecap="butt"
                                     pathLength="100"
-                                    strokeDasharray={`${percent} ${100 - percent}`}
-                                    strokeDashoffset={dashOffset}
+                                    strokeDasharray={isAnimated ? `${percent} ${100 - percent}` : `0 100`}
+                                    strokeDashoffset={isAnimated ? dashOffset : 0}
+                                    style={{
+                                        transition: isAnimated
+                                            ? `stroke-dasharray 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, stroke-dashoffset 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, opacity 0.2s ease`
+                                            : 'none',
+                                    }}
                                     onMouseEnter={() => setHoveredSegment(item.key)}
                                     onMouseMove={(e) => {
                                         const rect = e.currentTarget.parentElement?.parentElement?.getBoundingClientRect();
@@ -381,7 +422,9 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
                         })}
                     </svg>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center text-center">
-                        <strong className={cx('font-bold leading-none text-foreground', compact ? 'text-4xl' : 'text-5xl md:text-6xl')}>{total}</strong>
+                        <strong className={cx('font-bold leading-none text-foreground tabular-nums', compact ? 'text-4xl' : 'text-5xl md:text-6xl')}>
+                            <AnimatedCounter value={isAnimated ? total : 0} duration={1000} />
+                        </strong>
                         <span className={cx('mt-2 font-bold text-muted-foreground', compact ? 'text-sm' : 'text-base md:text-lg')}>{labels.totalIngredients}</span>
                     </div>
                     {hoveredSegment && (
@@ -467,6 +510,76 @@ function EmptyState({ labels }: { labels: typeof copy.vi }) {
     );
 }
 
+function SkinSuitabilityBar({
+    goodCount,
+    badCount,
+    goodPercent,
+    badPercent,
+}: {
+    goodCount: number;
+    badCount: number;
+    goodPercent: number;
+    badPercent: number;
+}) {
+    const [isFilled, setIsFilled] = useState(false);
+    const barRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let observer: IntersectionObserver | null = null;
+
+        const trigger = () => {
+            timer = setTimeout(() => {
+                setIsFilled(true);
+            }, 60);
+        };
+
+        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    const [entry] = entries;
+                    if (entry && entry.isIntersecting) {
+                        trigger();
+                        if (observer) observer.disconnect();
+                    }
+                },
+                { threshold: 0.05 }
+            );
+            observer.observe(barRef.current);
+        } else {
+            trigger();
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            if (observer) observer.disconnect();
+        };
+    }, [goodPercent, badPercent]);
+
+    return (
+        <div ref={barRef} className="flex h-full w-full">
+            {goodCount ? (
+                <span
+                    className="h-full bg-[#82df70] first:rounded-l-full last:rounded-r-full"
+                    style={{
+                        width: isFilled ? `${goodPercent}%` : '0%',
+                        transition: isFilled ? 'width 1.1s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+                    }}
+                />
+            ) : null}
+            {badCount ? (
+                <span
+                    className="h-full bg-[#e95e6a] first:rounded-l-full last:rounded-r-full"
+                    style={{
+                        width: isFilled ? `${badPercent}%` : '0%',
+                        transition: isFilled ? 'width 1.1s cubic-bezier(0.22, 1, 0.36, 1) 90ms' : 'none',
+                    }}
+                />
+            ) : null}
+        </div>
+    );
+}
+
 function SkinTypeSection({ skinRows, labels, lang, compact = false }: { skinRows: AnalyzerSkinRow[]; labels: typeof copy.vi; lang: 'vi' | 'en'; compact?: boolean }) {
     const [openRows, setOpenRows] = useState<Set<string>>(() => new Set());
 
@@ -533,10 +646,12 @@ function SkinTypeSection({ skinRows, labels, lang, compact = false }: { skinRows
                                     <div className={cx('flex min-w-0 flex-1 items-center gap-2', !compact && 'sm:gap-3 md:gap-4')}>
                                         <div className={cx('min-w-0 flex-1 overflow-hidden rounded-full bg-[#eef2f3] dark:bg-slate-800', compact ? 'h-2' : 'h-2 md:h-4')}>
                                             {total ? (
-                                                <div className="flex h-full w-full">
-                                                    {goodCount ? <span className="h-full bg-[#82df70]" style={{ width: `${goodPercent}%` }} /> : null}
-                                                    {badCount ? <span className="h-full bg-[#e95e6a]" style={{ width: `${badPercent}%` }} /> : null}
-                                                </div>
+                                                <SkinSuitabilityBar
+                                                    goodCount={goodCount}
+                                                    badCount={badCount}
+                                                    goodPercent={goodPercent}
+                                                    badPercent={badPercent}
+                                                />
                                             ) : null}
                                         </div>
                                         <div className={cx('shrink-0 text-right font-bold', compact ? 'w-9 text-[13px]' : 'w-10 text-[14px] sm:w-12 sm:text-[15px] md:w-20 md:text-[19px]')}>
@@ -593,6 +708,8 @@ function SkinTypeSection({ skinRows, labels, lang, compact = false }: { skinRows
 }
 
 function IngredientHazardScale({ ingredients, labels }: { ingredients: AnalyzerIngredient[]; labels: typeof copy.vi }) {
+    const [isFilled, setIsFilled] = useState(false);
+    const barRef = useRef<HTMLDivElement>(null);
     const values = ingredients.flatMap((item) => ewgScoreValues(item.ewg_score));
     const lower = values.length ? Math.min(...values) : 1;
     const higher = values.length ? Math.max(...values) : 10;
@@ -616,14 +733,54 @@ function IngredientHazardScale({ ingredients, labels }: { ingredients: AnalyzerI
             basis: total ? `${(counts[definition.key] / total) * 100}%` : '0%',
         }));
 
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let observer: IntersectionObserver | null = null;
+
+        const trigger = () => {
+            timer = setTimeout(() => {
+                setIsFilled(true);
+            }, 60);
+        };
+
+        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    const [entry] = entries;
+                    if (entry && entry.isIntersecting) {
+                        trigger();
+                        if (observer) observer.disconnect();
+                    }
+                },
+                { threshold: 0.05 }
+            );
+            observer.observe(barRef.current);
+        } else {
+            trigger();
+        }
+
+        return () => {
+            if (timer) clearTimeout(timer);
+            if (observer) observer.disconnect();
+        };
+    }, [total]);
+
     return (
-        <div className="mt-6">
+        <div ref={barRef} className="mt-6">
             <div className="flex h-4 overflow-hidden rounded-full bg-[#e9eef1] dark:bg-slate-800">
-                {segments.map((segment) => (
+                {segments.map((segment, index) => (
                     <span
                         key={segment.key}
                         className="h-full border-r-2 border-white dark:border-slate-900 last:border-r-0"
-                        style={{ backgroundColor: segment.color, flexBasis: segment.basis }}
+                        style={{
+                            backgroundColor: segment.color,
+                            flexBasis: isFilled ? segment.basis : '0%',
+                            width: isFilled ? segment.basis : '0%',
+                            opacity: isFilled ? 1 : 0,
+                            transition: isFilled
+                                ? `flex-basis 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, width 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, opacity 0.4s ease ${index * 80}ms`
+                                : 'none',
+                        }}
                         title={`${segment.label}: ${segment.count}`}
                         aria-label={`${segment.label}: ${segment.count}`}
                     />

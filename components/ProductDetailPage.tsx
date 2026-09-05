@@ -18,6 +18,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperCore } from 'swiper/types';
 import AnimatedSection from './AnimatedSection';
+import { AnimatedConicScoreGauge } from './AnimatedCounter';
 import MarkdownRenderer from './MarkdownRenderer';
 import { IngredientAnalysisResults, IngredientQuickNotes, getAnalyzerLanguage, type AnalyzerResponse } from './IngredientAnalyzerPage';
 import { sanitizeDetailFaqItems } from '../src/detailFaq';
@@ -149,15 +150,15 @@ const CompactIngredientSummary: React.FC<CompactIngredientSummaryProps> = ({
             {normalizedIngredients && !isLoading && analysis ? (
                 <>
                     <div className="mt-5 flex items-center justify-center gap-4">
-                        <div
-                            className="grid h-[88px] w-[88px] shrink-0 place-items-center rounded-full"
-                            style={{ background: `conic-gradient(#299582 ${Math.max(0, Math.min(100, analysis.safety_score))}%, #dfe8ec 0)` }}
-                            aria-label={`${copy.safetyScore}: ${analysis.safety_score}%`}
-                        >
-                            <div className="grid h-[68px] w-[68px] place-items-center rounded-full bg-white text-center shadow-inner dark:bg-card">
-                                <span className="text-xl font-black tracking-[-0.04em] text-foreground">{analysis.safety_score}%</span>
-                            </div>
-                        </div>
+                        <AnimatedConicScoreGauge
+                            score={analysis.safety_score}
+                            label={copy.safetyScore}
+                            size={88}
+                            innerSize={68}
+                            color="#299582"
+                            bgColor="#dfe8ec"
+                            textSize="text-xl"
+                        />
                         <div className="min-w-0 text-center">
                             <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">{copy.safetyScore}</p>
                             <p className="mt-1 text-lg font-black leading-tight text-foreground">{analysis.verdict}</p>
