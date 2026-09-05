@@ -12,6 +12,7 @@ import {
   PlusCircleIcon,
 } from './icons';
 import AnimatedSection from './AnimatedSection';
+import AnimatedCounter from './AnimatedCounter';
 import Spinner from './Spinner';
 import { useTranslation } from 'react-i18next';
 import * as api from '../services/api';
@@ -344,7 +345,7 @@ const RankedBarChart: React.FC<{
   }[accent];
 
   return (
-    <section className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+    <section className="group/card rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">{eyebrow}</p>
       <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">{title}</h2>
       {rows.length === 0 ? (
@@ -352,21 +353,24 @@ const RankedBarChart: React.FC<{
           {emptyLabel}
         </div>
       ) : (
-        <div className="mt-6 space-y-5" role="img" aria-label={title}>
+        <div className="mt-6 space-y-4" role="img" aria-label={title}>
           {rows.map((row, index) => (
-            <div key={`${row.label}-${index}`}>
+            <div
+              key={`${row.label}-${index}`}
+              className="group/row -mx-2.5 rounded-xl px-2.5 py-1.5 transition-colors duration-200 hover:bg-primary/5"
+            >
               <div className="mb-2 flex items-end justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-foreground md:text-[15px]">
-                    <span className="mr-2 text-muted-foreground">{index + 1}.</span>{row.label}
+                  <p className="truncate text-sm font-semibold text-foreground transition-colors group-hover/row:text-primary md:text-[15px]">
+                    <span className="mr-2 text-muted-foreground group-hover/row:text-primary/70">{index + 1}.</span>{row.label}
                   </p>
                   {row.meta ? <p className="mt-1 truncate text-xs text-muted-foreground">{row.meta}</p> : null}
                 </div>
-                <p className="shrink-0 text-sm font-bold text-foreground">{row.valueLabel}</p>
+                <p className="shrink-0 text-sm font-bold text-foreground tabular-nums">{row.valueLabel}</p>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-secondary" aria-hidden="true">
+              <div className="h-3 overflow-hidden rounded-full bg-secondary/80" aria-hidden="true">
                 <div
-                  className={`h-full rounded-full transition-[width] duration-500 ${barClasses}`}
+                  className={`h-full rounded-full transition-all duration-700 ease-out ${barClasses} group-hover/row:brightness-105`}
                   style={{ width: row.value > 0 ? `${Math.max(5, (row.value / maxValue) * 100)}%` : '0%' }}
                 />
               </div>
@@ -388,26 +392,29 @@ const RevenueComparisonChart: React.FC<{
     { label: 'Dịch vụ da liễu', value: serviceRevenue, color: 'bg-[#e97862]' },
   ];
   const maxValue = Math.max(productRevenue, serviceRevenue, 1);
+  const totalRevenue = productRevenue + serviceRevenue;
 
   return (
-    <section className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+    <section className="group/card rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Doanh số</p>
           <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">Sản phẩm và dịch vụ</h2>
         </div>
-        <span className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold text-muted-foreground">{periodLabel}</span>
+        <span className="rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground shadow-xs transition-colors">{periodLabel}</span>
       </div>
       <div className="mt-7 space-y-7" role="img" aria-label={`Biểu đồ doanh số ${periodLabel}`}>
         {rows.map((row) => (
-          <div key={row.label}>
+          <div key={row.label} className="group/row -mx-2.5 rounded-xl px-2.5 py-1.5 transition-colors duration-200 hover:bg-muted/40">
             <div className="mb-2 flex items-center justify-between gap-4">
-              <p className="text-sm font-semibold text-foreground md:text-base">{row.label}</p>
-              <p className="text-base font-bold text-foreground md:text-lg">{formatCurrency(row.value)}</p>
+              <p className="text-sm font-semibold text-foreground transition-colors group-hover/row:text-primary md:text-base">{row.label}</p>
+              <p className="text-base font-bold text-foreground tabular-nums md:text-lg">
+                <AnimatedCounter value={row.value} formatter={formatCurrency} />
+              </p>
             </div>
             <div className="h-5 overflow-hidden rounded-full bg-secondary md:h-6">
               <div
-                className={`h-full rounded-full transition-[width] duration-500 ${row.color}`}
+                className={`h-full rounded-full transition-all duration-700 ease-out ${row.color} group-hover/row:brightness-105`}
                 style={{ width: row.value > 0 ? `${Math.max(6, (row.value / maxValue) * 100)}%` : '0%' }}
               />
             </div>
@@ -416,28 +423,66 @@ const RevenueComparisonChart: React.FC<{
       </div>
       <div className="mt-7 flex items-center justify-between gap-4 border-t border-border pt-5">
         <span className="text-sm text-muted-foreground">Tổng doanh số ghi nhận</span>
-        <strong className="text-lg text-foreground md:text-xl">{formatCurrency(productRevenue + serviceRevenue)}</strong>
+        <strong className="text-lg text-foreground tabular-nums md:text-xl">
+          <AnimatedCounter value={totalRevenue} formatter={formatCurrency} />
+        </strong>
       </div>
     </section>
   );
 };
 
 const WeeklyRevenueTrendChart: React.FC<{ points: TrendBucket[] }> = ({ points }) => {
+  const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
   const values = points.map((point) => point.netRevenue);
   const linePath = buildSparklinePath(values, 640, 220, 24);
   const areaPath = linePath ? `${linePath} L 616 196 L 24 196 Z` : '';
 
+  const coords = useMemo(() => {
+    if (!points.length) return [];
+    const min = Math.min(...values, 0);
+    const max = Math.max(...values, 1);
+    const innerWidth = 640 - 48;
+    const innerHeight = 220 - 48;
+    return points.map((point, index) => {
+      const x = 24 + (points.length === 1 ? 296 : (index / (points.length - 1)) * innerWidth);
+      const ratio = max === min ? 0.5 : (point.netRevenue - min) / (max - min);
+      const y = 24 + innerHeight - ratio * innerHeight;
+      return { ...point, x, y };
+    });
+  }, [points, values]);
+
   return (
-    <section className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
-      <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Nhịp bán hàng</p>
-      <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">Doanh thu sản phẩm theo ngày</h2>
+    <section className="group/card relative rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Nhịp bán hàng</p>
+          <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">Doanh thu sản phẩm theo ngày</h2>
+        </div>
+      </div>
       {points.length === 0 ? (
         <div className="mt-5 flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-border bg-background px-5 text-center text-sm text-muted-foreground">
           Chưa có dữ liệu doanh thu trong tuần này.
         </div>
       ) : (
-        <div className="mt-5 overflow-hidden rounded-2xl bg-transparent p-2 sm:p-4">
-          <svg viewBox="0 0 640 220" className="h-56 w-full" role="img" aria-label="Biểu đồ doanh thu sản phẩm theo ngày">
+        <div
+          className="relative mt-5 overflow-hidden rounded-2xl bg-transparent p-2 sm:p-4"
+          onMouseLeave={() => setActivePointIndex(null)}
+        >
+          {/* Glassmorphism Interactive Tooltip */}
+          {activePointIndex !== null && coords[activePointIndex] && (
+            <div
+              className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full rounded-xl border border-white/80 bg-card/95 px-3 py-2 shadow-[0_12px_28px_-8px_rgba(24,35,32,0.35)] backdrop-blur-xl transition-all duration-150 ease-out dark:border-white/15"
+              style={{
+                left: `${Math.min(90, Math.max(10, (coords[activePointIndex].x / 640) * 100))}%`,
+                top: `${Math.max(14, (coords[activePointIndex].y / 220) * 100 - 6)}%`,
+              }}
+            >
+              <p className="text-[11px] font-semibold text-muted-foreground">{coords[activePointIndex].label}</p>
+              <p className="text-xs font-bold text-primary">{formatCurrency(coords[activePointIndex].netRevenue)}</p>
+              <p className="text-[10px] text-muted-foreground">{coords[activePointIndex].totalOrders} đơn hàng</p>
+            </div>
+          )}
+          <svg viewBox="0 0 640 220" className="h-56 w-full overflow-visible" role="img" aria-label="Biểu đồ doanh thu sản phẩm theo ngày">
             <defs>
               <linearGradient id="weeklyProductRevenueArea" x1="0" x2="0" y1="0" y2="1">
                 <stop offset="0%" stopColor="rgba(36,145,125,0.28)" />
@@ -447,11 +492,53 @@ const WeeklyRevenueTrendChart: React.FC<{ points: TrendBucket[] }> = ({ points }
             {[0.25, 0.5, 0.75].map((ratio) => (
               <line key={ratio} x1="24" y1={24 + 172 * ratio} x2="616" y2={24 + 172 * ratio} stroke="rgba(90,102,115,0.16)" strokeDasharray="4 8" />
             ))}
-            {areaPath ? <path d={areaPath} fill="url(#weeklyProductRevenueArea)" /> : null}
-            {linePath ? <path d={linePath} fill="none" stroke="#24917d" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" /> : null}
-            {points.map((point, index) => {
-              const x = 24 + (points.length === 1 ? 296 : (index / (points.length - 1)) * 592);
-              return <text key={point.key} x={x} y="216" textAnchor="middle" fontSize="12" fill="#667085">{point.label}</text>;
+            {areaPath ? <path d={areaPath} fill="url(#weeklyProductRevenueArea)" className="transition-all duration-700 ease-out" /> : null}
+            {linePath ? <path d={linePath} fill="none" stroke="#24917d" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-700 ease-out" /> : null}
+            {/* Active Vertical Guide */}
+            {activePointIndex !== null && coords[activePointIndex] ? (
+              <line
+                x1={coords[activePointIndex].x}
+                y1={24}
+                x2={coords[activePointIndex].x}
+                y2={196}
+                stroke="rgba(36,145,125,0.45)"
+                strokeDasharray="4 4"
+                strokeWidth="1.5"
+              />
+            ) : null}
+            {/* Interactive Dots */}
+            {coords.map((point, index) => {
+              const isActive = activePointIndex === index;
+              return (
+                <g
+                  key={point.key}
+                  className="cursor-pointer"
+                  onMouseEnter={() => setActivePointIndex(index)}
+                  onTouchStart={() => setActivePointIndex(index)}
+                >
+                  <circle cx={point.x} cy={point.y} r="18" fill="transparent" />
+                  <circle
+                    cx={point.x}
+                    cy={point.y}
+                    r={isActive ? 6 : 3.5}
+                    fill="#24917d"
+                    stroke="#ffffff"
+                    strokeWidth={isActive ? 2.5 : 1.5}
+                    className="transition-all duration-200 ease-out"
+                  />
+                  <text
+                    x={point.x}
+                    y="216"
+                    textAnchor="middle"
+                    fontSize="12"
+                    fontWeight={isActive ? 'bold' : 'normal'}
+                    fill={isActive ? '#24917d' : '#667085'}
+                    className="transition-colors duration-200 select-none"
+                  >
+                    {point.label}
+                  </text>
+                </g>
+              );
             })}
           </svg>
         </div>
@@ -924,15 +1011,19 @@ const SystemOperationsCard: React.FC<{
     { label: 'Lịch báo cáo', value: data?.reportSchedules.length ?? 0, tone: 'text-emerald-700' },
   ];
   return (
-    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 xl:col-span-2">
+    <div className="group/card rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25 xl:col-span-2">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">System operations</p>
           <h2 className="mt-2 text-2xl font-bold text-foreground">D1, email và tích hợp</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Trạng thái thực từ D1; tích hợp đang tắt được hiển thị rõ và không làm treo dashboard.</p>
         </div>
-        <button type="button" onClick={onRefresh} className="rounded-full border border-border bg-background px-3 py-2 text-xs font-semibold text-muted-foreground hover:border-primary/35 hover:text-primary">
-          Làm mới
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3.5 py-1.5 text-xs font-semibold text-muted-foreground transition-all hover:border-primary/35 hover:text-primary active:scale-95"
+        >
+          <span>Làm mới</span>
         </button>
       </div>
       {error ? <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
@@ -944,9 +1035,14 @@ const SystemOperationsCard: React.FC<{
         <>
           <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
             {rows.map((row) => (
-              <div key={row.label} className="rounded-2xl border border-border/70 bg-background px-4 py-4">
+              <div
+                key={row.label}
+                className="rounded-2xl border border-border/70 bg-background/80 px-4 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:bg-background"
+              >
                 <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">{row.label}</p>
-                <p className={`mt-2 text-2xl font-bold ${row.tone}`}>{row.value}</p>
+                <p className={`mt-2 text-2xl font-bold tabular-nums ${row.tone}`}>
+                  <AnimatedCounter value={row.value} />
+                </p>
               </div>
             ))}
           </div>
@@ -996,6 +1092,18 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [systemOperationsError, setSystemOperationsError] = useState<string | null>(null);
   const [appointmentSeed, setAppointmentSeed] = useState<AppointmentPanelSeed | null>(null);
   const [appointmentSeedKey, setAppointmentSeedKey] = useState(0);
+  const [isOverviewMounted, setIsOverviewMounted] = useState(false);
+
+  useEffect(() => {
+    if (activePanel === 'overview') {
+      const timer = setTimeout(() => {
+        setIsOverviewMounted(true);
+      }, 30);
+      return () => clearTimeout(timer);
+    } else {
+      setIsOverviewMounted(false);
+    }
+  }, [activePanel]);
 
   const panelButtons = useMemo(
     () => [
@@ -1444,10 +1552,18 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       }));
   }, [preset, productOrders]);
 
+  const cardTransitionClass = (delayMs: number) =>
+    `transform-gpu transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none ${
+      isOverviewMounted ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-[0.99]'
+    }`;
+
   const renderOverview = () => (
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
       {/* 1. Header Card matching Apple Glass standard */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+      <div
+        className={`${cardTransitionClass(0)} rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 hover:border-white/95 hover:shadow-[0_32px_75px_-36px_rgba(24,35,32,0.6)] dark:border-white/10 dark:hover:border-white/25 p-3 sm:p-4 mx-1 sm:mx-0`}
+        style={{ transitionDelay: '0ms' }}
+      >
         {/* Preset pills row */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {(Object.keys(PRESET_LABELS) as DashboardPreset[]).map((key) => {
@@ -1457,10 +1573,10 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
                 key={key}
                 type="button"
                 onClick={() => setPreset(key)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 active:scale-95 ${
                   isActive
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25 scale-[1.02]'
+                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:border-border'
                 }`}
               >
                 <span>{PRESET_LABELS[key]}</span>
@@ -1482,36 +1598,51 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shrink-0 active:scale-95"
             title="Làm mới dữ liệu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={2}
+              stroke="currentColor"
+              className={`w-3.5 h-3.5 transition-transform duration-500 ${loading ? 'animate-spin text-primary' : ''}`}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
             </svg>
-            <span className="hidden sm:inline">Làm mới</span>
+            <span className="hidden sm:inline">{loading ? 'Đang cập nhật...' : 'Làm mới'}</span>
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2 mx-1 sm:mx-0">
-        <RevenueComparisonChart
-          productRevenue={Number(snapshot?.net_revenue || 0)}
-          serviceRevenue={Number(snapshot?.service_revenue || 0)}
-          periodLabel={PRESET_LABELS[preset]}
-        />
-        <WeeklyRevenueTrendChart points={compactTrendPoints} />
-        <RankedBarChart
-          eyebrow="Top sản phẩm"
-          title="5 sản phẩm tiêu thụ nhiều nhất"
-          rows={topProductChartRows}
-          emptyLabel="Chưa có sản phẩm phát sinh doanh số trong khoảng thời gian này."
-          accent="teal"
-        />
-        <RankedBarChart
-          eyebrow="Top dịch vụ"
-          title="Doanh thu dịch vụ theo liệu trình"
-          rows={serviceRevenueChartRows}
-          emptyLabel="Chưa có dịch vụ phát sinh doanh thu trong khoảng thời gian này."
-          accent="coral"
-        />
-        <div className="xl:col-span-2">
+        <div className={cardTransitionClass(80)} style={{ transitionDelay: '80ms' }}>
+          <RevenueComparisonChart
+            productRevenue={Number(snapshot?.net_revenue || 0)}
+            serviceRevenue={Number(snapshot?.service_revenue || 0)}
+            periodLabel={PRESET_LABELS[preset]}
+          />
+        </div>
+        <div className={cardTransitionClass(140)} style={{ transitionDelay: '140ms' }}>
+          <WeeklyRevenueTrendChart points={compactTrendPoints} />
+        </div>
+        <div className={cardTransitionClass(200)} style={{ transitionDelay: '200ms' }}>
+          <RankedBarChart
+            eyebrow="Top sản phẩm"
+            title="5 sản phẩm tiêu thụ nhiều nhất"
+            rows={topProductChartRows}
+            emptyLabel="Chưa có sản phẩm phát sinh doanh số trong khoảng thời gian này."
+            accent="teal"
+          />
+        </div>
+        <div className={cardTransitionClass(260)} style={{ transitionDelay: '260ms' }}>
+          <RankedBarChart
+            eyebrow="Top dịch vụ"
+            title="Doanh thu dịch vụ theo liệu trình"
+            rows={serviceRevenueChartRows}
+            emptyLabel="Chưa có dịch vụ phát sinh doanh thu trong khoảng thời gian này."
+            accent="coral"
+          />
+        </div>
+        <div className={`xl:col-span-2 ${cardTransitionClass(320)}`} style={{ transitionDelay: '320ms' }}>
           <RankedBarChart
             eyebrow="Phân bổ đơn hàng"
             title="5 tỉnh, thành có nhiều đơn hàng nhất"
@@ -1520,39 +1651,39 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
             accent="amber"
           />
         </div>
-        <SystemOperationsCard
-          data={systemOperations}
-          loading={systemOperationsLoading}
-          error={systemOperationsError}
-          onRefresh={loadSystemOperations}
-        />
+        <div className={`xl:col-span-2 ${cardTransitionClass(380)}`} style={{ transitionDelay: '380ms' }}>
+          <SystemOperationsCard
+            data={systemOperations}
+            loading={systemOperationsLoading}
+            error={systemOperationsError}
+            onRefresh={loadSystemOperations}
+          />
+        </div>
       </div>
     </div>
   );
 
   const renderPanel = () => {
-    if (activePanel === 'customers') {
-      return <AdminDashboardCustomersPanel orders={productOrders} onOpenAdvancedModule={() => onNavigate({ page: 'adminUserManagement' })} />;
-    }
-
-    if (activePanel === 'appointments') {
-      return (
-        <AdminDashboardAppointmentsPanel
-          services={services}
-          doctors={doctors}
-          onOpenAdvancedModule={() => onNavigate({ page: 'adminServiceManagement' })}
-          onRefreshDashboard={loadDashboardData}
-          seed={appointmentSeed}
-          seedKey={appointmentSeedKey}
-        />
-      );
-    }
-
-    if (activePanel === 'reports') {
-      return <AdminDashboardReportsPanel orders={productOrders} />;
-    }
-
-    return renderOverview();
+    return (
+      <div className="transition-all duration-300 ease-out animate-fade-in-page">
+        {activePanel === 'customers' ? (
+          <AdminDashboardCustomersPanel orders={productOrders} onOpenAdvancedModule={() => onNavigate({ page: 'adminUserManagement' })} />
+        ) : activePanel === 'appointments' ? (
+          <AdminDashboardAppointmentsPanel
+            services={services}
+            doctors={doctors}
+            onOpenAdvancedModule={() => onNavigate({ page: 'adminServiceManagement' })}
+            onRefreshDashboard={loadDashboardData}
+            seed={appointmentSeed}
+            seedKey={appointmentSeedKey}
+          />
+        ) : activePanel === 'reports' ? (
+          <AdminDashboardReportsPanel orders={productOrders} />
+        ) : (
+          renderOverview()
+        )}
+      </div>
+    );
   };
 
   const actions = useMemo(() => (
@@ -1593,18 +1724,18 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   return (
     <>
-          {loading && activePanel === 'overview' ? (
-            <div className="flex min-h-[320px] items-center justify-center rounded-[1.25rem] border border-border bg-background">
-              <Spinner />
-            </div>
-          ) : error && activePanel === 'overview' ? (
-            <div className="rounded-[1.25rem] border border-red-200 bg-red-50 p-5 text-red-700">
-              <p className="text-lg font-semibold">Không thể tải dashboard</p>
-              <p className="mt-2 text-sm">{error}</p>
-            </div>
-          ) : (
-            renderPanel()
-          )}
+      {loading && activePanel === 'overview' && !snapshot ? (
+        <div className="flex min-h-[320px] items-center justify-center rounded-[1.25rem] border border-border bg-background">
+          <Spinner />
+        </div>
+      ) : error && activePanel === 'overview' && !snapshot ? (
+        <div className="rounded-[1.25rem] border border-red-200 bg-red-50 p-5 text-red-700">
+          <p className="text-lg font-semibold">Không thể tải dashboard</p>
+          <p className="mt-2 text-sm">{error}</p>
+        </div>
+      ) : (
+        renderPanel()
+      )}
     </>
   );
 };
