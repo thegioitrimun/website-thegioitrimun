@@ -27,21 +27,18 @@ git commit -m "mô tả thay đổi"
 git push
 ```
 
-### Bước 2: Build và deploy lên Cloudflare Pages
+### Bước 2: Build và deploy lên Cloudflare Production (Worker + D1 + Assets)
 ```bash
-npm run build && npx wrangler pages deploy dist --project-name=website-thegioitrimun
+npm run deploy:d1:production
+# hoặc:
+npm run build && npx wrangler deploy --config wrangler.d1.production.jsonc
 ```
 
 > Lệnh này sẽ:
-> 1. Build production bundle vào thư mục `dist/`
-> 2. Upload các file mới lên Cloudflare Pages
-> 3. In ra URL preview như: `https://xxxxxxxx.website-thegioitrimun.pages.dev`
-> 4. Sau vài giây, `thegioitrimun.vn` sẽ được cập nhật tự động
-
-### Bước tất cả trong 1 lần (copy & paste)
-```bash
-cd "/Users/PHUC/Downloads/32-kiến-trúc-mới-fullstack-iskin-clinic-+-supabase-ở-account-hovidaiphuc@gmail.com---website-project (1)" && git add -A && git commit -m "deploy: cập nhật" && git push && npm run build && npx wrangler pages deploy dist --project-name=website-thegioitrimun
-```
+> 1. Build production bundle vào thư mục `dist/client`
+> 2. Kiểm tra bundle audit, worker bundle và email flow
+> 3. Upload các static assets và Worker `iskin-clinic` lên Cloudflare
+> 4. Cập nhật trực tiếp domain production `thegioitrimun.vn` và `www.thegioitrimun.vn`
 
 ---
 
