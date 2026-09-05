@@ -2288,3 +2288,97 @@
     filter: blur(8px);
   }
 }
+
+/* Búp bê nhảy cho từ "Trị" */
+@keyframes doll-jump {
+  0%, 65%, 100% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+  68% {
+    /* Nhún người chuẩn bị nhảy */
+    transform: translateY(0.06em) scale(1.22, 0.76) rotate(-2deg);
+    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.2));
+  }
+  73% {
+    /* Bật nhảy vút lên cao như búp bê */
+    transform: translateY(-0.46em) scale(0.85, 1.25) rotate(4deg);
+    filter: drop-shadow(0 14px 22px rgba(239, 68, 68, 0.45));
+  }
+  78% {
+    /* Đỉnh cú nhảy nghiêng lắc lư sinh động */
+    transform: translateY(-0.52em) scale(1.1, 0.92) rotate(-3deg);
+    filter: drop-shadow(0 18px 26px rgba(239, 68, 68, 0.5));
+  }
+  83% {
+    /* Rơi xuống */
+    transform: translateY(-0.2em) scale(0.94, 1.08) rotate(1deg);
+    filter: drop-shadow(0 8px 12px rgba(239, 68, 68, 0.35));
+  }
+  87% {
+    /* Tiếp đất nhún chân hấp thụ lực */
+    transform: translateY(0.07em) scale(1.26, 0.74) rotate(0deg);
+    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.25));
+  }
+  91% {
+    /* Nảy tưng nhẹ một nhịp nữa */
+    transform: translateY(-0.16em) scale(0.95, 1.08) rotate(-1.5deg);
+    filter: drop-shadow(0 6px 10px rgba(239, 68, 68, 0.3));
+  }
+  95% {
+    /* Tiếp đất lần 2 */
+    transform: translateY(0.02em) scale(1.06, 0.95) rotate(0.5deg);
+    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.15));
+  }
+  98% {
+    /* Về trạng thái cân bằng */
+    transform: translateY(0) scale(1.01, 0.99) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+}
+
+@keyframes doll-jump-instant {
+  0% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+  }
+  15% {
+    transform: translateY(0.08em) scale(1.24, 0.75) rotate(-3deg);
+  }
+  40% {
+    transform: translateY(-0.52em) scale(0.85, 1.25) rotate(5deg);
+    filter: drop-shadow(0 16px 22px rgba(239, 68, 68, 0.5));
+  }
+  55% {
+    transform: translateY(-0.46em) scale(1.1, 0.92) rotate(-4deg);
+  }
+  72% {
+    transform: translateY(0.08em) scale(1.25, 0.75) rotate(0deg);
+  }
+  86% {
+    transform: translateY(-0.16em) scale(0.94, 1.08) rotate(-1.5deg);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+}
+
+.animate-doll-jump {
+  display: inline-block !important;
+  transform-origin: bottom center !important;
+  animation: doll-jump 3.8s cubic-bezier(0.28, 0.84, 0.42, 1) infinite !important;
+  will-change: transform, filter !important;
+}
+
+.animate-doll-jump:hover {
+  animation: doll-jump-instant 0.85s cubic-bezier(0.28, 0.84, 0.42, 1) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-doll-jump,
+  .animate-doll-jump:hover {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
