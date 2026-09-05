@@ -31,11 +31,101 @@
   animation-delay: 0.4s;
 }
 
+@keyframes doll-jump {
+  0%, 72%, 100% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+  75% {
+    /* Nhún người chuẩn bị nhảy (Squash down anticipation) */
+    transform: translateY(0.06em) scale(1.2, 0.78) rotate(-2deg);
+    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.2));
+  }
+  79% {
+    /* Bật nhảy vút lên cao như búp bê (Rocket leap up) */
+    transform: translateY(-0.42em) scale(0.86, 1.22) rotate(4deg);
+    filter: drop-shadow(0 14px 20px rgba(239, 68, 68, 0.45));
+  }
+  83% {
+    /* Đỉnh cú nhảy nghiêng lắc lư sinh động (Apex wiggle) */
+    transform: translateY(-0.48em) scale(1.08, 0.94) rotate(-3deg);
+    filter: drop-shadow(0 16px 24px rgba(239, 68, 68, 0.5));
+  }
+  86% {
+    /* Rơi xuống (Falling back down) */
+    transform: translateY(-0.18em) scale(0.94, 1.08) rotate(1deg);
+    filter: drop-shadow(0 8px 12px rgba(239, 68, 68, 0.35));
+  }
+  89% {
+    /* Tiếp đất nhún chân hấp thụ lực (Landing impact squash) */
+    transform: translateY(0.07em) scale(1.24, 0.76) rotate(0deg);
+    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.25));
+  }
+  92% {
+    /* Nảy tưng nhẹ một nhịp nữa (Playful rebound hop) */
+    transform: translateY(-0.14em) scale(0.95, 1.06) rotate(-1.5deg);
+    filter: drop-shadow(0 6px 10px rgba(239, 68, 68, 0.3));
+  }
+  95% {
+    /* Tiếp đất lần 2 (Secondary land) */
+    transform: translateY(0.02em) scale(1.06, 0.95) rotate(0.5deg);
+    filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.15));
+  }
+  97% {
+    /* Về trạng thái cân bằng (Settle) */
+    transform: translateY(0) scale(1.01, 0.99) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+}
+
+@keyframes doll-jump-instant {
+  0% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+  }
+  15% {
+    transform: translateY(0.08em) scale(1.24, 0.75) rotate(-3deg);
+  }
+  40% {
+    transform: translateY(-0.52em) scale(0.85, 1.25) rotate(5deg);
+    filter: drop-shadow(0 16px 22px rgba(239, 68, 68, 0.5));
+  }
+  55% {
+    transform: translateY(-0.46em) scale(1.1, 0.92) rotate(-4deg);
+  }
+  72% {
+    transform: translateY(0.08em) scale(1.25, 0.75) rotate(0deg);
+  }
+  86% {
+    transform: translateY(-0.16em) scale(0.94, 1.08) rotate(-1.5deg);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1) rotate(0deg);
+    filter: drop-shadow(0 0 0 rgba(239, 68, 68, 0));
+  }
+}
+
+.animate-doll-jump {
+  display: inline-block;
+  transform-origin: bottom center;
+  animation: doll-jump 4.6s cubic-bezier(0.28, 0.84, 0.42, 1) infinite;
+  will-change: transform, filter;
+}
+
+.animate-doll-jump:hover {
+  animation: doll-jump-instant 0.85s cubic-bezier(0.28, 0.84, 0.42, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-rise,
   .animate-fade-rise-delay,
   .animate-fade-rise-delay-2 {
     animation: none;
   }
+  .animate-doll-jump,
+  .animate-doll-jump:hover {
+    animation: none !important;
+    transform: none !important;
+  }
 }
+
 

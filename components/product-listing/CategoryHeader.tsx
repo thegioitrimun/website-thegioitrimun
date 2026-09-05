@@ -40,7 +40,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   const renderTitle = (text: string) => {
     const parts = text.split(/(Trị)/);
     return parts.map((part, i) => 
-      part === 'Trị' ? <em key={i} className="font-black not-italic text-red-500">Trị</em> : part
+      part === 'Trị' ? <em key={i} className="font-black not-italic text-red-500 animate-doll-jump cursor-pointer" title="Trị">Trị</em> : part
     );
   };
 

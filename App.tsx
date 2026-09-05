@@ -1916,7 +1916,7 @@ const App: React.FC = () => {
                                             ? 'text-slate-900 dark:text-slate-900'
                                             : 'text-foreground dark:text-white'
                                     }`}>
-                                        Thế Giới <span className="text-[#ef4444] dark:text-[#f87171]">Trị</span> Mụn
+                                        Thế Giới <span className="text-[#ef4444] dark:text-[#f87171] animate-doll-jump cursor-pointer" title="Trị">Trị</span> Mụn
                                     </span>
                                     <span className={`mt-0.5 block whitespace-nowrap font-sans text-[8.5px] font-bold tracking-[0.06em] transition-colors duration-500 sm:text-[9.5px] lg:text-[11px] ${
                                         isHomeInvertedHeader
