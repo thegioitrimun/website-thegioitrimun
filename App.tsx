@@ -71,6 +71,7 @@ import {
     loadAdminSiteManagementPage,
     loadAdminUserManagementPage,
     loadAdminVatManagementPage,
+    loadAdminPosPage,
     preloadAdminWorkspace,
 } from './src/adminPageLoaders';
 
@@ -96,6 +97,7 @@ const CheckoutSuccessPage = lazy(() => import('./components/CheckoutSuccessPage'
 const OrderLookupPage = lazy(() => import('./components/OrderLookupPage'));
 const WishlistPage = lazy(() => import('./components/WishlistPage'));
 const AdminDashboardPage = lazy(loadAdminDashboardPage);
+const AdminPosPage = lazy(loadAdminPosPage);
 const AdminUserManagementPage = lazy(loadAdminUserManagementPage);
 const AdminBlogManagementPage = lazy(loadAdminBlogManagementPage);
 const AdminSiteManagementPage = lazy(loadAdminSiteManagementPage);
@@ -110,7 +112,7 @@ const ProductsPage = lazy(() => import('./components/ProductsPage'));
 const loadProductDetailPage = () => import('./components/ProductDetailPage');
 const ProductDetailPage = lazy(loadProductDetailPage);
 const api = createDeferredFunctionProxy<typeof import('./services/api')>(loadApiModule);
-const DEFAULT_HEADER_LOGO_URL = '/icons/da-lieu-nhiet-doi-phu-quoc-logo.webp';
+const DEFAULT_HEADER_LOGO_URL = '/icons/da-lieu-nhiet-doi-phu-quoc-logo.svg';
 const DEFAULT_SEO_LOGO_URL = 'https://thegioitrimun.vn/icons/da-lieu-nhiet-doi-phu-quoc-512.png';
 const DEFAULT_BRAND_NAME = 'Thế Giới Trị Mụn';
 const HEADER_BRAND_PRIMARY = 'Da Liễu Nhiệt Đới';
@@ -132,6 +134,7 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
     'adminProductImageImporter',
     'adminPharmacyManagement',
     'adminPancakeManagement',
+    'adminPos',
     'adminSiteManagement',
     'adminVatManagement',
 ]);
@@ -140,6 +143,7 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
 // them through the shared bootstrap gate would leave pages with no bootstrap
 // tasks stuck in the global loading state forever.
 const SELF_MANAGED_ADMIN_PAGES = new Set<View['page']>([
+    'adminPos',
     'adminPancakeManagement',
     'adminVatManagement',
 ]);
@@ -1596,6 +1600,8 @@ const App: React.FC = () => {
                         return <AdminPancakeManagementPage />;
                     }
                     setView({ page: 'main' }); return null;
+                case 'adminPos':
+                    return <AdminPosPage />;
                 case 'adminVatManagement':
                     if (isVatStaff) {
                         return <AdminVatManagementPage currentRole={currentUser.profile.role} />;
@@ -1675,6 +1681,7 @@ const App: React.FC = () => {
                 <AdminWorkspaceLayout
                     currentPage={(view.page === 'adminPharmacyManagement' && view.section === 'orders' ? 'adminDashboard' : view.page) as any}
                     currentRole={currentUser.profile.role}
+                    posRoles={currentUser.profile.pos_roles}
                     onNavigate={setView}
                     onBack={() => setView(currentUser.profile.role === 'accountant' ? { page: 'account' } : { page: 'adminDashboard' })}
                 >

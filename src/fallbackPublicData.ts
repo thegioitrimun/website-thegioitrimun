@@ -602,7 +602,7 @@ export const FALLBACK_SITE_INFO: SiteInfo = {
   favicon_path: '',
   logo_light_url: '/icons/da-lieu-nhiet-doi-phu-quoc-512.png',
   logo_dark_url: '/icons/da-lieu-nhiet-doi-phu-quoc-512.png',
-  favicon_url: '/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260730',
+  favicon_url: '/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260906',
 };
 
 export const FALLBACK_FOOTER_CONTENT: FooterContent = {

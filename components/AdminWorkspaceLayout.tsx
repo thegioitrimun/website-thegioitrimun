@@ -24,6 +24,7 @@ type AdminWorkspacePage = AdminNavigationView['page'];
 type AdminWorkspaceLayoutProps = {
   currentPage: AdminWorkspacePage;
   currentRole: 'customer' | 'doctor' | 'accountant' | 'admin' | 'master_admin';
+  posRoles?: string[];
   onBack: () => void;
   onNavigate: (page: AdminNavigationView) => void;
   children: React.ReactNode;
@@ -41,6 +42,10 @@ const moduleConfig: Array<{
   description: string;
   icon: React.ReactNode;
 }> = [
+  {
+    page: 'adminPos', label: 'Quầy bán hàng', mobileLabel: 'POS',
+    description: 'Bán hàng, thu tiền và bàn giao ca.', icon: <ShoppingBagIcon className="h-7 w-7" />,
+  },
   {
     page: 'adminDashboard',
     label: 'Dashboard',
@@ -145,6 +150,7 @@ export const AdminWorkspaceTabs = <T extends string>({
 const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   currentPage,
   currentRole,
+  posRoles = [],
   onBack,
   onNavigate,
   children,
@@ -179,6 +185,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
 
   const visibleModules = moduleConfig.filter((item) => {
     if (currentRole === 'master_admin') return true;
+    if (item.page === 'adminPos') return posRoles.length > 0 || currentPage === 'adminPos';
+    if (!['admin', 'accountant'].includes(currentRole)) return false;
     if (currentRole === 'accountant') return item.page === 'adminVatManagement';
     return item.page !== 'adminVatManagement';
   });
@@ -273,7 +281,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               onClick={onBack}
               className="inline-flex h-9 items-center justify-center rounded-full border border-border bg-card px-2 shadow-sm transition-transform hover:scale-105"
             >
-              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo.webp" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain" />
+              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo.svg" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain" />
             </button>
             <div className="min-w-0 flex-1 text-center">
               <p className="truncate text-sm font-black text-foreground">{activeModule.label}</p>

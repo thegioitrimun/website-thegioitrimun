@@ -20,6 +20,7 @@ import { maybeHandleAppointmentRoute } from './worker/appointments/routes.js';
 import { maybeHandleAccountRoute } from './worker/account/routes.js';
 import { maybeHandleAdminD1Route } from './worker/adminD1/routes.js';
 import { maybeHandleVatRoute } from './worker/vat/routes.js';
+import { maybeHandlePosRoute } from './worker/pos/routes.js';
 import { syncVatCandidates } from './worker/vat/candidates.js';
 import { maybeHandleReviewRoute } from './worker/reviews/routes.js';
 import { maybeHandleAnalyticsRoute } from './worker/analytics/routes.js';
@@ -3012,7 +3013,7 @@ export default {
         const publicDataFetch = createPublicDataFetch(env);
 
         if (path === '/favicon.ico') {
-            const faviconUrl = new URL('/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260730', request.url);
+            const faviconUrl = new URL('/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260906', request.url);
             const faviconResponse = await env.ASSETS.fetch(new Request(faviconUrl.toString(), request));
             const faviconHeaders = new Headers(faviconResponse.headers);
             faviconHeaders.set('content-type', 'image/png');
@@ -3034,6 +3035,7 @@ export default {
             () => maybeHandlePancakeRoute(routeContext),
             () => maybeHandleDeplaoRoute(routeContext),
             () => maybeHandleVatRoute(routeContext),
+            () => maybeHandlePosRoute(routeContext),
             () => maybeHandleAdminD1Route(routeContext),
             () => maybeHandleReviewRoute(routeContext),
             () => maybeHandleAnalyticsRoute(routeContext),
