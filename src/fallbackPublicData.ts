@@ -601,7 +601,7 @@ export const FALLBACK_SITE_INFO: SiteInfo = {
   logo_dark_path: '',
   favicon_path: '',
   logo_light_url: '/icons/da-lieu-nhiet-doi-phu-quoc-512.png',
-  logo_dark_url: '/icons/da-lieu-nhiet-doi-phu-quoc-512.png',
+  logo_dark_url: '/icons/da-lieu-nhiet-doi-phu-quoc-dark-512.png',
   favicon_url: '/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260906',
 };
 

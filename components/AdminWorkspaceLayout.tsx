@@ -281,7 +281,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               onClick={onBack}
               className="inline-flex h-9 items-center justify-center rounded-full border border-border bg-card px-2 shadow-sm transition-transform hover:scale-105"
             >
-              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo.svg" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain" />
+              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo.svg" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain dark:hidden" />
+              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo-dark.svg" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain hidden dark:block" />
             </button>
             <div className="min-w-0 flex-1 text-center">
               <p className="truncate text-sm font-black text-foreground">{activeModule.label}</p>

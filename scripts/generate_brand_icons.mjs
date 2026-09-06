@@ -3,6 +3,7 @@ import path from 'node:path';
 import sharp from 'sharp';
 
 const SOURCE_SVG_PATH = '/Users/PHUC/Desktop/logo.svg';
+const DARK_SVG_PATH = '/Users/PHUC/Desktop/logo_darkmode.svg';
 const PUBLIC_DIR = path.resolve('public');
 const ICONS_DIR = path.resolve(PUBLIC_DIR, 'icons');
 
@@ -35,55 +36,74 @@ function createIco(pngBuffers) {
   return Buffer.concat([header, ...dirEntries, ...pngBuffers.map(p => p.buffer)]);
 }
 
-async function main() {
-  if (!fs.existsSync(SOURCE_SVG_PATH)) {
-    throw new Error(`Source SVG not found at ${SOURCE_SVG_PATH}`);
-  }
-
-  const rawSvg = fs.readFileSync(SOURCE_SVG_PATH, 'utf8');
-  // Normalize SVG: preserve aspect ratio cleanly, ensure standard SVG header
-  const cleanSvg = rawSvg
+function cleanSvg(content) {
+  return content
     .replace('preserveAspectRatio="none"', 'preserveAspectRatio="xMidYMid meet"')
     .trim();
+}
+
+async function main() {
+  if (!fs.existsSync(SOURCE_SVG_PATH)) {
+    throw new Error(`Light source SVG not found at ${SOURCE_SVG_PATH}`);
+  }
+  if (!fs.existsSync(DARK_SVG_PATH)) {
+    throw new Error(`Dark source SVG not found at ${DARK_SVG_PATH}`);
+  }
+
+  const lightSvgClean = cleanSvg(fs.readFileSync(SOURCE_SVG_PATH, 'utf8'));
+  const darkSvgClean = cleanSvg(fs.readFileSync(DARK_SVG_PATH, 'utf8'));
 
   fs.mkdirSync(ICONS_DIR, { recursive: true });
 
-  // 1. Write vector SVG outputs
+  // 1. Write vector SVG outputs for light and dark
   const svgTargets = [
-    path.join(ICONS_DIR, 'da-lieu-nhiet-doi-phu-quoc-logo.svg'),
-    path.join(ICONS_DIR, 'logo.svg'),
-    path.join(PUBLIC_DIR, 'favicon.svg'),
+    // Light
+    { path: path.join(ICONS_DIR, 'da-lieu-nhiet-doi-phu-quoc-logo.svg'), content: lightSvgClean },
+    { path: path.join(ICONS_DIR, 'logo.svg'), content: lightSvgClean },
+    { path: path.join(PUBLIC_DIR, 'favicon.svg'), content: lightSvgClean },
+    // Dark
+    { path: path.join(ICONS_DIR, 'da-lieu-nhiet-doi-phu-quoc-logo-dark.svg'), content: darkSvgClean },
+    { path: path.join(ICONS_DIR, 'logo-dark.svg'), content: darkSvgClean },
+    { path: path.join(PUBLIC_DIR, 'favicon-dark.svg'), content: darkSvgClean },
   ];
+
   for (const target of svgTargets) {
-    fs.writeFileSync(target, cleanSvg, 'utf8');
-    console.log(`✓ Wrote SVG: ${path.relative(process.cwd(), target)}`);
+    fs.writeFileSync(target.path, target.content, 'utf8');
+    console.log(`✓ Wrote SVG: ${path.relative(process.cwd(), target.path)}`);
   }
 
-  // 2. Render WebP logo
-  const webpBuffer = await sharp(Buffer.from(cleanSvg), { density: 300 })
+  // 2. Render WebP logos (512x512)
+  const lightWebp = await sharp(Buffer.from(lightSvgClean), { density: 300 })
     .resize(512, 512)
     .webp({ quality: 95, effort: 6 })
     .toBuffer();
-  fs.writeFileSync(path.join(ICONS_DIR, 'da-lieu-nhiet-doi-phu-quoc-logo.webp'), webpBuffer);
-  fs.writeFileSync(path.join(ICONS_DIR, 'logo.webp'), webpBuffer);
-  console.log(`✓ Wrote WebP: public/icons/da-lieu-nhiet-doi-phu-quoc-logo.webp (512x512)`);
+  fs.writeFileSync(path.join(ICONS_DIR, 'da-lieu-nhiet-doi-phu-quoc-logo.webp'), lightWebp);
+  fs.writeFileSync(path.join(ICONS_DIR, 'logo.webp'), lightWebp);
+  console.log(`✓ Wrote Light WebP: public/icons/da-lieu-nhiet-doi-phu-quoc-logo.webp (512x512)`);
 
-  // 3. Render PNG sizes
+  const darkWebp = await sharp(Buffer.from(darkSvgClean), { density: 300 })
+    .resize(512, 512)
+    .webp({ quality: 95, effort: 6 })
+    .toBuffer();
+  fs.writeFileSync(path.join(ICONS_DIR, 'da-lieu-nhiet-doi-phu-quoc-logo-dark.webp'), darkWebp);
+  fs.writeFileSync(path.join(ICONS_DIR, 'logo-dark.webp'), darkWebp);
+  console.log(`✓ Wrote Dark WebP: public/icons/da-lieu-nhiet-doi-phu-quoc-logo-dark.webp (512x512)`);
+
+  // 3. Render PNG sizes for light and dark
   const sizes = [512, 192, 180, 96, 48, 32];
   const pngBySizes = new Map();
 
   for (const size of sizes) {
-    const pngBuf = await sharp(Buffer.from(cleanSvg), { density: 300 })
+    // Light
+    const pngBuf = await sharp(Buffer.from(lightSvgClean), { density: 300 })
       .resize(size, size)
       .png({ compressionLevel: 9 })
       .toBuffer();
     pngBySizes.set(size, pngBuf);
 
-    // Primary brand filenames
     fs.writeFileSync(path.join(ICONS_DIR, `da-lieu-nhiet-doi-phu-quoc-${size}.png`), pngBuf);
     console.log(`✓ Wrote PNG: public/icons/da-lieu-nhiet-doi-phu-quoc-${size}.png`);
 
-    // Aliases
     if (size === 180) {
       fs.writeFileSync(path.join(ICONS_DIR, 'apple-touch-icon.png'), pngBuf);
       fs.writeFileSync(path.join(ICONS_DIR, 'natural-skin-fern-180.png'), pngBuf);
@@ -91,6 +111,16 @@ async function main() {
       fs.writeFileSync(path.join(ICONS_DIR, `icon-${size}.png`), pngBuf);
       fs.writeFileSync(path.join(ICONS_DIR, `natural-skin-fern-${size}.png`), pngBuf);
     }
+
+    // Dark
+    const darkPngBuf = await sharp(Buffer.from(darkSvgClean), { density: 300 })
+      .resize(size, size)
+      .png({ compressionLevel: 9 })
+      .toBuffer();
+
+    fs.writeFileSync(path.join(ICONS_DIR, `da-lieu-nhiet-doi-phu-quoc-dark-${size}.png`), darkPngBuf);
+    fs.writeFileSync(path.join(ICONS_DIR, `icon-dark-${size}.png`), darkPngBuf);
+    console.log(`✓ Wrote Dark PNG: public/icons/da-lieu-nhiet-doi-phu-quoc-dark-${size}.png`);
   }
 
   // 4. Generate multi-resolution favicon.ico (16, 32, 48)
@@ -99,7 +129,7 @@ async function main() {
   for (const s of icoSizes) {
     let buf = pngBySizes.get(s);
     if (!buf) {
-      buf = await sharp(Buffer.from(cleanSvg), { density: 300 })
+      buf = await sharp(Buffer.from(lightSvgClean), { density: 300 })
         .resize(s, s)
         .png({ compressionLevel: 9 })
         .toBuffer();
@@ -110,7 +140,7 @@ async function main() {
   fs.writeFileSync(path.join(PUBLIC_DIR, 'favicon.ico'), icoBuffer);
   console.log(`✓ Wrote ICO: public/favicon.ico (16x16, 32x32, 48x48)`);
 
-  console.log('\nAll brand logo and icon assets generated successfully!');
+  console.log('\nAll light & dark brand logo and icon assets generated successfully!');
 }
 
 main().catch((err) => {

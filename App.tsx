@@ -113,6 +113,7 @@ const loadProductDetailPage = () => import('./components/ProductDetailPage');
 const ProductDetailPage = lazy(loadProductDetailPage);
 const api = createDeferredFunctionProxy<typeof import('./services/api')>(loadApiModule);
 const DEFAULT_HEADER_LOGO_URL = '/icons/da-lieu-nhiet-doi-phu-quoc-logo.svg';
+const DEFAULT_HEADER_LOGO_DARK_URL = '/icons/da-lieu-nhiet-doi-phu-quoc-logo-dark.svg';
 const DEFAULT_SEO_LOGO_URL = 'https://thegioitrimun.vn/icons/da-lieu-nhiet-doi-phu-quoc-512.png';
 const DEFAULT_BRAND_NAME = 'Thế Giới Trị Mụn';
 const HEADER_BRAND_PRIMARY = 'Da Liễu Nhiệt Đới';
@@ -262,6 +263,7 @@ const App: React.FC = () => {
 
     const isMobile = useMediaQuery('(max-width: 768px)');
     const headerLogoUrl = DEFAULT_HEADER_LOGO_URL;
+    const headerLogoDarkUrl = DEFAULT_HEADER_LOGO_DARK_URL;
     const getBrandNameBySlug = useCallback((brandSlug?: string) => {
         if (!brandSlug) return undefined;
         return brands.find((brand) => brand.slug === brandSlug)?.name;
@@ -1914,8 +1916,19 @@ const App: React.FC = () => {
                                         height="96"
                                         src={headerLogoUrl}
                                         alt="Da Liễu Nhiệt Đới Phú Quốc Logo"
-                                        className="h-9 w-9 object-contain lg:h-10 lg:w-10"
+                                        className={`${isHomeInvertedHeader ? 'block' : 'dark:hidden'} h-9 w-9 object-contain lg:h-10 lg:w-10`}
                                     />
+                                    {!isHomeInvertedHeader && (
+                                        <img
+                                            loading="eager"
+                                            decoding="async"
+                                            width="96"
+                                            height="96"
+                                            src={headerLogoDarkUrl}
+                                            alt="Da Liễu Nhiệt Đới Phú Quốc Logo"
+                                            className="hidden dark:block h-9 w-9 object-contain lg:h-10 lg:w-10"
+                                        />
+                                    )}
                                 </span>
                                 <div className="min-w-0 flex flex-col items-center text-center leading-[1.15]">
                                     <span className={`block whitespace-nowrap font-['Playfair_Display',_serif] text-[11px] font-black tracking-[-0.01em] transition-colors duration-500 sm:text-[13px] lg:text-[15px] ${
