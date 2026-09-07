@@ -233,18 +233,18 @@ const getShippingTypeTone = (shippingType: OrderShippingFilter): string => {
 };
 
 const getFulfillmentTone = (status: OrderFulfillmentStatus): string => {
-    if (status === 'processing') return 'border-amber-200 bg-amber-50 text-amber-700';
-    if (status === 'shipped') return 'border-sky-200 bg-sky-50 text-sky-700';
-    if (status === 'completed') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-    if (status === 'cancelled') return 'border-rose-200 bg-rose-50 text-rose-700';
-    return 'border-border bg-background text-muted-foreground';
+    if (status === 'processing') return 'border-amber-300/80 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-300';
+    if (status === 'shipped') return 'border-sky-300/80 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-950/40 dark:text-sky-300';
+    if (status === 'completed') return 'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300';
+    if (status === 'cancelled') return 'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300';
+    return 'border-border/70 bg-background/60 text-muted-foreground dark:border-border/40 dark:bg-muted/20 dark:text-muted-foreground';
 };
 
 const getPaymentTone = (status: OrderPaymentStatus): string => {
-    if (status === 'paid') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
-    if (status === 'failed') return 'border-rose-200 bg-rose-50 text-rose-700';
-    if (status === 'refunded') return 'border-orange-200 bg-orange-50 text-orange-700';
-    return 'border-border bg-background text-muted-foreground';
+    if (status === 'paid') return 'border-emerald-300/80 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300';
+    if (status === 'failed') return 'border-rose-300/80 bg-rose-50 text-rose-800 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-300';
+    if (status === 'refunded') return 'border-orange-300/80 bg-orange-50 text-orange-800 dark:border-orange-500/30 dark:bg-orange-950/40 dark:text-orange-300';
+    return 'border-border/70 bg-background/60 text-muted-foreground dark:border-border/40 dark:bg-muted/20 dark:text-muted-foreground';
 };
 
 const StatusChip: React.FC<{ label: string; tone: string }> = ({ label, tone }) => (
@@ -577,19 +577,22 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, onUpdate, isSelected, onTogg
                     {orderTax > 0 && <p className="text-xs text-muted-foreground">Thuế: {formatCurrency(orderTax)}</p>}
                 </div>
             </td>
-            <td className="px-4 py-4 align-top w-[140px]">
-                <div className="w-fit">
+            <td className="px-4 py-4 align-top w-[130px]">
+                <div className="relative inline-flex items-center">
                     <select 
                         value={status} 
                         onChange={e => setStatus(e.target.value as OrderFulfillmentStatus)} 
-                        className={`w-full rounded-xl border px-3 py-2 text-[11px] font-semibold uppercase tracking-wider outline-none focus:ring-2 focus:ring-primary/20 transition-colors ${getFulfillmentTone(status)}`}
+                        className={`appearance-none cursor-pointer rounded-full border pl-2.5 pr-6 py-1 text-[11px] font-bold tracking-tight shadow-2xs outline-none transition-all hover:scale-105 active:scale-95 focus:ring-2 focus:ring-primary/20 ${getFulfillmentTone(status)}`}
                     >
-                        {allowedStatusTargets.includes('pending') && <option value="pending">{t('admin.order_status_pending')}</option>}
-                        {allowedStatusTargets.includes('processing') && <option value="processing">{t('admin.order_status_processing')}</option>}
-                        {allowedStatusTargets.includes('shipped') && <option value="shipped">{t('admin.order_status_shipped')}</option>}
-                        {allowedStatusTargets.includes('completed') && <option value="completed">{t('admin.order_status_completed')}</option>}
-                        {allowedStatusTargets.includes('cancelled') && <option value="cancelled">{t('admin.order_status_cancelled')}</option>}
+                        {allowedStatusTargets.includes('pending') && <option value="pending" className="bg-card text-foreground">{t('admin.order_status_pending')}</option>}
+                        {allowedStatusTargets.includes('processing') && <option value="processing" className="bg-card text-foreground">{t('admin.order_status_processing')}</option>}
+                        {allowedStatusTargets.includes('shipped') && <option value="shipped" className="bg-card text-foreground">{t('admin.order_status_shipped')}</option>}
+                        {allowedStatusTargets.includes('completed') && <option value="completed" className="bg-card text-foreground">{t('admin.order_status_completed')}</option>}
+                        {allowedStatusTargets.includes('cancelled') && <option value="cancelled" className="bg-card text-foreground">{t('admin.order_status_cancelled')}</option>}
                     </select>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.2} stroke="currentColor" className="pointer-events-none absolute right-2 h-3 w-3 opacity-60">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
                 </div>
             </td>
             <td className="px-4 py-4 align-top">
