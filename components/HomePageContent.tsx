@@ -1107,10 +1107,10 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                 <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pb-14 pt-28 text-center sm:px-6 sm:pb-20 sm:pt-32">
                     <h1
                         data-testid="homepage-hero-title"
-                        className="homepage-hero-copy max-w-6xl animate-fade-rise text-balance font-['Playfair_Display',_serif] text-[clamp(2rem,7vw,6.75rem)] font-[700] leading-[0.95] tracking-[-0.02em] normal-case text-foreground"
+                        className="homepage-hero-copy max-w-6xl animate-fade-rise font-['Playfair_Display',_serif] text-[clamp(1.65rem,6.8vw,6.75rem)] sm:text-[clamp(2.5rem,7vw,6.75rem)] font-[700] leading-[0.95] tracking-[-0.02em] normal-case text-foreground"
                     >
-                        <span className="block mb-3 sm:mb-5">Thế Giới <em className="font-black not-italic text-red-500 animate-doll-jump cursor-pointer select-none" title="Trị">Trị</em> Mụn</span>
-                        <span className="block">Da Liễu <em className="font-black not-italic text-primary">Phú Quốc</em></span>
+                        <span className="block whitespace-nowrap mb-3 sm:mb-5">Thế Giới <span className="inline-block whitespace-nowrap"><em className="font-black not-italic text-red-500 animate-doll-jump cursor-pointer select-none" title="Trị">Trị</em>&nbsp;Mụn</span></span>
+                        <span className="block whitespace-nowrap">Da Liễu <em className="font-black not-italic text-primary">Phú Quốc</em></span>
                     </h1>
                     <p className="homepage-hero-copy mt-7 max-w-3xl animate-fade-rise-delay font-sans text-[15px] font-medium leading-relaxed text-foreground sm:mt-8 sm:text-lg">
                         <span className="block">“{t('hero.home_quote')}”</span>
