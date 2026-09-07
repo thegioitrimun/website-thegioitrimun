@@ -439,58 +439,7 @@ function PosWorkspace() {
   return (
     <div className="space-y-4 sm:space-y-5 bg-transparent border-0 shadow-none p-0 -mx-1 sm:mx-0">
       <PosSidebar tabs={tabs} active={active} setTab={setTab} />
-      {/* Top Header & Navigation Card */}
-      <div className="hidden lg:block rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3.5 sm:p-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Thế Giới Trị Mụn · Vận hành cửa hàng
-            </p>
-            <h1 className="text-xl sm:text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
-              Quầy bán hàng POS
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold transition-all ${
-                online
-                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                  : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse'
-              }`}
-            >
-              <span className={`h-2 w-2 rounded-full ${online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-              <span>{online ? 'Đang kết nối' : 'Mất mạng · chưa thể chốt'}</span>
-            </span>
-          </div>
-        </div>
 
-        {/* Preset Pills Tabs Row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {tabs.filter(([, , allowed]) => allowed).map(([key, label]) => {
-            const isActive = active === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setTab(key)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-xs font-bold scale-[1.02]'
-                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <span>{label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {(!s.settings.deployment_enabled || !s.settings.transactions_enabled) && (
-        <Notice className="hidden lg:block">
-          POS chưa mở giao dịch thật. Cần kiểm thử, duyệt biên bản số dư đầu kỳ và bật công tắc triển khai. Bạn vẫn có thể chuẩn bị giỏ nháp.
-        </Notice>
-      )}
       {!online && (
         <Notice>
           Nội dung đang nhập được giữ trong màn hình. Chưa xác nhận đơn hoặc thanh toán khi mất mạng; không đóng tab nếu chưa lưu.
