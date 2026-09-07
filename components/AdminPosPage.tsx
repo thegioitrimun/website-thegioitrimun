@@ -365,12 +365,33 @@ export default function AdminPosPage() {
   useEffect(() => { clearPosCache(); setMounted(true); return () => clearPosCache(); }, []);
   return <div className="pos-workspace">{mounted && <PosWorkspace />}</div>;
 }
+// Mount after authorization resolves so the workspace hook order stays stable.
+function PosSidebar({ tabs, active, setTab }: {
+  tabs: Array<[Section, string, boolean]>;
+  active: Section;
+  setTab: (section: Section) => void;
+}) {
+  const setSidebarConfig = useAdminLayoutDispatch();
+  useEffect(() => {
+    setSidebarConfig({
+      title: 'Quầy bán hàng POS',
+      eyebrow: 'VẬN HÀNH CỬA HÀNG',
+      description: 'Bán hàng tại quầy, quản lý đơn hàng POS, ca thu ngân, kho và công nợ.',
+      icon: <ShoppingBagIcon className="w-8 h-8" />,
+      taskItems: tabs.filter(([, , allowed]) => allowed).map(([key, label]) => ({
+        key, label, onClick: () => setTab(key),
+      })),
+      activeTaskKey: active,
+    });
+  }, [setSidebarConfig, tabs, active, setTab]);
+  return null;
+}
+
 function PosWorkspace() {
   const session = useResource<Session>('session');
   const [tab, setTab] = useState<Section>(() => new URLSearchParams(location.search).has('order') ? 'orders' : 'sell');
   const [selected, setSelected] = useState<string>(() => new URLSearchParams(location.search).get('order') || undefined);
   const [online, setOnline] = useState(navigator.onLine);
-  const setSidebarConfig = useAdminLayoutDispatch();
 
   useEffect(() => {
     const update = () => setOnline(navigator.onLine);
@@ -415,25 +436,11 @@ function PosWorkspace() {
   ];
   const active = tabs.some(([key, , allowed]) => key === tab && allowed) ? tab : 'orders';
 
-  useEffect(() => {
-    setSidebarConfig({
-      title: 'Quầy bán hàng POS',
-      eyebrow: 'VẬN HÀNH CỬA HÀNG',
-      description: 'Bán hàng tại quầy, quản lý đơn hàng POS, ca thu ngân, kho và công nợ.',
-      icon: <ShoppingBagIcon className="w-8 h-8" />,
-      taskItems: tabs.filter(([, , allowed]) => allowed).map(([key, label]) => ({
-        key,
-        label,
-        onClick: () => setTab(key),
-      })),
-      activeTaskKey: active,
-    });
-  }, [setSidebarConfig, active, s]);
-
   return (
     <div className="space-y-4 sm:space-y-5 bg-transparent border-0 shadow-none p-0 -mx-1 sm:mx-0">
+      <PosSidebar tabs={tabs} active={active} setTab={setTab} />
       {/* Top Header & Navigation Card */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3.5 sm:p-5">
+      <div className="hidden lg:block rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3.5 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/40">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
