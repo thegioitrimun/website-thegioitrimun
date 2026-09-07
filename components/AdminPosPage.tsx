@@ -27,7 +27,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <label className="pos-field"><span>{label}</span>{React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<{ 'aria-label'?: string }>, { 'aria-label': label }) : children}</label>;
 }
-function Notice({ children }: { children?: React.ReactNode }) { return children ? <div className="pos-notice" role="alert">{children}</div> : null; }
+function Notice({ children, className = '' }: { children?: React.ReactNode; className?: string }) { return children ? <div className={`pos-notice ${className}`.trim()} role="alert">{children}</div> : null; }
 function Empty({ children }: { children: React.ReactNode }) { return <p className="pos-empty">{children}</p>; }
 function Pager({ offset, setOffset, more }: { offset: number; setOffset: (n: number) => void; more: boolean }) {
   return <div className="pos-pager"><button disabled={!offset} onClick={() => setOffset(Math.max(0, offset - 30))}>Trang trước</button><span>Trang {offset / 30 + 1}</span><button disabled={!more} onClick={() => setOffset(offset + 30)}>Trang sau</button></div>;
@@ -487,7 +487,7 @@ function PosWorkspace() {
       </div>
 
       {(!s.settings.deployment_enabled || !s.settings.transactions_enabled) && (
-        <Notice>
+        <Notice className="hidden lg:block">
           POS chưa mở giao dịch thật. Cần kiểm thử, duyệt biên bản số dư đầu kỳ và bật công tắc triển khai. Bạn vẫn có thể chuẩn bị giỏ nháp.
         </Notice>
       )}
