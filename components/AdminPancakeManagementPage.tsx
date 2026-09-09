@@ -13,6 +13,13 @@ import {
   XCircleIcon,
 } from './icons';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
+import {
+  AdminSurface,
+  AdminButton,
+  AdminStatusBadge,
+  AdminPageHeader,
+  AdminSectionTabs,
+} from './admin';
 
 type PancakeTab = 'connection' | 'sync_streams' | 'queue_webhook' | 'manual_sync' | 'deplao';
 
@@ -364,15 +371,36 @@ const DeplaoAutomationPanel: React.FC = () => {
   );
 };
 
+export interface AdminPancakeManagementPageProps {
+  initialSection?: PancakeTab;
+  onNavigate?: (view: any) => void;
+}
+
 // Main Page Component
-const AdminPancakeManagementPage: React.FC = () => {
+const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
+  initialSection,
+  onNavigate,
+}) => {
   const setSidebarConfig = useAdminLayoutDispatch();
   const { addToast } = useToast();
-  const [activeTab, setActiveTab] = useState<PancakeTab>('connection');
+  const [activeTab, setActiveTab] = useState<PancakeTab>(initialSection || 'connection');
   const [status, setStatus] = useState<PancakeIntegrationStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [busyKey, setBusyKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialSection) {
+      setActiveTab(initialSection);
+    }
+  }, [initialSection]);
+
+  const handleTabChange = (tab: PancakeTab) => {
+    setActiveTab(tab);
+    if (onNavigate) {
+      onNavigate({ page: 'adminPancakeManagement', section: tab });
+    }
+  };
 
   const loadStatus = useCallback(async () => {
     setError('');
@@ -581,8 +609,87 @@ const AdminPancakeManagementPage: React.FC = () => {
     },
   ];
 
+  const pancakeSectionTabs = [
+    { key: 'connection', label: 'Kết nối & Kênh' },
+    { key: 'sync_streams', label: 'Công tắc luồng', count: activeSyncCount },
+    { key: 'queue_webhook', label: 'Hàng đợi & Webhook', count: status.queueSummary.pending || undefined },
+    { key: 'manual_sync', label: 'Đồng bộ thủ công' },
+    { key: 'deplao', label: 'Deplao Zalo' },
+  ];
+
+  const getHeaderMeta = () => {
+    switch (activeTab) {
+      case 'sync_streams':
+        return {
+          title: 'Công tắc luồng',
+          description: 'Bật/tắt các luồng đồng bộ hai chiều sản phẩm, tồn kho, khách hàng và đơn hàng.',
+          badge: `${activeSyncCount}/4 luồng bật`,
+        };
+      case 'queue_webhook':
+        return {
+          title: 'Hàng đợi & Webhook',
+          description: 'Theo dõi các tác vụ trong Cloudflare Outbox Queue và sự kiện Webhook Inbound từ Pancake.',
+          badge: status.queueSummary.pending ? `${status.queueSummary.pending} đang chờ` : undefined,
+        };
+      case 'manual_sync':
+        return {
+          title: 'Bảo trì & Backfill',
+          description: 'Chạy đồng bộ thủ công từng thực thể để khôi phục dữ liệu hoặc kiểm tra tích hợp.',
+          badge: '4 luồng hỗ trợ',
+        };
+      case 'deplao':
+        return {
+          title: 'Deplao Zalo Automation',
+          description: 'Tự động gửi thông báo đơn hàng và tin nhắn chăm sóc khách hàng qua Telegram & Zalo.',
+          badge: undefined,
+        };
+      case 'connection':
+      default:
+        return {
+          title: 'Đồng bộ Pancake POS',
+          description: 'Điều khiển đồng bộ hai chiều giữa website Cloudflare D1 và Pancake POS.',
+          badge: connected ? 'Kết nối sẵn sàng' : 'Chưa đủ cấu hình',
+        };
+    }
+  };
+
+  const headerMeta = getHeaderMeta();
+
   return (
-    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
+    <div className="space-y-4">
+      <AdminPageHeader
+        title={headerMeta.title}
+        description={headerMeta.description}
+        badge={headerMeta.badge}
+        actions={
+          <div className="flex items-center gap-2">
+            <AdminButton
+              variant="primary"
+              size="sm"
+              loading={busyKey === 'connection'}
+              onClick={() => void testConnection()}
+              leftIcon={<CogIcon className="h-4 w-4" />}
+            >
+              <span>Kiểm tra kết nối</span>
+            </AdminButton>
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              loading={isLoading}
+              onClick={() => void loadStatus()}
+              leftIcon={<WrenchScrewdriverIcon className="h-4 w-4" />}
+            >
+              <span>Tải lại</span>
+            </AdminButton>
+          </div>
+        }
+      />
+      <AdminSectionTabs
+        tabs={pancakeSectionTabs}
+        activeKey={activeTab}
+        onChange={(tab) => handleTabChange(tab as PancakeTab)}
+      />
+
       {/* ===================== TAB 1: KẾT NỐI & KÊNH POS ===================== */}
       {activeTab === 'connection' && (
         <div className="space-y-3 sm:space-y-4">
@@ -597,16 +704,6 @@ const AdminPancakeManagementPage: React.FC = () => {
                 }`}>
                   <span className={`h-2 w-2 rounded-full ${connected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
                   <span>{connected ? 'Kết nối sẵn sàng' : 'Chưa đủ cấu hình'}</span>
-                </span>
-
-                <span className="inline-flex items-center gap-1 rounded-xl border border-border/60 bg-background/40 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-md">
-                  <span>Shop ID:</span>
-                  <strong className="text-foreground">{status.config.shopId || 'Chưa có'}</strong>
-                </span>
-
-                <span className="inline-flex items-center gap-1 rounded-xl border border-border/60 bg-background/40 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-md">
-                  <span>Kho:</span>
-                  <strong className="text-foreground truncate max-w-[120px]">{status.config.warehouseId || 'Chưa có'}</strong>
                 </span>
               </div>
 
@@ -639,22 +736,17 @@ const AdminPancakeManagementPage: React.FC = () => {
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">TRẠNG THÁI KẾT NỐI & HẠ TẦNG</p>
               <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Kênh đồng bộ Pancake POS</h2>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Đồng bộ hai chiều giữa cơ sở dữ liệu Cloudflare D1 và hệ thống Pancake POS qua hàng đợi ngầm Cloudflare Queue.
-              </p>
             </div>
 
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="rounded-xl sm:rounded-2xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-4 shadow-2xs">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Shop ID</p>
                 <p className="mt-2 truncate text-base sm:text-lg font-bold text-foreground">{status.config.shopId || 'Chưa cấu hình'}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Định danh cửa hàng trên Pancake</p>
               </div>
 
               <div className="rounded-xl sm:rounded-2xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-4 shadow-2xs">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Warehouse ID</p>
                 <p className="mt-2 truncate text-base sm:text-lg font-bold text-foreground">{status.config.warehouseId || 'Chưa cấu hình'}</p>
-                <p className="mt-1 text-xs text-muted-foreground">Kho hàng mặc định tiếp nhận tồn kho</p>
               </div>
 
               <div className="rounded-xl sm:rounded-2xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-4 shadow-2xs">
@@ -662,13 +754,11 @@ const AdminPancakeManagementPage: React.FC = () => {
                 <p className="mt-2 truncate text-base sm:text-lg font-bold text-foreground">
                   {status.config.queueConfigured ? 'Đã kích hoạt' : 'Chưa kết nối'}
                 </p>
-                <p className="mt-1 text-xs text-muted-foreground">Hàng đợi ngầm PANCAKE_QUEUE</p>
               </div>
 
               <div className="rounded-xl sm:rounded-2xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-4 shadow-2xs">
                 <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Hướng đồng bộ</p>
                 <p className="mt-2 truncate text-base sm:text-lg font-bold text-primary">Website ↔ Pancake POS</p>
-                <p className="mt-1 text-xs text-muted-foreground">Hai chiều, chống lặp theo remote ID</p>
               </div>
             </div>
 
@@ -735,9 +825,6 @@ const AdminPancakeManagementPage: React.FC = () => {
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">LUỒNG ĐẨY DỮ LIỆU (WEBSITE D1 → PANCAKE POS)</p>
               <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Cấu hình luồng thực thể</h2>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Bật công tắc giúp tự động đưa các biến động dữ liệu từ website D1 vào hàng đợi đồng bộ sang Pancake POS.
-              </p>
             </div>
 
             <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -844,114 +931,65 @@ const AdminPancakeManagementPage: React.FC = () => {
             </div>
           </div>
 
-          {/* 2 Column Content Layout */}
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
-            {/* Column 1: Queue Outbox */}
-            <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 flex flex-col justify-between">
-              <div>
-                <div className="flex items-start justify-between gap-3 border-b border-border/40 pb-3 sm:pb-4">
-                  <div>
-                    <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">HÀNG ĐỢI OUTBOX</p>
-                    <h2 className="mt-1 text-base sm:text-lg font-bold text-foreground">Queue & Trạng thái gửi</h2>
-                  </div>
-                  <span className="rounded-xl border border-border/60 bg-background/40 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground backdrop-blur-md">
-                    Lần cuối: {formatDateTime(status.lastCompleted?.completed_at)}
-                  </span>
-                </div>
+          {/* Webhook & Reverse Sync */}
+          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 flex flex-col justify-between">
+            <div>
+              <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">WEBHOOK & REVERSE SYNC</p>
+              <h2 className="mt-1 text-base sm:text-lg font-bold text-foreground">Pancake POS → Website D1</h2>
 
-                <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  {[
-                    { label: 'Đang chờ', value: status.queueSummary.pending, color: 'text-primary' },
-                    { label: 'Tạm dừng', value: status.queueSummary.paused, color: 'text-amber-600 dark:text-amber-400' },
-                    { label: 'Đang retry', value: status.queueSummary.retrying, color: 'text-sky-600 dark:text-sky-400' },
-                    {
-                      label: 'Lỗi / Block',
-                      value: (status.queueSummary.failed || 0) + (status.queueSummary.blocked || 0),
-                      color: 'text-rose-600 dark:text-rose-400',
-                    },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3 text-center shadow-2xs">
-                      <p className={`text-xl sm:text-2xl font-bold ${item.color}`}>{item.value}</p>
-                      <p className="mt-1 text-[11px] font-semibold text-muted-foreground">{item.label}</p>
-                    </div>
-                  ))}
+              <div className="mt-4 rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3 sm:p-4 shadow-2xs flex items-start gap-3">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <CogIcon className="h-4.5 w-4.5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-xs sm:text-sm text-foreground">
+                    {status.webhook.processingEnabled
+                      ? 'Webhook đang xử lý đồng bộ ngược'
+                      : status.webhook.configured ? 'Webhook đang chờ công tắc inbound' : 'Webhook chưa cấu hình'}
+                  </p>
+                  <p className="mt-1 text-[11px] text-muted-foreground break-all">
+                    Route tiếp nhận: <code className="rounded bg-muted/40 border border-border/40 px-1 py-0.5 font-mono">{status.webhook.endpoint}</code>
+                  </p>
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-border/40 pt-4 space-y-2 text-xs">
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-muted-foreground">Bản ghi hoàn thành gần nhất</span>
-                  <span className="font-semibold text-foreground">{formatDateTime(status.lastCompleted?.completed_at)}</span>
-                </div>
-                <div className="flex justify-between items-start gap-4">
-                  <span className="text-muted-foreground shrink-0">Thông báo lỗi gần nhất</span>
-                  <span className={`text-right font-semibold truncate ${status.lastError ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
-                    {status.lastError?.last_error || 'Không có lỗi ghi nhận'}
-                  </span>
-                </div>
+              <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {inboundToggles.map((item) => {
+                  const selected = status.settings[item.key];
+                  const effective = status.settings.masterEnabled && selected;
+                  return (
+                    <div key={item.key} className="rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3 shadow-2xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${effective ? 'bg-primary/15 text-primary' : 'bg-muted/40 text-muted-foreground'}`}>
+                            {item.icon}
+                          </span>
+                          <p className="truncate text-xs font-bold text-foreground">{item.title}</p>
+                        </div>
+                        <Toggle
+                          checked={selected}
+                          disabled={busyKey !== null}
+                          label={item.title}
+                          onChange={() => void updateSetting(item.key)}
+                        />
+                      </div>
+                      <p className="mt-2 text-[11px] text-muted-foreground leading-normal line-clamp-2">{item.description}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Column 2: Webhook & Reverse Sync */}
-            <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 flex flex-col justify-between">
-              <div>
-                <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">WEBHOOK & REVERSE SYNC</p>
-                <h2 className="mt-1 text-base sm:text-lg font-bold text-foreground">Pancake POS → Website D1</h2>
-
-                <div className="mt-4 rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3 sm:p-4 shadow-2xs flex items-start gap-3">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <CogIcon className="h-4.5 w-4.5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-bold text-xs sm:text-sm text-foreground">
-                      {status.webhook.processingEnabled
-                        ? 'Webhook đang xử lý đồng bộ ngược'
-                        : status.webhook.configured ? 'Webhook đang chờ công tắc inbound' : 'Webhook chưa cấu hình'}
-                    </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground break-all">
-                      Route tiếp nhận: <code className="rounded bg-muted/40 border border-border/40 px-1 py-0.5 font-mono">{status.webhook.endpoint}</code>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {inboundToggles.map((item) => {
-                    const selected = status.settings[item.key];
-                    const effective = status.settings.masterEnabled && selected;
-                    return (
-                      <div key={item.key} className="rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3 shadow-2xs">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg ${effective ? 'bg-primary/15 text-primary' : 'bg-muted/40 text-muted-foreground'}`}>
-                              {item.icon}
-                            </span>
-                            <p className="truncate text-xs font-bold text-foreground">{item.title}</p>
-                          </div>
-                          <Toggle
-                            checked={selected}
-                            disabled={busyKey !== null}
-                            label={item.title}
-                            onChange={() => void updateSetting(item.key)}
-                          />
-                        </div>
-                        <p className="mt-2 text-[11px] text-muted-foreground leading-normal line-clamp-2">{item.description}</p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="mt-5 border-t border-border/40 pt-4">
-                <p className="text-[11px] text-muted-foreground">
-                  Chu kỳ Poll: {status.inbound.pollSeconds}s · Giới hạn: {status.inbound.pageSize} bản ghi/nguồn/nhịp · Lần cuối:{' '}
-                  {formatDateTime(status.inbound.cursors.find((row) => row.resource_type === 'order')?.last_polled_at)}
+            <div className="mt-5 border-t border-border/40 pt-4">
+              <p className="text-[11px] text-muted-foreground">
+                Chu kỳ Poll: {status.inbound.pollSeconds}s · Giới hạn: {status.inbound.pageSize} bản ghi/nguồn/nhịp · Lần cuối:{' '}
+                {formatDateTime(status.inbound.cursors.find((row) => row.resource_type === 'order')?.last_polled_at)}
+              </p>
+              {status.inbound.lastError ? (
+                <p className="mt-2 rounded-lg bg-rose-500/10 p-2 text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
+                  Lỗi gần nhất: {status.inbound.lastError.last_error}
                 </p>
-                {status.inbound.lastError ? (
-                  <p className="mt-2 rounded-lg bg-rose-500/10 p-2 text-[11px] text-rose-600 dark:text-rose-400 font-semibold">
-                    Lỗi gần nhất: {status.inbound.lastError.last_error}
-                  </p>
-                ) : null}
-              </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -975,9 +1013,6 @@ const AdminPancakeManagementPage: React.FC = () => {
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">TÁC VỤ THỦ CÔNG</p>
               <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Bảo trì & Đẩy lại dữ liệu D1</h2>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Sử dụng các công cụ này để quét và đẩy lại dữ liệu hiện có từ website D1 sang Pancake POS khi cần đối soát hoặc bù đắp sự cố mạng.
-              </p>
             </div>
 
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

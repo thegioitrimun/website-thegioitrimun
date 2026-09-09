@@ -16,9 +16,9 @@ import {
   FilterIcon,
   LoadingIcon,
   PrinterIcon,
-  SearchIcon,
   XCircleIcon,
 } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 import {
   exportVatHtkkXml,
   exportVatWorkbook,
@@ -541,16 +541,14 @@ const InvoiceTable: React.FC<{
     <div className="space-y-3">
       {/* Sub-toolbar: Search + Status filter */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm theo số HĐ, ký hiệu, đối tác..."
-            className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] pl-8 pr-3 text-xs outline-none focus:ring-1 focus:ring-primary/50"
-          />
-          <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        </div>
+        <GlassSearchInput
+          size="sm"
+          value={query}
+          onChange={(val) => setQuery(val)}
+          onClear={() => setQuery('')}
+          placeholder="Tìm theo số HĐ, ký hiệu, đối tác..."
+          containerClassName="flex-1 min-w-[200px] max-w-sm"
+        />
 
         <div className="flex items-center gap-1.5 overflow-x-auto">
           <button

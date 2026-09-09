@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowRightIcon, CalendarPlusIcon, CheckCircleIcon, EyeIcon, FilterIcon, LaserIcon, ServiceListIcon, ShieldCheckIcon, ShoppingBagIcon, SparklesIcon } from './icons';
 import AnimatedSection from './AnimatedSection';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 import FallbackBlogImage from './FallbackBlogImage';
 import FallbackPublicImage from './FallbackPublicImage';
 import { type BlogCategory, type BlogPost, type FAQItem, type HomepageHero, type Product, type ProductBrand, type ProductCategory, type Service, type View } from '../types';
@@ -20,6 +21,7 @@ interface HomePageContentProps {
     openFaqId: number | null;
     onToggleFaq: (id: number | null) => void;
     onSetView: (view: View) => void;
+    onSelectProduct?: (idOrSlug: number | string, categorySlug?: string) => void;
     onAddToCart: (e: React.MouseEvent, product: Product) => void;
     onRequestBooking: () => void;
     getLocalized: (obj: any, field: string) => string;
@@ -273,48 +275,25 @@ function useHomepageProductRiskSummaries(
 function HomepageProductRiskBar({ summary }: { summary: HomepageRiskSummary }) {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ left: 0 });
-    const [isFilled, setIsFilled] = useState(false);
+    const [isAnimated, setIsAnimated] = useState(false);
     const barRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(barRef, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -4% 0px',
+        triggerOnce: true,
+    });
 
     const isReady = summary.status === 'ready' && summary.segments.length > 0;
     const isLoading = summary.status === 'loading';
 
     useEffect(() => {
-        if (!isReady) {
-            setIsFilled(false);
-            return;
-        }
-
-        let timerId: ReturnType<typeof setTimeout> | null = null;
-        let observer: IntersectionObserver | null = null;
-
-        const triggerFill = () => {
-            timerId = setTimeout(() => {
-                setIsFilled(true);
+        if (isVisible && isReady) {
+            const timer = setTimeout(() => {
+                setIsAnimated(true);
             }, 60);
-        };
-
-        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    const [entry] = entries;
-                    if (entry && entry.isIntersecting) {
-                        triggerFill();
-                        if (observer) observer.disconnect();
-                    }
-                },
-                { rootMargin: '80px', threshold: 0.05 }
-            );
-            observer.observe(barRef.current);
-        } else {
-            triggerFill();
+            return () => clearTimeout(timer);
         }
-
-        return () => {
-            if (timerId) clearTimeout(timerId);
-            if (observer) observer.disconnect();
-        };
-    }, [isReady]);
+    }, [isVisible, isReady]);
 
     const handleMouseEnter = (index: number, e: React.MouseEvent<HTMLSpanElement>) => {
         const segEl = e.currentTarget;
@@ -334,42 +313,56 @@ function HomepageProductRiskBar({ summary }: { summary: HomepageRiskSummary }) {
 
     return (
         <div
-            ref={barRef}
             className="relative mt-2.5 w-full"
             onMouseLeave={handleMouseLeave}
             onClick={(e) => e.stopPropagation()}
         >
             <div
-                className="flex h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-[#e9eef1] dark:bg-stone-700 shadow-inner"
+                ref={barRef}
+                className="relative flex h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-[#e9eef1] dark:bg-stone-700 shadow-inner"
                 role="img"
                 aria-label={isReady ? `Phân bố EWG theo ${summary.total} thành phần` : isLoading ? 'Đang phân tích INCI' : 'Thanh thành phần'}
             >
                 {isReady ? (
-                    summary.segments.map((segment, index) => {
-                        const isHovered = hoveredIndex === index;
-                        const hasHover = hoveredIndex !== null;
-                        const widthValue = isFilled ? segment.basis : '0%';
-                        return (
+                    <>
+                        {summary.segments.map((segment, index) => {
+                            const isHovered = hoveredIndex === index;
+                            const hasHover = hoveredIndex !== null;
+                            return (
+                                <span
+                                    key={`${segment.key}-${index}`}
+                                    style={{
+                                        width: isAnimated ? segment.basis : '0%',
+                                        backgroundColor: segment.color,
+                                        transitionDelay: hasHover ? '0ms' : `${index * 60}ms`,
+                                    }}
+                                    onMouseEnter={(e) => handleMouseEnter(index, e)}
+                                    className={`h-full cursor-pointer min-w-0 first:rounded-l-full last:rounded-r-full transform-gpu ${
+                                        hasHover
+                                            ? 'transition-all duration-200'
+                                            : 'transition-[width,opacity] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none'
+                                    } ${
+                                        hasHover
+                                            ? isHovered
+                                                ? 'scale-y-125 z-10 brightness-110 shadow-xs ring-1 ring-white/50'
+                                                : 'opacity-50'
+                                            : isAnimated
+                                                ? 'opacity-100'
+                                                : 'opacity-20'
+                                    }`}
+                                />
+                            );
+                        })}
+                        {/* Shimmer Sheen sweep upon scroll reveal */}
+                        {isAnimated && (
                             <span
-                                key={`${segment.key}-${index}`}
-                                style={{
-                                    width: widthValue,
-                                    backgroundColor: segment.color,
-                                    transition: isFilled
-                                        ? `width 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease`
-                                        : 'none',
-                                }}
-                                onMouseEnter={(e) => handleMouseEnter(index, e)}
-                                className={`h-full cursor-pointer first:rounded-l-full last:rounded-r-full transform-gpu ${
-                                    hasHover
-                                        ? isHovered
-                                            ? 'scale-y-125 z-10 brightness-110 shadow-xs ring-1 ring-white/50'
-                                            : 'opacity-50'
-                                        : 'opacity-100'
-                                }`}
-                            />
-                        );
-                    })
+                                className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-full"
+                                aria-hidden="true"
+                            >
+                                <span className="block h-full w-2/3 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-ewg-shine" />
+                            </span>
+                        )}
+                    </>
                 ) : isLoading ? (
                     <span className="h-full w-full animate-pulse rounded-full bg-primary/25" />
                 ) : (
@@ -654,6 +647,7 @@ const HomePageContent: React.FC<HomePageContentProps> = ({
     openFaqId,
     onToggleFaq,
     onSetView,
+    onSelectProduct,
     onAddToCart,
     onRequestBooking,
     getLocalized,
@@ -910,13 +904,45 @@ const HomePageContent: React.FC<HomePageContentProps> = ({
     const formatCurrency = (amount: number) =>
         new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 
-    const openProduct = (product: Product) => {
+    const openProduct = (product: Product, event?: React.MouseEvent) => {
+        if (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+            event.preventDefault();
+        }
         const categorySlug =
             product.category?.slug ||
             product.category_slug ||
             productCategories.find((category) => category.id === product.category_id)?.slug ||
             'khac';
-        onSetView({ page: 'productDetail', id: product.id, categorySlug });
+
+        if (typeof document !== 'undefined') {
+            document.querySelectorAll<HTMLElement>('[data-product-card-image], [style*="view-transition-name"]').forEach((el) => {
+                el.style.viewTransitionName = '';
+            });
+            let targetImg: HTMLElement | null = null;
+            if (event?.currentTarget) {
+                const current = event.currentTarget as HTMLElement;
+                targetImg =
+                    current.querySelector('img[data-product-card-image]') ||
+                    current.querySelector('img') ||
+                    current.closest('article')?.querySelector('img[data-product-card-image]') ||
+                    current.closest('article')?.querySelector('img');
+            }
+            if (!targetImg) {
+                targetImg =
+                    document.querySelector(`[data-homepage-product-id="${product.id}"] img[data-product-card-image]`) ||
+                    document.querySelector(`[data-homepage-product-id="${product.id}"] img`);
+            }
+            if (targetImg) {
+                targetImg.style.viewTransitionName = 'product-hero-image';
+            }
+        }
+
+        if (onSelectProduct) {
+            onSelectProduct(product.slug || product.id, categorySlug);
+        } else {
+            onSetView({ page: 'productDetail', id: product.slug || product.id, categorySlug });
+        }
     };
 
     const openService = (service: Service) => onSetView({ page: 'serviceDetail', id: service.id });
@@ -1107,10 +1133,10 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                 <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pb-14 pt-28 text-center sm:px-6 sm:pb-20 sm:pt-32">
                     <h1
                         data-testid="homepage-hero-title"
-                        className="homepage-hero-copy max-w-6xl animate-fade-rise font-['Playfair_Display',_serif] text-[clamp(1.65rem,6.8vw,6.75rem)] sm:text-[clamp(2.5rem,7vw,6.75rem)] font-[700] leading-[0.95] tracking-[-0.02em] normal-case text-foreground"
+                        className="homepage-hero-copy max-w-6xl animate-fade-rise text-balance font-['Playfair_Display',_serif] text-[clamp(2rem,7vw,6.75rem)] font-[700] leading-[0.95] tracking-[-0.02em] normal-case text-foreground"
                     >
-                        <span className="block whitespace-nowrap mb-3 sm:mb-5">Thế Giới <span className="inline-block whitespace-nowrap"><em className="font-black not-italic text-red-500 animate-doll-jump cursor-pointer select-none" title="Trị">Trị</em>&nbsp;Mụn</span></span>
-                        <span className="block whitespace-nowrap">Da Liễu <em className="font-black not-italic text-primary">Phú Quốc</em></span>
+                        <span className="block mb-3 sm:mb-5">Thế Giới <em className="font-black not-italic text-red-500">Trị</em> Mụn</span>
+                        <span className="block">Da Liễu <em className="font-black not-italic text-primary">Phú Quốc</em></span>
                     </h1>
                     <p className="homepage-hero-copy mt-7 max-w-3xl animate-fade-rise-delay font-sans text-[15px] font-medium leading-relaxed text-foreground sm:mt-8 sm:text-lg">
                         <span className="block">“{t('hero.home_quote')}”</span>
@@ -1157,10 +1183,15 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                                                     <button
                                                         key={`best-${product.id}`}
                                                         type="button"
-                                                        onClick={() => openProduct(product)}
-                                                        className="flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/5 backdrop-blur-md p-3 text-left transition hover:bg-white/10"
+                                                        data-homepage-product-id={product.id}
+                                                        onClick={(e) => openProduct(product, e)}
+                                                        onMouseEnter={() => {
+                                                            void import('./ProductDetailPage');
+                                                        }}
+                                                        className="flex items-center gap-3 rounded-[20px] border border-white/10 bg-white/5 backdrop-blur-md p-3 text-left transition hover:bg-white/10 cursor-pointer"
                                                     >
                                                         <HomepageMediaImage
+                                                            data-product-card-image="true"
                                                             groupReady={areHomepageCommerceMediaReady}
                                                             loading="eager"
                                                             decoding="async"
@@ -1190,13 +1221,20 @@ const HomepageIngredientAnalyzerSection: React.FC<{
 
                                             return (
                                             <AnimatedSection key={product.id} stagger={index * 45}>
-                                                <article className="group homepage-editorial-card flex h-full flex-col overflow-hidden text-card-foreground">
+                                                <article
+                                                    data-homepage-product-id={product.id}
+                                                    className="group homepage-editorial-card flex h-full flex-col overflow-hidden text-card-foreground"
+                                                >
                                                     <button
                                                         type="button"
-                                                        onClick={() => openProduct(product)}
-                                                        className="relative block aspect-[0.94/1] overflow-hidden bg-muted/40"
+                                                        onClick={(e) => openProduct(product, e)}
+                                                        onMouseEnter={() => {
+                                                            void import('./ProductDetailPage');
+                                                        }}
+                                                        className="relative block aspect-[0.94/1] overflow-hidden bg-muted/40 cursor-pointer"
                                                     >
                                                         <HomepageMediaImage
+                                                            data-product-card-image="true"
                                                             groupReady={areHomepageCommerceMediaReady}
                                                             loading="eager"
                                                             decoding="async"
@@ -1214,7 +1252,10 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                                                     </button>
                                                     <div className="flex flex-1 flex-col p-5">
                                                         <p className="font-hero-body text-[11px] font-black uppercase tracking-[0.2em] text-primary">{product.brand || 'Thế Giới Trị Mụn'}</p>
-                                                        <h3 className="mt-1.5 line-clamp-2 text-base font-bold leading-snug text-foreground">
+                                                        <h3
+                                                            onClick={(e) => openProduct(product, e)}
+                                                            className="mt-1.5 line-clamp-2 text-base font-bold leading-snug text-foreground cursor-pointer transition hover:text-primary"
+                                                        >
                                                             {getLocalized(product, 'name')}
                                                         </h3>
                                                         <HomepageProductRiskBar summary={productRiskSummary} />
@@ -1228,7 +1269,10 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                                                                     type="button"
                                                                     onClick={(event) => {
                                                                         event.stopPropagation();
-                                                                        openProduct(product);
+                                                                        openProduct(product, event);
+                                                                    }}
+                                                                    onMouseEnter={() => {
+                                                                        void import('./ProductDetailPage');
                                                                     }}
                                                                     className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/60 bg-white/80 text-foreground transition hover:border-primary/40 hover:text-primary hover:bg-white dark:border-white/10 dark:bg-white/10 btn-press"
                                                                     aria-label={`${copy.viewProduct}: ${getLocalized(product, 'name')}`}
@@ -1559,7 +1603,7 @@ const HomepageIngredientAnalyzerSection: React.FC<{
             {faqItems.length > 0 && (
                 <section className="px-4 py-10 md:px-6 md:py-14">
                         <div className="container mx-auto">
-                            <AnimatedSection className="homepage-section-shell grid gap-8 p-6 md:p-10 lg:grid-cols-[0.88fr_1.12fr] lg:p-14">
+                            <AnimatedSection className="homepage-section-shell grid gap-8 p-0 md:p-10 lg:grid-cols-[0.88fr_1.12fr] lg:p-14">
                                 <div className="text-center lg:text-left">
                                     <p className="section-kicker">{copy.faqKicker}</p>
                                     <h2 className="section-title mt-4">{copy.faqTitle}</h2>

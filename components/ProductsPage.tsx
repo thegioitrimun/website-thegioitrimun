@@ -1,4 +1,4 @@
-import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import type { Product, ProductCategory } from '../types';
@@ -113,6 +113,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
   const [priceFilter, setPriceFilter] = useState<PriceFilterKey>('all');
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const sidebarRef = useBiDirectionalSticky(96, 96, 32) as React.RefObject<HTMLDivElement>;
+  const catalogTopRef = useRef<HTMLElement>(null);
   const [quickFilter, setQuickFilter] = useState<QuickFilterKey>('all');
   const [brandFilters, setBrandFilters] = useState<string[]>([]);
   const [skinTypeFilters, setSkinTypeFilters] = useState<string[]>([]);
@@ -518,6 +519,15 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
 
   const activeFilterCount = activeFilterChips.length;
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const schedulePrefetch = (window as any).requestIdleCallback || ((cb: () => void) => window.setTimeout(cb, 300));
+      schedulePrefetch(() => {
+        void import('./ProductDetailPage');
+      });
+    }
+  }, []);
+
   const listingItems = useMemo<ProductCardItem[]>(() => {
     return paginatedProducts.map((product) => {
       const name = localized.get(product, 'name');
@@ -588,6 +598,19 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
   const openProduct = (item: ProductCardItem) => {
     onSelectProduct(item.product.id, item.product.category?.slug || item.product.category_slug);
   };
+
+  const handlePageChange = useCallback((newPage: number) => {
+    if (newPage === currentPage) return;
+    if (catalogTopRef.current) {
+      catalogTopRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    const update = () => setCurrentPage(newPage);
+    if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+      (document as any).startViewTransition(update);
+    } else {
+      update();
+    }
+  }, [currentPage]);
 
   if (!hasFullCatalog) {
     return (
@@ -770,7 +793,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
       : null;
 
   return (
-    <div className="animate-page-enter bg-background text-foreground transition-colors duration-300">
+    <div className="animate-scale-in bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-8">
 
         <CategoryHeader
@@ -813,7 +836,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
             </div>
           </aside>
 
-          <main className="min-w-0">
+          <main ref={catalogTopRef} className="min-w-0">
             <div className="mb-5 hidden md:block">
               <div className="rounded-[22px] border-0 bg-white/94 px-4 py-3 shadow-[0_14px_28px_-26px_rgba(36,46,57,0.12)] backdrop-blur dark:bg-[#0f1722]/94 dark:shadow-[0_18px_36px_-24px_rgba(4,10,24,0.6)]">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -861,10 +884,9 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
               </div>
             </div>
 
-
-
             <ProductGrid
               items={listingItems}
+              page={currentPage}
               formatCurrency={formatCurrency}
               isWishlisted={isWishlisted}
               onViewProduct={openProduct}
@@ -875,7 +897,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
 
             {filteredProducts.length > 0 && (
               <div className="mt-6 md:mt-8">
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
               </div>
             )}
           </main>

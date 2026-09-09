@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type { AdminNavigationView, AdminSiteSection, Service, DoctorDetail, BlogPost, FAQItem, HomepageHero, AboutPageData, AboutContent, AboutFeature, AboutValue, SiteInfo, FooterContent, AuthPageImages, PaymentSettings, ObservabilityLogEntry, ObservabilityCleanupResult, ObservabilityLogsResponse, ObservabilityMetricsSummaryResponse } from '../types';
 import { WrenchScrewdriverIcon, PlusCircleIcon, PencilIcon, TrashIcon, SearchIcon, CloseIcon, ShieldCheckIcon, LoadingIcon } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 import AnimatedSection from './AnimatedSection';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
 import * as api from '../services/api';
@@ -169,17 +170,13 @@ const AutocompletePostSelector: React.FC<{
             </div>
 
             {/* Input field */}
-            <div className="relative">
-                <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                <input
-                    type="text"
-                    value={inputValue}
-                    onChange={handleInputChange}
-                    onFocus={() => { if (inputValue.trim().length > 0) setIsDropdownOpen(true); }}
-                    placeholder={t('admin.search_select_post', 'Tìm kiếm và chọn bài viết...')}
-                    className="w-full pl-10 pr-4 py-2 border border-input bg-background rounded-md"
-                />
-            </div>
+            <GlassSearchInput
+                value={inputValue}
+                onChange={(val) => setInputValue(val)}
+                onClear={() => setInputValue('')}
+                onFocus={() => { if (inputValue.trim().length > 0) setIsDropdownOpen(true); }}
+                placeholder={t('admin.search_select_post', 'Tìm kiếm và chọn bài viết...')}
+            />
 
             {/* Suggestions dropdown */}
             {isDropdownOpen && suggestions.length > 0 && (

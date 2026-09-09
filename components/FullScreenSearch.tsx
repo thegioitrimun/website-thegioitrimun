@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useDeferredValue } from 'r
 import { useTranslation } from 'react-i18next';
 import type { Product, Service, View, BlogPost } from '../types';
 import { SearchIcon, CloseIcon } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 import * as api from '../services/api';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
@@ -311,20 +312,22 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
             <div className={`absolute inset-0 bg-background/95`} onClick={onClose}></div>
             <div className={`container relative z-10 mx-auto px-4 h-full flex flex-col ${isOpen ? 'search-slide-in' : 'search-slide-out'}`}>
                 {/* Header */}
-                <header className="flex-shrink-0 flex items-center justify-between py-4">
-                    <div className="relative w-full">
-                        <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <input
-                            ref={inputRef}
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder={t('common.search_placeholder')}
-                            className="w-full bg-transparent border-0 pl-12 pr-4 py-3 text-lg focus:ring-0"
-                        />
-                    </div>
-                    <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground">
-                        <CloseIcon className="w-6 h-6" />
+                <header className="flex-shrink-0 flex items-center gap-3 py-4">
+                    <GlassSearchInput
+                        ref={inputRef}
+                        value={searchTerm}
+                        onChange={(val) => setSearchTerm(val)}
+                        onClear={() => setSearchTerm('')}
+                        placeholder={t('common.search_placeholder')}
+                        containerClassName="flex-1"
+                        inputClassName="text-base sm:text-lg"
+                    />
+                    <button 
+                        onClick={onClose} 
+                        className="p-2.5 rounded-2xl bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] text-muted-foreground hover:text-foreground transition-all shrink-0 active:scale-95"
+                        aria-label="Đóng tìm kiếm"
+                    >
+                        <CloseIcon className="w-5 h-5" />
                     </button>
                 </header>
 

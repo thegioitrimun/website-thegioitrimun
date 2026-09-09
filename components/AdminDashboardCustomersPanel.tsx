@@ -5,6 +5,7 @@ import Spinner from './Spinner';
 import { SearchIcon } from './icons';
 import { exportWorkbook } from '../src/workbookExport';
 import { useToast } from '../hooks/useToast';
+import { GlassSearchInput } from './GlassInputs';
 
 interface AdminDashboardCustomersPanelProps {
   orders: ProductOrder[];
@@ -250,158 +251,22 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
     }
   };
 
-  const customerPresets = useMemo(() => [
-    {
-      key: 'all',
-      label: 'Tất cả khách',
-      count: customers.length,
-      isActive: segmentFilter === 'all' && !atRiskOnly && !returningOnly,
-      onClick: () => {
-        setSegmentFilter('all');
-        setAtRiskOnly(false);
-        setReturningOnly(false);
-      },
-    },
-    {
-      key: 'hybrid_customer',
-      label: 'Hybrid',
-      count: customers.filter((c) => c.segment === 'hybrid_customer').length,
-      isActive: segmentFilter === 'hybrid_customer' && !atRiskOnly && !returningOnly,
-      onClick: () => {
-        setSegmentFilter('hybrid_customer');
-        setAtRiskOnly(false);
-        setReturningOnly(false);
-      },
-    },
-    {
-      key: 'product_only_customer',
-      label: 'Chỉ mua hàng',
-      count: customers.filter((c) => c.segment === 'product_only_customer').length,
-      isActive: segmentFilter === 'product_only_customer' && !atRiskOnly && !returningOnly,
-      onClick: () => {
-        setSegmentFilter('product_only_customer');
-        setAtRiskOnly(false);
-        setReturningOnly(false);
-      },
-    },
-    {
-      key: 'service_only_customer',
-      label: 'Chỉ dịch vụ',
-      count: customers.filter((c) => c.segment === 'service_only_customer').length,
-      isActive: segmentFilter === 'service_only_customer' && !atRiskOnly && !returningOnly,
-      onClick: () => {
-        setSegmentFilter('service_only_customer');
-        setAtRiskOnly(false);
-        setReturningOnly(false);
-      },
-    },
-    {
-      key: 'lead_only_customer',
-      label: 'Tiềm năng',
-      count: customers.filter((c) => c.segment === 'lead_only_customer').length,
-      isActive: segmentFilter === 'lead_only_customer' && !atRiskOnly && !returningOnly,
-      onClick: () => {
-        setSegmentFilter('lead_only_customer');
-        setAtRiskOnly(false);
-        setReturningOnly(false);
-      },
-    },
-    {
-      key: 'at_risk',
-      label: 'Khách At-risk',
-      count: customers.filter((c) => c.is_at_risk).length,
-      isActive: atRiskOnly,
-      onClick: () => {
-        setAtRiskOnly((prev) => !prev);
-      },
-    },
-    {
-      key: 'returning',
-      label: 'Khách Returning',
-      count: customers.filter((c) => c.is_returning).length,
-      isActive: returningOnly,
-      onClick: () => {
-        setReturningOnly((prev) => !prev);
-      },
-    },
-  ], [customers, segmentFilter, atRiskOnly, returningOnly]);
-
   return (
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
       {/* 1. Header & Filter Card (Chuẩn kiểu Đơn hàng - Hình số 2) */}
       <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        {/* Preset pills row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {customerPresets.map((preset) => {
-            const isActive = preset.isActive;
-            return (
-              <button
-                key={preset.key}
-                type="button"
-                onClick={preset.onClick}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <span>{preset.label}</span>
-                {preset.count > 0 && (
-                  <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                  }`}>
-                    {preset.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Search bar, Filter toggle & Icon-only Export button */}
-        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Tìm theo tên khách, SĐT, email..."
-              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-1.5 h-9 px-3 rounded-xl border text-xs font-semibold transition-all shrink-0 ${
-              showFilters || activeFilterCount > 0
-                ? 'border-primary/50 bg-primary/10 text-primary font-bold shadow-xs'
-                : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-3.5 h-3.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-            </svg>
-            <span>Bộ lọc</span>
-            {activeFilterCount > 0 && (
-              <span className="flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <GlassSearchInput
+            value={searchQuery}
+            onChange={(val) => setSearchQuery(val)}
+            onClear={() => setSearchQuery('')}
+            placeholder="Tìm theo tên khách, SĐT, email..."
+            containerClassName="flex-1 min-w-0"
+            onFilter={() => setShowFilters(!showFilters)}
+            isFilterActive={showFilters || activeFilterCount > 0}
+            filterTitle={activeFilterCount > 0 ? `Bộ lọc (${activeFilterCount} đang chọn)` : 'Bộ lọc'}
+          />
           <button
             type="button"
             onClick={handleExport}
@@ -971,8 +836,15 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
                           </div>
                           <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                             <span>{formatDateTime(order.created_at)}</span>
-                            <span className="rounded-md border border-border/50 bg-card/60 px-1.5 py-0.2 text-[10px] font-semibold text-foreground">
-                              {order.order_channel || 'online'}
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-bold shadow-2xs ${
+                                (order.order_channel || 'online') === 'pos'
+                                  ? 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:border-violet-500/40 dark:bg-violet-500/20 dark:text-violet-300'
+                                  : 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:border-sky-500/40 dark:bg-sky-500/20 dark:text-sky-300'
+                              }`}
+                            >
+                              <span className={`h-1.5 w-1.5 rounded-full ${(order.order_channel || 'online') === 'pos' ? 'bg-violet-500' : 'bg-sky-500'}`} />
+                              {(order.order_channel || 'online') === 'pos' ? 'POS' : 'Online'}
                             </span>
                           </div>
                         </div>

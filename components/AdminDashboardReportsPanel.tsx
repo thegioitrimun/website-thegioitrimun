@@ -15,6 +15,8 @@ import Spinner from './Spinner';
 import { DocumentDuplicateIcon, MailIcon, ReceiptIcon, TrashIcon, PencilIcon } from './icons';
 import { useToast } from '../hooks/useToast';
 import { exportWorkbook } from '../src/workbookExport';
+import { GlassSearchInput } from './GlassInputs';
+import { AdminSurface, AdminButton } from './admin';
 
 type ReportsPreset = AdminReportPreset;
 
@@ -85,13 +87,31 @@ const formatDateTime = (value?: string | null) => {
   }).format(date);
 };
 
-const MetricTile: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all hover:border-primary/40 dark:border-white/10">
-    <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-    <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight">{value}</p>
-    {hint ? <p className="mt-1.5 text-xs text-muted-foreground line-clamp-1">{hint}</p> : null}
-  </div>
-);
+const MetricTile: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => {
+  const isCurrency = /[₫đ]$/i.test(value.trim());
+  const cleanNumber = isCurrency ? value.trim().replace(/\s*[₫đ]$/i, '') : value;
+  const isLong = cleanNumber.length > 7;
+
+  return (
+    <AdminSurface
+      variant="content"
+      className="p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] transition-all hover:border-primary/40 min-w-0 overflow-hidden"
+    >
+      <p className="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em] text-muted-foreground truncate">{label}</p>
+      <p className={`mt-1.5 sm:mt-2 font-black text-foreground font-mono tracking-tight whitespace-nowrap flex items-baseline gap-0.5 ${
+        isLong
+          ? 'text-lg sm:text-2xl lg:text-3xl'
+          : 'text-2xl sm:text-3xl'
+      }`}>
+        <span className="truncate">{cleanNumber}</span>
+        {isCurrency && (
+          <span className="text-xs sm:text-sm font-bold text-muted-foreground/80 shrink-0">₫</span>
+        )}
+      </p>
+      {hint ? <p className="mt-1 sm:mt-1.5 text-[11px] sm:text-xs text-muted-foreground line-clamp-1 truncate">{hint}</p> : null}
+    </AdminSurface>
+  );
+};
 
 const parseRecipients = (value: string): string[] =>
   Array.from(
@@ -363,57 +383,16 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
 
       {/* 1. Header & Filter Card matching Orders, Customers, Appointments */}
       <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        {/* Preset pills row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {(['30d', '7d', '90d'] as ReportsPreset[]).map((pKey) => {
-            const isActive = preset === pKey;
-            return (
-              <button
-                key={pKey}
-                type="button"
-                onClick={() => setPreset(pKey)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <span>{PRESET_LABELS[pKey]}</span>
-                {snapshot && pKey === preset && (
-                  <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-bold text-primary-foreground">
-                    {snapshot.total_orders} đơn
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Search bar, Scheduler shortcut & Excel export button */}
-        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm sản phẩm / dịch vụ / cảnh báo / lịch gửi..."
-              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all text-foreground"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <GlassSearchInput
+            size="sm"
+            value={searchQuery}
+            onChange={(val) => setSearchQuery(val)}
+            onClear={() => setSearchQuery('')}
+            placeholder="Tìm kiếm..."
+            containerClassName="flex-1 min-w-0"
+          />
 
           <button
             type="button"
@@ -421,13 +400,14 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
               const elem = document.getElementById('report-scheduler-card');
               elem?.scrollIntoView({ behavior: 'smooth' });
             }}
-            className="flex items-center gap-1.5 h-9 px-3 rounded-xl border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shrink-0 active:scale-95"
+            className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shrink-0 active:scale-95"
             title="Xem lịch gửi email tự động"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-3.5 h-3.5">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
-            <span>Lịch tự động</span>
+            <span className="hidden sm:inline">Lịch tự động</span>
+            <span className="sm:hidden">Lịch</span>
             {activeScheduleCount > 0 && (
               <span className="flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
                 {activeScheduleCount}

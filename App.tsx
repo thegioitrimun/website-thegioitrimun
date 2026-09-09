@@ -2,6 +2,7 @@
 
 
 import React, { Suspense, lazy, useState, useEffect, useCallback, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import { useTheme } from './hooks/useTheme';
@@ -71,7 +72,6 @@ import {
     loadAdminSiteManagementPage,
     loadAdminUserManagementPage,
     loadAdminVatManagementPage,
-    loadAdminPosPage,
     preloadAdminWorkspace,
 } from './src/adminPageLoaders';
 
@@ -97,7 +97,6 @@ const CheckoutSuccessPage = lazy(() => import('./components/CheckoutSuccessPage'
 const OrderLookupPage = lazy(() => import('./components/OrderLookupPage'));
 const WishlistPage = lazy(() => import('./components/WishlistPage'));
 const AdminDashboardPage = lazy(loadAdminDashboardPage);
-const AdminPosPage = lazy(loadAdminPosPage);
 const AdminUserManagementPage = lazy(loadAdminUserManagementPage);
 const AdminBlogManagementPage = lazy(loadAdminBlogManagementPage);
 const AdminSiteManagementPage = lazy(loadAdminSiteManagementPage);
@@ -135,7 +134,6 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
     'adminProductImageImporter',
     'adminPharmacyManagement',
     'adminPancakeManagement',
-    'adminPos',
     'adminSiteManagement',
     'adminVatManagement',
 ]);
@@ -144,7 +142,6 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
 // them through the shared bootstrap gate would leave pages with no bootstrap
 // tasks stuck in the global loading state forever.
 const SELF_MANAGED_ADMIN_PAGES = new Set<View['page']>([
-    'adminPos',
     'adminPancakeManagement',
     'adminVatManagement',
 ]);
@@ -196,7 +193,22 @@ const App: React.FC = () => {
     const { clearCart, itemCount, isMiniCartOpen, openMiniCart, addToCart } = useCart();
     const { loadWishlist, clearWishlist } = useWishlist();
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [view, setView] = useState<View>(getInitialView);
+    const [view, setViewRaw] = useState<View>(getInitialView);
+
+    const setView = useCallback((nextViewAction: React.SetStateAction<View>) => {
+        const update = () => {
+            setViewRaw(nextViewAction);
+        };
+        if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+            (document as any).startViewTransition(() => {
+                flushSync(() => {
+                    update();
+                });
+            });
+        } else {
+            update();
+        }
+    }, []);
     const [currentUser, setCurrentUser] = useState<UserData | null>(null);
     const [openFaqId, setOpenFaqId] = useState<number | null>(null);
     const [summarizingDocId, setSummarizingDocId] = useState<string | null>(null);
@@ -283,16 +295,41 @@ const App: React.FC = () => {
     const openProductDetail = useCallback((idOrSlug: number | string, options?: { categorySlug?: string; focusReview?: boolean }) => {
         const existingProduct = products.find((entry) => entry.id === idOrSlug || entry.slug === String(idOrSlug));
         const productKey = existingProduct?.slug || idOrSlug;
-        void loadProductDetailPage().then((module) => (
-            module.prefetchProductIngredientAnalysis(productKey, i18n.language)
-        )).catch(() => undefined);
         const nextCategorySlug = options?.categorySlug || (existingProduct ? getProductCategorySlug(existingProduct, productCategories) : undefined);
-        setView({
-            page: 'productDetail',
-            id: productKey,
-            categorySlug: nextCategorySlug,
-            ...(options?.focusReview ? { focusReview: true } : {}),
-        });
+
+        const executeTransition = () => {
+            const updateView = () => {
+                setViewRaw({
+                    page: 'productDetail',
+                    id: productKey,
+                    categorySlug: nextCategorySlug,
+                    ...(options?.focusReview ? { focusReview: true } : {}),
+                });
+            };
+            if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+                const transition = (document as any).startViewTransition(() => {
+                    flushSync(() => {
+                        updateView();
+                    });
+                });
+                transition?.finished?.finally(() => {
+                    document.querySelectorAll<HTMLElement>('[data-product-card-image], [style*="view-transition-name"]').forEach((el) => {
+                        el.style.viewTransitionName = '';
+                    });
+                });
+            } else {
+                updateView();
+            }
+        };
+
+        void loadProductDetailPage()
+            .then((module) => {
+                module.prefetchProductIngredientAnalysis(productKey, i18n.language);
+                executeTransition();
+            })
+            .catch(() => {
+                executeTransition();
+            });
     }, [i18n.language, productCategories, products]);
 
     useEffect(() => {
@@ -1599,11 +1636,9 @@ const App: React.FC = () => {
                     setView({ page: 'main' }); return null;
                 case 'adminPancakeManagement':
                     if (isAdmin) {
-                        return <AdminPancakeManagementPage />;
+                        return <AdminPancakeManagementPage initialSection={view.section} onNavigate={setView} />;
                     }
                     setView({ page: 'main' }); return null;
-                case 'adminPos':
-                    return <AdminPosPage />;
                 case 'adminVatManagement':
                     if (isVatStaff) {
                         return <AdminVatManagementPage currentRole={currentUser.profile.role} />;
@@ -1681,9 +1716,9 @@ const App: React.FC = () => {
         return (
             <AdminLayoutProvider>
                 <AdminWorkspaceLayout
-                    currentPage={(view.page === 'adminPharmacyManagement' && view.section === 'orders' ? 'adminDashboard' : view.page) as any}
+                    currentView={view as any}
+                    currentPage={view.page as any}
                     currentRole={currentUser.profile.role}
-                    posRoles={currentUser.profile.pos_roles}
                     onNavigate={setView}
                     onBack={() => setView(currentUser.profile.role === 'accountant' ? { page: 'account' } : { page: 'adminDashboard' })}
                 >
@@ -1850,6 +1885,7 @@ const App: React.FC = () => {
                         openFaqId={openFaqId}
                         onToggleFaq={setOpenFaqId}
                         onSetView={setView}
+                        onSelectProduct={(id, categorySlug) => openProductDetail(id, { categorySlug })}
                         onAddToCart={handleAddToCart}
                         onRequestBooking={() => onRequestBooking()}
                         getLocalized={getLocalized}
@@ -1878,7 +1914,10 @@ const App: React.FC = () => {
             ) : null}
 
             {!isAdminView ? (
-            <header className={`fixed inset-x-0 top-0 z-50 will-change-transform transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+            <header
+                style={{ viewTransitionName: 'app-header' }}
+                className={`fixed inset-x-0 top-0 z-50 will-change-transform transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}
+            >
                 <div className="container relative mx-auto px-3 pt-2.5 sm:px-4 sm:pt-3 lg:px-6 lg:pt-4">
                     <div className={`relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-all duration-500 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 ${
                         isAtTop
@@ -1936,7 +1975,7 @@ const App: React.FC = () => {
                                             ? 'text-slate-900 dark:text-slate-900'
                                             : 'text-foreground dark:text-white'
                                     }`}>
-                                        Thế Giới <span className="inline-block whitespace-nowrap"><span className="text-[#ef4444] dark:text-[#f87171] animate-doll-jump cursor-pointer" title="Trị">Trị</span>&nbsp;Mụn</span>
+                                        Thế Giới <span className="text-[#ef4444] dark:text-[#f87171]">Trị</span> Mụn
                                     </span>
                                     <span className={`mt-0.5 block whitespace-nowrap font-sans text-[8.5px] font-bold tracking-[0.06em] transition-colors duration-500 sm:text-[9.5px] lg:text-[11px] ${
                                         isHomeInvertedHeader
@@ -2033,9 +2072,9 @@ const App: React.FC = () => {
             </main>
 
             {!isAdminView ? (
-            <footer id="footer" className="relative overflow-hidden border-t border-border/70 bg-white text-foreground transition-colors duration-300 dark:border-white/10 dark:bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)]">
+            <footer id="footer" className="relative overflow-hidden bg-white text-foreground transition-colors duration-300 dark:bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)]">
                 <div className="container relative mx-auto px-6 py-16 md:py-20">
-                    <AnimatedSection className="overflow-hidden rounded-[36px] border border-border bg-white/76 p-8 shadow-[0_30px_72px_-42px_rgba(36,46,57,0.18)] backdrop-blur dark:border-white/10 dark:bg-[#111a27]/78 dark:shadow-[0_34px_76px_-42px_rgba(4,10,24,0.72)] md:p-10 lg:p-12">
+                    <AnimatedSection className="overflow-hidden border-0 bg-transparent px-0 py-8 md:py-10 lg:py-12">
                         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                             <div className="text-center lg:text-left">
                                 <p className="section-kicker">Thế Giới Trị Mụn</p>

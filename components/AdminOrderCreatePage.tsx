@@ -12,6 +12,7 @@ import * as api from '../services/api';
 import { useToast } from '../hooks/useToast';
 import VietnamAddressFields, { type VietnamAddressValue } from './VietnamAddressFields';
 import Spinner from './Spinner';
+import { shippingFeeForNewOrder } from '../worker/shipping/feePolicy.js';
 import {
     ArrowLeftIcon,
     CheckCircleIcon,
@@ -22,6 +23,7 @@ import {
     SearchIcon,
     ShoppingBagIcon,
 } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 import {
     buildOrderShareText,
     formatOrderCurrency,
@@ -80,7 +82,6 @@ const AdminOrderCreatePage: React.FC<AdminOrderCreatePageProps> = ({
     const [paymentMethod, setPaymentMethod] = useState<OrderPaymentMethod>(channel === 'pos' ? 'cash' : 'cod');
     const [workflow, setWorkflow] = useState<AdminOrderWorkflow>('paid_completed');
     const [discountInput, setDiscountInput] = useState('0');
-    const [shippingFeeInput, setShippingFeeInput] = useState('0');
     const [shippingProvider, setShippingProvider] = useState('manual');
     const [notes, setNotes] = useState('');
     const [quote, setQuote] = useState<CheckoutPricingQuote | null>(null);
@@ -128,7 +129,7 @@ const AdminOrderCreatePage: React.FC<AdminOrderCreatePageProps> = ({
     );
 
     const discountAmount = normalizeMoneyInput(discountInput);
-    const shippingFee = channel === 'online' ? normalizeMoneyInput(shippingFeeInput) : 0;
+    const shippingFee = shippingFeeForNewOrder(channel);
 
     useEffect(() => {
         if (selectedItems.length === 0) {
@@ -265,7 +266,6 @@ const AdminOrderCreatePage: React.FC<AdminOrderCreatePageProps> = ({
         setPaymentMethod(channel === 'pos' ? 'cash' : 'cod');
         setWorkflow('paid_completed');
         setDiscountInput('0');
-        setShippingFeeInput('0');
         setShippingProvider('manual');
         setNotes('');
         setCreatedOrder(null);
@@ -331,10 +331,13 @@ const AdminOrderCreatePage: React.FC<AdminOrderCreatePageProps> = ({
                             </div>
                             <p className="text-xs text-muted-foreground">{channel === 'pos' ? 'Có thể chọn cả sản phẩm đang ẩn website.' : 'Chỉ sản phẩm đang hiển thị.'}</p>
                         </div>
-                        <div className="relative mt-5">
-                            <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                            <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} className={`${inputClassName} mt-0 pl-12`} placeholder="Tìm theo tên hoặc SKU…" />
-                        </div>
+                        <GlassSearchInput
+                            value={searchQuery}
+                            onChange={(val) => setSearchQuery(val)}
+                            onClear={() => setSearchQuery('')}
+                            placeholder="Tìm theo tên hoặc SKU…"
+                            containerClassName="mt-5"
+                        />
                         <div className="mt-4 max-h-[360px] space-y-2 overflow-y-auto pr-1">
                             {searchResults.map((product) => {
                                 const quantity = selectedQuantities[product.id] || 0;
@@ -384,7 +387,7 @@ const AdminOrderCreatePage: React.FC<AdminOrderCreatePageProps> = ({
                             <div className="mt-5"><VietnamAddressFields value={address} onChange={setAddress} required inputClassName={inputClassName} /></div>
                             <div className="mt-4 grid gap-4 md:grid-cols-2">
                                 <label className="text-sm font-semibold">Đơn vị giao hàng<select value={shippingProvider} onChange={(event) => setShippingProvider(event.target.value)} className={inputClassName}><option value="manual">Thủ công / khác</option><option value="ghtk">GHTK</option><option value="spx">SPX</option></select></label>
-                                <label className="text-sm font-semibold">Phí giao hàng<input type="number" min="0" step="1000" value={shippingFeeInput} onChange={(event) => setShippingFeeInput(event.target.value)} className={inputClassName} /></label>
+                                <label className="text-sm font-semibold">Phí giao hàng thu khách<input type="text" readOnly value={formatOrderCurrency(shippingFee)} className={inputClassName} /><span className="mt-1 block text-xs font-normal text-muted-foreground">Cố định 30.000đ/đơn online; không phải cước thực tế của hãng.</span></label>
                             </div>
                         </section>
                     ) : null}

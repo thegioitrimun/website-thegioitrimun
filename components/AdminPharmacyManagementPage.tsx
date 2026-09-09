@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy } from 'react';
 import { createPortal } from 'react-dom';
 import { printProductOrder, getOrderChannelLabel } from '../src/orderReceipt';
 import type {
@@ -45,6 +45,19 @@ import {
     SAFE_WORKBOOK_READ_OPTIONS,
     validateWorkbookImportFile,
 } from '../src/workbookImportSecurity';
+import {
+    AdminPageHeader,
+    AdminSectionTabs,
+    AdminButton,
+    AdminProductListPage,
+    AdminProductCategoryList,
+    AdminProductBrandList,
+    AdminProductDiscountList,
+    AdminProductTaxSettings,
+    AdminGhtkSettings,
+} from './admin';
+
+const AdminOrderCreatePage = lazy(() => import('./AdminOrderCreatePage'));
 import { getOrderItemDisplayName } from '../src/orderItemPresentation';
 
 
@@ -3235,2175 +3248,333 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
             );
         }
 
-        const filterButtons: { key: InventoryFilter, label: string }[] = [
-            { key: 'all', label: t('admin.filter_all') },
-            { key: 'in_stock', label: t('admin.filter_in_stock') },
-            { key: 'low_stock', label: t('admin.filter_low_stock') },
-            { key: 'out_of_stock', label: t('admin.filter_out_of_stock') },
-            { key: 'hidden', label: 'Đang ẩn web' },
-            { key: 'featured', label: 'Đang nổi bật' },
-            { key: 'near_expiry', label: 'Sắp hết hạn 30 ngày' },
-            { key: 'no_sku', label: 'Thiếu SKU' },
-        ];
+        if (activeTab !== 'orders') {
+            const productTabs = [
+                { key: 'products', label: 'Sản phẩm', count: products.length },
+                { key: 'categories', label: 'Chuyên mục', count: categories.length },
+                { key: 'brands', label: 'Thương hiệu', count: brands.length },
+                { key: 'discounts', label: 'Mã giảm giá', count: discountCodes.length },
+                { key: 'taxes', label: 'Thuế bán hàng' },
+                { key: 'ghtk_settings', label: 'Giao hàng GHTK' },
+            ];
+
+            const getHeaderMeta = () => {
+                switch (activeTab) {
+                    case 'categories':
+                        return {
+                            title: 'Chuyên mục',
+                            subtitle: 'Phân loại sản phẩm và thiết lập hiển thị nổi bật trên trang chủ',
+                            action: (
+                                <AdminButton
+                                    variant="primary"
+                                    onClick={() => {
+                                        setEditingCategoryId(null);
+                                        setIsCategoryFormVisible(true);
+                                    }}
+                                    leftIcon={<PlusCircleIcon className="h-4 w-4" />}
+                                >
+                                    Thêm chuyên mục
+                                </AdminButton>
+                            ),
+                        };
+                    case 'brands':
+                        return {
+                            title: 'Thương hiệu',
+                            subtitle: 'Quản lý thương hiệu đối tác, logo và mô tả giới thiệu',
+                            action: (
+                                <AdminButton
+                                    variant="primary"
+                                    onClick={() => {
+                                        setEditingBrandId(null);
+                                        setIsBrandFormVisible(true);
+                                    }}
+                                    leftIcon={<PlusCircleIcon className="h-4 w-4" />}
+                                >
+                                    Thêm thương hiệu
+                                </AdminButton>
+                            ),
+                        };
+                    case 'discounts':
+                        return {
+                            title: 'Mã giảm giá',
+                            subtitle: 'Cấu hình voucher giảm giá phần trăm hoặc số tiền cố định',
+                            action: (
+                                <AdminButton
+                                    variant="primary"
+                                    onClick={() => {
+                                        resetDiscountForm();
+                                        setIsDiscountFormVisible(true);
+                                    }}
+                                    leftIcon={<PlusCircleIcon className="h-4 w-4" />}
+                                >
+                                    Tạo mã voucher
+                                </AdminButton>
+                            ),
+                        };
+                    case 'taxes':
+                        return {
+                            title: 'Thuế bán hàng',
+                            subtitle: 'Hồ sơ thuế suất VAT mặc định và các chính sách ghi đè theo địa phương',
+                            action: null,
+                        };
+                    case 'ghtk_settings':
+                        return {
+                            title: 'Giao Hàng Tiết Kiệm',
+                            subtitle: 'Trạng thái kết nối webhook và cấu hình kho lấy hàng GHTK',
+                            action: null,
+                        };
+                    case 'products':
+                    default:
+                        return {
+                            title: 'Sản phẩm',
+                            subtitle: 'Quản lý danh mục dược mỹ phẩm, tồn kho và bảng giá bán',
+                            action: (
+                                <div className="flex items-center gap-2">
+                                    <AdminButton
+                                        variant="primary"
+                                        onClick={handleAddNewProduct}
+                                        leftIcon={<PlusCircleIcon className="h-4 w-4" />}
+                                    >
+                                        Thêm sản phẩm mới
+                                    </AdminButton>
+                                </div>
+                            ),
+                        };
+                }
+            };
+
+            const headerMeta = getHeaderMeta();
+
+            return (
+                <div className="space-y-4">
+                    <AdminPageHeader
+                        title={headerMeta.title}
+                        subtitle={headerMeta.subtitle}
+                        actions={headerMeta.action}
+                    />
+
+                    <AdminSectionTabs
+                        items={productTabs}
+                        activeKey={activeTab}
+                        onChange={(tabKey) => {
+                            setActiveTab(tabKey as ActiveTab);
+                            onNavigate({ page: 'adminPharmacyManagement', section: tabKey as AdminPharmacySection });
+                        }}
+                    />
+
+                    {activeTab === 'products' && (
+                        <AdminProductListPage
+                            products={products}
+                            categories={categories}
+                            brands={brands}
+                            categoryNameById={categoryNameById}
+                            inventoryCounts={inventoryCounts}
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            inventoryFilter={inventoryFilter}
+                            navigateToProductFilter={navigateToProductFilter}
+                            selectedCategoryId={selectedCategoryId}
+                            setSelectedCategoryId={setSelectedCategoryId}
+                            selectedBrand={selectedBrand}
+                            setSelectedBrand={setSelectedBrand}
+                            productSortColumn={productSortColumn}
+                            productSortDirection={productSortDirection}
+                            setProductSortColumn={setProductSortColumn}
+                            setProductSortDirection={setProductSortDirection}
+                            currentProducts={currentProducts}
+                            filteredProducts={filteredProducts}
+                            productsCurrentPage={productsCurrentPage}
+                            totalProductPages={totalProductPages}
+                            setProductsCurrentPage={setProductsCurrentPage}
+                            selectedProductIds={selectedProductIds}
+                            toggleProductSelection={toggleProductSelection}
+                            toggleSelectProducts={toggleSelectProducts}
+                            setSelectedProductIds={setSelectedProductIds}
+                            bulkAction={bulkAction}
+                            setBulkAction={setBulkAction}
+                            bulkCategoryId={bulkCategoryId}
+                            setBulkCategoryId={setBulkCategoryId}
+                            bulkBrandName={bulkBrandName}
+                            setBulkBrandName={setBulkBrandName}
+                            bulkNumericValue={bulkNumericValue}
+                            setBulkNumericValue={setBulkNumericValue}
+                            handleApplyBulkAction={handleApplyBulkAction}
+                            isApplyingBulkAction={isApplyingBulkAction}
+                            handleAddNewProduct={handleAddNewProduct}
+                            handleEditProduct={handleEditProduct}
+                            onDeleteProduct={onDeleteProduct}
+                            handleSyncProductToPancake={handleSyncProductToPancake}
+                            handleSyncProductsToPancake={handleSyncProductsToPancake}
+                            isSyncingPancakeProducts={isSyncingPancakeProducts}
+                            syncingPancakeProductId={syncingPancakeProductId}
+                            handleExportProducts={handleExportProducts}
+                            productFileInputRef={productFileInputRef}
+                            handleImportFile={handleImportFile}
+                            isImporting={isImporting}
+                            handleDownloadProductTemplate={handleDownloadProductTemplate}
+                            getInventoryStatusInfo={getInventoryStatusInfo}
+                            getEffectiveContentReviewForProduct={getEffectiveContentReviewForProduct}
+                            getQuickDraft={getQuickDraft}
+                            isQuickDraftDirty={isQuickDraftDirty}
+                            updateQuickDraftField={updateQuickDraftField}
+                            handleSaveQuickDraft={handleSaveQuickDraft}
+                            resetQuickDraft={resetQuickDraft}
+                            savingQuickProductId={savingQuickProductId}
+                            editingPriceId={editingPriceId}
+                            setEditingPriceId={setEditingPriceId}
+                            onSaveProduct={handleSaveProductForm}
+                        />
+                    )}
+
+                    {activeTab === 'categories' && (
+                        <AdminProductCategoryList
+                            categories={categories}
+                            filteredCategories={filteredCategories}
+                            categorySearchQuery={categorySearchQuery}
+                            setCategorySearchQuery={setCategorySearchQuery}
+                            categoryFilter={categoryFilter}
+                            setCategoryFilter={setCategoryFilter}
+                            isCategoryFormVisible={isCategoryFormVisible}
+                            setIsCategoryFormVisible={setIsCategoryFormVisible}
+                            editingCategoryId={editingCategoryId}
+                            setEditingCategoryId={setEditingCategoryId}
+                            newCategoryName={newCategoryName}
+                            setNewCategoryName={setNewCategoryName}
+                            newCategorySlug={newCategorySlug}
+                            setNewCategorySlug={setNewCategorySlug}
+                            newCategoryIsFeatured={newCategoryIsFeatured}
+                            setNewCategoryIsFeatured={setNewCategoryIsFeatured}
+                            editCategoryName={editCategoryName}
+                            setEditCategoryName={setEditCategoryName}
+                            editCategorySlug={editCategorySlug}
+                            setEditCategorySlug={setEditCategorySlug}
+                            editCategoryIsFeatured={editCategoryIsFeatured}
+                            setEditCategoryIsFeatured={setEditCategoryIsFeatured}
+                            handleStartEditCategory={handleStartEditCategory}
+                            handleCancelEditCategory={handleCancelEditCategory}
+                            handleAddNewCategory={handleAddNewCategory}
+                            handleSaveEditCategory={handleSaveEditCategory}
+                            onSaveCategory={onSaveCategory}
+                            onDeleteCategory={onDeleteCategory}
+                            handleExportCategories={handleExportCategories}
+                            handleImportFile={handleImportFile}
+                            handleDownloadCategoryTemplate={handleDownloadCategoryTemplate}
+                        />
+                    )}
+
+                    {activeTab === 'brands' && (
+                        <AdminProductBrandList
+                            brands={brands}
+                            filteredBrands={filteredBrands}
+                            brandSearchQuery={brandSearchQuery}
+                            setBrandSearchQuery={setBrandSearchQuery}
+                            isBrandFormVisible={isBrandFormVisible}
+                            setIsBrandFormVisible={setIsBrandFormVisible}
+                            editingBrandId={editingBrandId}
+                            editingBrand={editingBrand}
+                            isSavingBrand={isSavingBrand}
+                            newBrandName={newBrandName}
+                            setNewBrandName={setNewBrandName}
+                            newBrandSlug={newBrandSlug}
+                            setNewBrandSlug={setNewBrandSlug}
+                            newBrandDescription={newBrandDescription}
+                            setNewBrandDescription={setNewBrandDescription}
+                            newBrandImage={newBrandImage}
+                            setNewBrandImage={setNewBrandImage}
+                            newBrandPreviewUrl={newBrandPreviewUrl}
+                            editBrandName={editBrandName}
+                            setEditBrandName={setEditBrandName}
+                            editBrandSlug={editBrandSlug}
+                            setEditBrandSlug={setEditBrandSlug}
+                            editBrandDescription={editBrandDescription}
+                            setEditBrandDescription={setEditBrandDescription}
+                            editBrandImage={editBrandImage}
+                            setEditBrandImage={setEditBrandImage}
+                            editBrandPreviewUrl={editBrandPreviewUrl}
+                            handleStartEditBrand={handleStartEditBrand}
+                            handleCancelEditBrand={handleCancelEditBrand}
+                            handleAddNewBrand={handleAddNewBrand}
+                            handleSaveEditBrand={handleSaveEditBrand}
+                            onDeleteBrand={(brandId) => {
+                                const b = brands.find(x => x.id === brandId);
+                                if (b) handleDeleteBrandConfirm(b);
+                            }}
+                        />
+                    )}
+
+                    {activeTab === 'discounts' && (
+                        <AdminProductDiscountList
+                            discountCodes={discountCodes}
+                            filteredDiscountCodes={filteredDiscountCodes}
+                            discountSummary={discountSummary}
+                            discountSearchQuery={discountSearchQuery}
+                            setDiscountSearchQuery={setDiscountSearchQuery}
+                            discountFilter={discountFilter}
+                            setDiscountFilter={setDiscountFilter}
+                            isDiscountFormVisible={isDiscountFormVisible}
+                            setIsDiscountFormVisible={setIsDiscountFormVisible}
+                            editingDiscountId={editingDiscountId}
+                            discountForm={discountForm}
+                            setDiscountForm={setDiscountForm}
+                            isSavingDiscountCode={isSavingDiscountCode}
+                            isLoadingDiscountCodes={isLoadingDiscountCodes}
+                            deletingDiscountId={deletingDiscountId}
+                            handleStartEditDiscount={handleStartEditDiscount}
+                            resetDiscountForm={resetDiscountForm}
+                            handleSaveDiscountCode={handleSaveDiscountCode}
+                            handleDeleteDiscountCode={handleDeleteDiscountCode}
+                            loadDiscountCodes={loadDiscountCodes}
+                        />
+                    )}
+
+                    {activeTab === 'taxes' && (
+                        <AdminProductTaxSettings
+                            taxProfiles={taxProfiles}
+                            allTaxRates={allTaxRates}
+                            taxSummary={taxSummary}
+                            isLoadingTaxSettings={isLoadingTaxSettings}
+                            isSavingTaxProfile={isSavingTaxProfile}
+                            isSavingTaxRate={isSavingTaxRate}
+                            editingTaxProfileId={editingTaxProfileId}
+                            editingTaxRateId={editingTaxRateId}
+                            deletingTaxProfileId={deletingTaxProfileId}
+                            deletingTaxRateId={deletingTaxRateId}
+                            taxProfileForm={taxProfileForm}
+                            setTaxProfileForm={setTaxProfileForm}
+                            taxRateForm={taxRateForm}
+                            setTaxRateForm={setTaxRateForm}
+                            loadTaxSettings={loadTaxSettings}
+                            resetTaxProfileForm={resetTaxProfileForm}
+                            resetTaxRateForm={resetTaxRateForm}
+                            handleStartEditTaxProfile={handleStartEditTaxProfile}
+                            handleStartEditTaxRate={handleStartEditTaxRate}
+                            handleSaveTaxProfile={handleSaveTaxProfile}
+                            handleSaveTaxRate={handleSaveTaxRate}
+                            handleDeleteTaxProfile={handleDeleteTaxProfile}
+                            handleDeleteTaxRate={handleDeleteTaxRate}
+                        />
+                    )}
+
+                    {activeTab === 'ghtk_settings' && (
+                        <AdminGhtkSettings
+                            ghtkConnectionStatus={ghtkConnectionStatus}
+                            pickAddresses={pickAddresses}
+                            isLoadingAddresses={isLoadingAddresses}
+                            ghtkWebhookSampleUrl={ghtkWebhookSampleUrl}
+                            selectedAddressDetail={selectedAddressDetail}
+                            isLoadingAddressDetail={isLoadingAddressDetail}
+                            handleFetchPickAddresses={handleFetchPickAddresses}
+                            handleViewAddressDetail={handleViewAddressDetail}
+                            setSelectedAddressDetail={setSelectedAddressDetail}
+                        />
+                    )}
+                </div>
+            );
+        }
 
         return (
-            <>
-                {activeTab === 'products' && (
-                    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {/* Header & Filter Card */}
-                        <div className={`rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all ${
-                            showProductActionsMenu ? 'relative z-50' : 'relative z-30'
-                        }`}>
-                            {/* Preset pills row */}
-                            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                {filterButtons.map(btn => {
-                                    const count = inventoryCounts[btn.key] || 0;
-                                    const isActive = inventoryFilter === btn.key;
-                                    return (
-                                        <button
-                                            key={btn.key}
-                                            type="button"
-                                            onClick={() => navigateToProductFilter(btn.key)}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                isActive
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>{btn.label}</span>
-                                            {count > 0 && (
-                                                <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                                }`}>
-                                                    {count}
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Search bar & action buttons */}
-                            <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-                                <div className="relative flex-1">
-                                    <input
-                                        type="text"
-                                        placeholder="Tìm theo tên sản phẩm hoặc SKU..."
-                                        value={searchQuery}
-                                        onChange={e => setSearchQuery(e.target.value)}
-                                        className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-                                    />
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                    </svg>
-                                    {searchQuery && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSearchQuery('')}
-                                            className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    )}
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={() => setShowProductFilters(!showProductFilters)}
-                                    className={`flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl border text-xs font-semibold transition-all shrink-0 active:scale-95 ${
-                                        showProductFilters || selectedCategoryId !== 'all' || selectedBrand !== 'all'
-                                            ? 'border-primary/50 bg-primary/10 text-primary font-bold shadow-xs'
-                                            : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                    }`}
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-3.5 h-3.5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-                                    </svg>
-                                    <span className="hidden sm:inline">Bộ lọc</span>
-                                    {(selectedCategoryId !== 'all' || selectedBrand !== 'all') && (
-                                        <span className="flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                                            {(selectedCategoryId !== 'all' ? 1 : 0) + (selectedBrand !== 'all' ? 1 : 0)}
-                                        </span>
-                                    )}
-                                </button>
-
-                                <div className="relative z-50" data-product-actions-menu>
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowProductActionsMenu(!showProductActionsMenu)}
-                                        className={`flex h-9 w-9 items-center justify-center rounded-xl border transition-all active:scale-95 shrink-0 ${
-                                            showProductActionsMenu
-                                                ? 'border-primary/50 bg-primary/10 text-primary shadow-xs'
-                                                : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                                        }`}
-                                        title="Tiện ích: Xuất/Nhập Excel, Đồng bộ"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                                        </svg>
-                                    </button>
-
-                                    {showProductActionsMenu && (
-                                        <>
-                                            {/* Transparent Backdrop Click Catcher */}
-                                            <div
-                                                className="fixed inset-0 z-40 bg-transparent"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setShowProductActionsMenu(false);
-                                                }}
-                                            />
-                                            <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-0.5 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowProductActionsMenu(false);
-                                                    handleExportProducts();
-                                                }}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                                            >
-                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-outputexcel.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                <span>Xuất file Excel</span>
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowProductActionsMenu(false);
-                                                    productFileInputRef.current?.click();
-                                                }}
-                                                disabled={isImporting}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left disabled:opacity-50"
-                                            >
-                                                {isImporting ? (
-                                                    <Spinner className="w-4 h-4 text-primary shrink-0" />
-                                                ) : (
-                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-inputexcel.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                )}
-                                                <span>Nhập từ file Excel</span>
-                                            </button>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowProductActionsMenu(false);
-                                                    handleDownloadProductTemplate();
-                                                }}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                                            >
-                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-taifilemau.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                <span>Tải mẫu file Excel</span>
-                                            </button>
-
-                                            <div className="my-1 border-t border-border/50" />
-
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setShowProductActionsMenu(false);
-                                                    void handleSyncProductsToPancake();
-                                                }}
-                                                disabled={isSyncingPancakeProducts}
-                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-primary hover:bg-primary/10 transition-colors text-left disabled:opacity-50"
-                                                title={selectedProductIds.length > 0 ? `Đồng bộ ${selectedProductIds.length} sản phẩm đã chọn với Pancake` : 'Đồng bộ toàn bộ sản phẩm đang hoạt động với Pancake'}
-                                            >
-                                                {isSyncingPancakeProducts ? (
-                                                    <Spinner className="w-4 h-4 text-primary shrink-0" />
-                                                ) : (
-                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                )}
-                                                <span>Đồng bộ Pancake</span>
-                                            </button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-
-                                <button
-                                    type="button"
-                                    onClick={handleAddNewProduct}
-                                    className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all shrink-0 active:scale-95"
-                                    title="Thêm sản phẩm mới"
-                                >
-                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="" className="w-5 h-5 object-contain" />
-                                    <span className="hidden sm:inline">Thêm mới</span>
-                                </button>
-
-                                <input type="file" ref={productFileInputRef} onChange={(e) => handleImportFile(e, 'product')} accept=".xlsx, .xls" className="hidden" />
-                            </div>
-
-                            {/* Collapsible filters row */}
-                            <div className={`mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2 transition-all ${
-                                showProductFilters ? 'grid' : 'hidden xl:grid'
-                            }`}>
-                                <div className="relative">
-                                    <select
-                                        value={selectedCategoryId}
-                                        onChange={e => setSelectedCategoryId(e.target.value)}
-                                        className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-3 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer"
-                                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2rem' }}
-                                    >
-                                        <option value="all">Tất cả chuyên mục ({categories.length})</option>
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="relative">
-                                    <select
-                                        value={selectedBrand}
-                                        onChange={e => setSelectedBrand(e.target.value)}
-                                        className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-3 text-xs font-medium text-foreground outline-none focus:ring-1 focus:ring-primary/50 transition-all appearance-none cursor-pointer"
-                                        style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.25em 1.25em', paddingRight: '2rem' }}
-                                    >
-                                        <option value="all">Tất cả thương hiệu ({brands.length})</option>
-                                        {brands.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-                        {(() => {
-                            const selectedProducts = products.filter(product => selectedProductIds.includes(product.id));
-                            const allCurrentPageSelected = currentProductIds.length > 0 && currentProductIds.every(id => selectedProductIds.includes(id));
-
-                            return (
-                                <>
-                                    <div className="overflow-visible lg:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
-                                        {/* Slim Smart Selection Bar */}
-                                        <div className={`border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md transition-all ${
-                                            selectedProductIds.length > 0 ? 'bg-primary/5 border-primary/20' : 'bg-muted/10'
-                                        }`}>
-                                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                                <label className="flex items-center gap-2 cursor-pointer select-none text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={allCurrentPageSelected}
-                                                        onChange={(e) => toggleSelectProducts(currentProductIds, e.target.checked)}
-                                                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
-                                                        aria-label="Chọn tất cả sản phẩm trang hiện tại"
-                                                    />
-                                                    <span>
-                                                        {selectedProductIds.length > 0 ? (
-                                                            <span className="font-bold text-foreground">
-                                                                Đã chọn <span className="text-primary">{selectedProductIds.length}</span> sản phẩm
-                                                            </span>
-                                                        ) : (
-                                                            `Chọn trang (${currentProducts.length} SP)`
-                                                        )}
-                                                    </span>
-                                                </label>
-
-                                                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                                                    {selectedProductIds.length > 0 ? (
-                                                        <>
-                                                            <select
-                                                                value={bulkAction}
-                                                                onChange={(e) => setBulkAction(e.target.value as any)}
-                                                                className="h-8 rounded-xl border border-border/70 bg-card/90 px-2 sm:px-3 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary/50 appearance-none pr-7 cursor-pointer"
-                                                                style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
-                                                            >
-                                                                <option value="publish">Hiện trên web</option>
-                                                                <option value="unpublish">Ẩn khỏi web</option>
-                                                                <option value="feature">Đánh dấu Nổi bật</option>
-                                                                <option value="unfeature">Bỏ Nổi bật</option>
-                                                                <option value="set_category">Đổi chuyên mục...</option>
-                                                                <option value="set_brand">Đổi thương hiệu...</option>
-                                                                <option value="adjust_stock">Chỉnh kho (+/-)...</option>
-                                                                <option value="set_low_threshold">Mức cảnh báo tồn...</option>
-                                                                <option value="set_vat_rate">Chỉnh % VAT...</option>
-                                                                <option value="delete">Xóa sản phẩm</option>
-                                                            </select>
-
-                                                            {bulkAction === 'set_category' && (
-                                                                <select
-                                                                    value={bulkCategoryId}
-                                                                    onChange={(e) => setBulkCategoryId(e.target.value)}
-                                                                    className="h-8 rounded-xl border border-border/70 bg-card/90 px-2 sm:px-3 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary/50 appearance-none pr-7 cursor-pointer max-w-[140px] sm:max-w-none"
-                                                                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
-                                                                >
-                                                                    <option value="all">Chọn chuyên mục</option>
-                                                                    {categories.map(category => (
-                                                                        <option key={category.id} value={category.id}>{category.name}</option>
-                                                                    ))}
-                                                                </select>
-                                                            )}
-
-                                                            {bulkAction === 'set_brand' && (
-                                                                <select
-                                                                    value={bulkBrandName}
-                                                                    onChange={(e) => setBulkBrandName(e.target.value)}
-                                                                    className="h-8 rounded-xl border border-border/70 bg-card/90 px-2 sm:px-3 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary/50 appearance-none pr-7 cursor-pointer max-w-[140px] sm:max-w-none"
-                                                                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.2em 1.2em' }}
-                                                                >
-                                                                    <option value="all">Chọn thương hiệu</option>
-                                                                    <option value="__none__">Không thương hiệu</option>
-                                                                    {brands.map(brand => (
-                                                                        <option key={brand.id} value={brand.name}>{brand.name}</option>
-                                                                    ))}
-                                                                </select>
-                                                            )}
-
-                                                            {(bulkAction === 'adjust_stock' || bulkAction === 'set_low_threshold' || bulkAction === 'set_vat_rate') && (
-                                                                <input
-                                                                    type="number"
-                                                                    value={bulkNumericValue}
-                                                                    onChange={(e) => setBulkNumericValue(e.target.value)}
-                                                                    placeholder={
-                                                                        bulkAction === 'adjust_stock'
-                                                                            ? '+/- số'
-                                                                            : bulkAction === 'set_vat_rate'
-                                                                                ? '% VAT'
-                                                                                : 'Tồn kho'
-                                                                    }
-                                                                    className="h-8 w-20 sm:w-24 rounded-xl border border-border/70 bg-card/90 px-2 sm:px-3 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-primary/50"
-                                                                />
-                                                            )}
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => void handleApplyBulkAction(selectedProducts)}
-                                                                disabled={isApplyingBulkAction || selectedProductIds.length === 0}
-                                                                className="inline-flex h-8 items-center justify-center rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:opacity-50"
-                                                            >
-                                                                {isApplyingBulkAction ? <Spinner className="w-3.5 h-3.5" /> : 'Áp dụng'}
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setSelectedProductIds([])}
-                                                                className="inline-flex h-8 items-center justify-center rounded-xl border border-border/70 bg-card/50 px-2.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-                                                            >
-                                                                Bỏ chọn
-                                                            </button>
-                                                        </>
-                                                    ) : (
-                                                        <span className="text-[11px] text-muted-foreground">
-                                                            Trang {productsCurrentPage} / {totalProductPages} • {filteredProducts.length} SP
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <AdminMobileList>
-                                            {currentProducts.length === 0 && (
-                                                <AdminMobileCard className="flex min-h-[250px] flex-col items-center justify-center rounded-[1.45rem] border border-dashed p-6 text-center transition-all border-primary/25 bg-gradient-to-br from-primary/[0.07] via-card/70 to-sky-100/50 dark:to-slate-900/50">
-                                                    <p className="text-base font-bold text-foreground">Không có sản phẩm nào khớp bộ lọc hiện tại.</p>
-                                                    <p className="mt-2 text-sm leading-6 text-muted-foreground">Thử đổi search, chuyên mục, thương hiệu hoặc filter tồn kho để xem thêm SKU.</p>
-                                                </AdminMobileCard>
-                                            )}
-
-                                            {currentProducts.map((p, productIndex) => {
-                                                const statusInfo = getInventoryStatusInfo(p);
-                                                const draft = getQuickDraft(p);
-                                                const isDirty = isQuickDraftDirty(p);
-                                                const isSavingThis = savingQuickProductId === p.id;
-                                                const isSelected = selectedProductIds.includes(p.id);
-                                                const isMenuOpen = openMobileMenuProductId === p.id;
-                                                const isNearBottom = currentProducts.length > 2 && productIndex >= currentProducts.length - 2;
-                                                const categoryName = categoryNameById.get(p.category_id || 0) || 'Chưa gắn chuyên mục';
-
-                                                return (
-                                                    <AdminMobileCard
-                                                        key={p.id}
-                                                        className={`relative transition-all py-[10px] px-[12px] ${
-                                                            isMenuOpen ? 'z-40' : isSelected ? 'z-0 border-primary/35 bg-primary/[0.04]' : 'z-0'
-                                                        }`}
-                                                    >
-                                                        {/* Backdrop click catcher: transparent, no blur, no dark overlay */}
-                                                        {isMenuOpen && (
-                                                            <div
-                                                                className="fixed inset-0 z-40 bg-transparent"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setOpenMobileMenuProductId(null);
-                                                                }}
-                                                            />
-                                                        )}
-
-                                                        {/* Main product row: Checkbox + Square Image + Info + 3-dots Action button */}
-                                                        <div className="relative z-10 flex items-start gap-3">
-                                                            {/* Checkbox */}
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={isSelected}
-                                                                onChange={() => toggleProductSelection(p.id)}
-                                                                className="mt-1 h-4 w-4 shrink-0 rounded border-input text-primary focus:ring-primary"
-                                                                aria-label={`Chọn sản phẩm ${p.name}`}
-                                                            />
-
-                                                            {/* Square Product Image */}
-                                                            <div className="relative shrink-0">
-                                                                <img
-                                                                    src={p.images?.[0]?.image_url || 'https://placehold.co/100x100?text=SP'}
-                                                                    alt={p.name}
-                                                                    className="h-20 w-20 rounded-2xl border border-border/70 bg-card/60 backdrop-blur-xl object-cover shadow-xs"
-                                                                    onError={(e) => {
-                                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/100x100?text=SP';
-                                                                    }}
-                                                                />
-                                                                {p.is_featured ? (
-                                                                    <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 shadow-xs" title="Sản phẩm nổi bật">
-                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp" alt="Nổi bật" className="h-3 w-3 object-contain" />
-                                                                    </span>
-                                                                ) : null}
-                                                            </div>
-
-                                                            {/* Product Details */}
-                                                            <div className="min-w-0 flex-1">
-                                                                <div className="flex items-start justify-between gap-1">
-                                                                    <p 
-                                                                        className="line-clamp-2 text-sm font-bold text-foreground leading-snug cursor-pointer hover:text-primary transition-colors" 
-                                                                        title={p.name}
-                                                                        onClick={() => handleEditProduct(p)}
-                                                                    >
-                                                                        {p.name}
-                                                                    </p>
-
-                                                                    {/* 3-Dots Action Popup Trigger */}
-                                                                    <div className="relative shrink-0" data-mobile-action-menu>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                setOpenMobileMenuProductId((prev) => (prev === p.id ? null : p.id));
-                                                                            }}
-                                                                            aria-label={`Thao tác cho ${p.name}`}
-                                                                            className={`relative z-50 flex h-8 w-8 items-center justify-center rounded-xl border transition-all active:scale-95 ${
-                                                                                isMenuOpen
-                                                                                    ? 'border-primary bg-primary text-primary-foreground shadow-md'
-                                                                                    : 'border-border/70 bg-card/40 backdrop-blur-xl text-muted-foreground hover:bg-card/80 hover:text-foreground'
-                                                                            }`}
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                                                                            </svg>
-                                                                        </button>
-
-                                                                        {/* Popover Action Menu */}
-                                                                        {isMenuOpen && (
-                                                                            <div className={`absolute right-0 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95 ${
-                                                                                isNearBottom ? 'bottom-10 origin-bottom-right' : 'top-10 origin-top-right'
-                                                                            }`}>
-                                                                                <div className="space-y-0.5">
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            setOpenMobileMenuProductId(null);
-                                                                                            handleEditProduct(p);
-                                                                                        }}
-                                                                                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                                                                                    >
-                                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="h-4 w-4 object-contain" />
-                                                                                        <span>Chỉnh sửa sản phẩm</span>
-                                                                                    </button>
-
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            setOpenMobileMenuProductId(null);
-                                                                                            void onSaveProduct({ ...p, is_published: !p.is_published }, []);
-                                                                                        }}
-                                                                                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-                                                                                    >
-                                                                                        <img 
-                                                                                            src={p.is_published ? "https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp" : "https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp"} 
-                                                                                            alt={p.is_published ? "Ẩn" : "Hiện"} 
-                                                                                            className="h-4 w-4 object-contain" 
-                                                                                        />
-                                                                                        <span>{p.is_published ? 'Ẩn khỏi website' : 'Hiện trên website'}</span>
-                                                                                    </button>
-
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            setOpenMobileMenuProductId(null);
-                                                                                            void onSaveProduct({ ...p, is_featured: !p.is_featured }, []);
-                                                                                        }}
-                                                                                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-                                                                                    >
-                                                                                        <img 
-                                                                                            src={p.is_featured ? "https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp" : "https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"} 
-                                                                                            alt={p.is_featured ? "Bỏ nổi bật" : "Nổi bật"} 
-                                                                                            className="h-4 w-4 object-contain" 
-                                                                                        />
-                                                                                        <span>{p.is_featured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật'}</span>
-                                                                                    </button>
-
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            setOpenMobileMenuProductId(null);
-                                                                                            void handleSyncProductToPancake(p);
-                                                                                        }}
-                                                                                        disabled={syncingPancakeProductId === p.id}
-                                                                                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-primary/10 hover:text-primary disabled:opacity-50"
-                                                                                    >
-                                                                                        {syncingPancakeProductId === p.id ? (
-                                                                                            <Spinner className="h-4 w-4" />
-                                                                                        ) : (
-                                                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp" alt="Đồng bộ" className="h-4 w-4 object-contain" />
-                                                                                        )}
-                                                                                        <span>Đồng bộ Pancake</span>
-                                                                                    </button>
-
-                                                                                    <div className="my-1 border-t border-border/50" />
-
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => {
-                                                                                            setOpenMobileMenuProductId(null);
-                                                                                            onDeleteProduct(p.id);
-                                                                                        }}
-                                                                                        className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-destructive transition-colors hover:bg-destructive/10"
-                                                                                    >
-                                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="h-4 w-4 object-contain" />
-                                                                                        <span>Xóa sản phẩm</span>
-                                                                                    </button>
-                                                                                </div>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Brand & category */}
-                                                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                                                                    {p.brand || 'Chưa có Brand'} • {categoryName}{p.volume ? ` • ${p.volume}` : ''}
-                                                                </p>
-
-                                                                {/* Price & Stock */}
-                                                                <div className="mt-1.5 flex flex-wrap items-baseline justify-between gap-1.5">
-                                                                    <span className="text-sm font-black text-primary">
-                                                                        {formatCurrency(Number(p.price) || 0)}
-                                                                    </span>
-                                                                    <span className={`text-xs font-medium ${p.stock_quantity <= 0 ? 'text-destructive font-bold' : 'text-muted-foreground'}`}>
-                                                                        Kho: <strong className="text-foreground">{p.stock_quantity || 0}</strong>
-                                                                    </span>
-                                                                </div>
-
-                                                                {/* Bottom meta badges: Status + SKU / ID */}
-                                                                <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 border-t border-border/30 pt-1.5">
-                                                                    <div className="flex flex-wrap items-center gap-1">
-                                                                        {p.is_published ? (
-                                                                            <span className="inline-flex items-center gap-1 rounded-md border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400">
-                                                                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                                                                Hiện web
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className="inline-flex items-center gap-1 rounded-md border border-border/70 bg-background/50 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                                                                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
-                                                                                Ẩn web
-                                                                            </span>
-                                                                        )}
-
-                                                                        {statusInfo.color === 'bg-red-500' && (
-                                                                            <span className="inline-flex items-center rounded-md border border-rose-500/25 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-700 dark:text-rose-400">
-                                                                                Hết hàng
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
-
-                                                                    <span className="text-[10px] text-muted-foreground font-mono">
-                                                                        SKU: {p.sku || '-'} • #{p.id}
-                                                                    </span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Quick Draft unsaved changes notification bar if dirty */}
-                                                        {isDirty && (
-                                                            <div className="mt-2.5 flex items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs text-amber-800 dark:text-amber-300">
-                                                                <span className="font-semibold">Có thay đổi nhanh chưa lưu</span>
-                                                                <div className="flex items-center gap-1.5">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => void handleSaveQuickDraft(p)}
-                                                                        disabled={isSavingThis}
-                                                                        className="inline-flex h-6.5 items-center gap-1 rounded-lg bg-primary px-2 text-[11px] font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
-                                                                    >
-                                                                        {isSavingThis ? <Spinner className="h-3 w-3" /> : 'Lưu'}
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => resetQuickDraft(p.id)}
-                                                                        className="inline-flex h-6.5 items-center rounded-lg border border-border/70 bg-background/60 px-1.5 text-[11px] font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground"
-                                                                    >
-                                                                        Hủy
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </AdminMobileCard>
-                                                );
-                                            })}
-                                        </AdminMobileList>
-                                    </div>
-
-                                        <div className="hidden overflow-visible rounded-[1.7rem] bg-transparent backdrop-blur-xl border-0 shadow-none lg:block">
-                                                <table className="w-full table-fixed text-left text-sm">
-                                                    <thead className="bg-muted/50 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                                                        <tr>
-                                                            <th className="w-12 px-4 py-3">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={allCurrentPageSelected}
-                                                                    onChange={(e) => toggleSelectProducts(currentProductIds, e.target.checked)}
-                                                                    className="h-4 w-4 rounded border-input"
-                                                                    aria-label="Chọn tất cả sản phẩm trên bảng"
-                                                                />
-                                                            </th>
-                                                            <th className="w-[48%] px-4 py-3 font-semibold cursor-pointer select-none hover:text-foreground" onClick={() => {
-                                                                if (productSortColumn === 'name') {
-                                                                    setProductSortDirection(productSortDirection === 'asc' ? 'desc' : 'asc');
-                                                                } else {
-                                                                    setProductSortColumn('name');
-                                                                    setProductSortDirection('asc');
-                                                                }
-                                                            }}>
-                                                                Sản phẩm {productSortColumn === 'name' ? (productSortDirection === 'asc' ? '↑' : '↓') : <span className="text-muted-foreground/30 ml-1">↕</span>}
-                                                            </th>
-                                                            <th className="w-[20%] px-4 py-3 font-semibold cursor-pointer select-none hover:text-foreground" onClick={() => {
-                                                                if (productSortColumn === 'price') {
-                                                                    setProductSortDirection(productSortDirection === 'asc' ? 'desc' : 'asc');
-                                                                } else {
-                                                                    setProductSortColumn('price');
-                                                                    setProductSortDirection('asc');
-                                                                }
-                                                            }}>
-                                                                Giá {productSortColumn === 'price' ? (productSortDirection === 'asc' ? '↑' : '↓') : <span className="text-muted-foreground/30 ml-1">↕</span>}
-                                                            </th>
-                                                            <th className="w-[12%] px-4 py-3 font-semibold cursor-pointer select-none hover:text-foreground" onClick={() => {
-                                                                if (productSortColumn === 'status') {
-                                                                    setProductSortDirection(productSortDirection === 'asc' ? 'desc' : 'asc');
-                                                                } else {
-                                                                    setProductSortColumn('status');
-                                                                    setProductSortDirection('asc');
-                                                                }
-                                                            }}>
-                                                                Trạng thái {productSortColumn === 'status' ? (productSortDirection === 'asc' ? '↑' : '↓') : <span className="text-muted-foreground/30 ml-1">↕</span>}
-                                                            </th>
-                                                            <th className="w-[20%] px-4 py-3 font-semibold text-right">Thao tác</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-border">
-                                                        {currentProducts.length === 0 && (
-                                                            <tr>
-                                                                <td colSpan={5} className="px-6 py-12 text-center">
-                                                                    <p className="text-base font-semibold text-foreground">Không có sản phẩm nào khớp bộ lọc hiện tại.</p>
-                                                                    <p className="mt-2 text-sm text-muted-foreground">Thử đổi search, chuyên mục, thương hiệu hoặc filter tồn kho để xem thêm SKU.</p>
-                                                                </td>
-                                                            </tr>
-                                                        )}
-
-                                                        {currentProducts.map(p => {
-                                                            const statusInfo = getInventoryStatusInfo(p);
-                                                            const contentReview = getEffectiveContentReviewForProduct(p);
-                                                            const draft = getQuickDraft(p);
-                                                            const isDirty = isQuickDraftDirty(p);
-                                                            const isSavingThis = savingQuickProductId === p.id;
-                                                            const isSelected = selectedProductIds.includes(p.id);
-                                                            const categoryName = categoryNameById.get(p.category_id || 0) || 'Chưa gắn chuyên mục';
-
-                                                            return (
-                                                                <tr
-                                                                    key={p.id}
-                                                                    className={`align-middle transition-colors ${isSelected ? 'bg-primary/[0.04]' : 'hover:bg-muted/20'}`}
-                                                                >
-                                                                    <td className="px-4 py-4">
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={isSelected}
-                                                                            onChange={() => toggleProductSelection(p.id)}
-                                                                            className="mt-1 h-4 w-4 rounded border-input"
-                                                                            aria-label={`Chọn sản phẩm ${p.name}`}
-                                                                        />
-                                                                    </td>
-                                                                    <td className="px-4 py-4">
-                                                                        <div className="flex min-w-0 items-center gap-3">
-                                                                            <div className="group/img-preview relative shrink-0">
-                                                                                <img
-                                                                                    src={p.images?.[0]?.image_url || 'https://placehold.co/80x80?text=SP'}
-                                                                                    alt={p.name}
-                                                                                    className="h-11 w-11 shrink-0 rounded-xl border border-border/80 bg-muted/20 object-cover shadow-xs transition-all duration-200 group-hover/img-preview:scale-105 group-hover/img-preview:border-primary/60 group-hover/img-preview:shadow-md cursor-pointer"
-                                                                                    onError={(e) => {
-                                                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/80x80?text=SP';
-                                                                                    }}
-                                                                                />
-                                                                                {/* Floating enlarged preview on hover - Fixed width, fully opaque & clean */}
-                                                                                <div className="pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3.5 z-[100] hidden group-hover/img-preview:block w-[208px] min-w-[208px] max-w-[208px] rounded-2xl border border-border/80 bg-popover p-2 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] transition-all animate-in fade-in zoom-in-95">
-                                                                                    <img
-                                                                                        src={p.images?.[0]?.image_url || 'https://placehold.co/240x240?text=SP'}
-                                                                                        alt={p.name}
-                                                                                        className="h-48 w-48 min-w-[192px] max-w-none rounded-xl object-cover bg-muted border border-border/40 block"
-                                                                                        onError={(e) => {
-                                                                                            (e.target as HTMLImageElement).src = 'https://placehold.co/240x240?text=SP';
-                                                                                        }}
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="min-w-0">
-                                                                                <div className="flex flex-wrap items-center gap-2">
-                                                                                    <p className="truncate text-sm font-bold leading-6 text-foreground" title={p.name}>{p.name}</p>
-                                                                                    {isDirty && (
-                                                                                        <StatusChip
-                                                                                            label="Chưa lưu"
-                                                                                            tone="border-amber-200 bg-amber-50 text-amber-700"
-                                                                                        />
-                                                                                    )}
-                                                                                </div>
-                                                                                <p className="mt-1 text-xs text-muted-foreground">
-                                                                                    ID: {p.id} • {p.brand || 'Chưa gắn brand'} • {categoryName}
-                                                                                    {p.volume ? ` • ${p.volume}` : ''}
-                                                                                    {p.origin ? ` • ${p.origin}` : ''}
-                                                                                </p>
-
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-
-                                                                    <td className="px-4 py-4">
-                                                                        {editingPriceId === p.id ? (
-                                                                            <input
-                                                                                autoFocus
-                                                                                type="number"
-                                                                                min={0}
-                                                                                step={1000}
-                                                                                value={draft.price}
-                                                                                onChange={(e) => updateQuickDraftField(p, 'price', e.target.value)}
-                                                                                onBlur={() => setEditingPriceId(null)}
-                                                                                className="w-full rounded-md border border-input bg-background px-2 py-1 text-xs transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                                                                                placeholder="Giá"
-                                                                            />
-                                                                        ) : (
-                                                                            <div
-                                                                                className="cursor-text rounded-md px-2 py-1 text-xs font-medium text-foreground hover:bg-muted/50"
-                                                                                onClick={() => setEditingPriceId(p.id)}
-                                                                                title="Nhấn để sửa giá"
-                                                                            >
-                                                                                {formatCurrency(Number(draft.price) || 0)}
-                                                                            </div>
-                                                                        )}
-                                                                    </td>
-
-                                                                    <td className="px-4 py-4">
-                                                                        <div className="flex items-center gap-1.5">
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => {
-                                                                                    void onSaveProduct({ ...p, is_published: !p.is_published }, []);
-                                                                                }}
-                                                                                className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-colors ${
-                                                                                    p.is_published
-                                                                                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                                                                        : 'border-border bg-background text-muted-foreground hover:border-rose-200 hover:text-rose-700'
-                                                                                }`}
-                                                                                title={p.is_published ? 'Đang hiện trên Web. Nhấn để Ẩn' : 'Đang ẩn trên Web. Nhấn để Hiện'}
-                                                                            >
-                                                                                {p.is_published ? <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp" alt="Hiện" className="h-5 w-5 object-contain inline-block" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp" alt="Ẩn" className="h-5 w-5 object-contain inline-block" />}
-                                                                            </button>
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => onSaveProduct({ ...p, is_featured: !p.is_featured }, [])}
-                                                                                className={`inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-colors ${
-                                                                                    p.is_featured
-                                                                                        ? 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
-                                                                                        : 'border-border bg-background text-muted-foreground hover:border-amber-200 hover:text-amber-700'
-                                                                                }`}
-                                                                                title={p.is_featured ? 'Gỡ nổi bật trên Trang Chủ' : 'Đánh dấu nổi bật trên Trang Chủ'}
-                                                                            >
-                                                                                {p.is_featured ? <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp" alt="Nổi bật" className="h-5 w-5 object-contain inline-block" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp" alt="Không nổi bật" className="h-5 w-5 object-contain inline-block" />}
-                                                                            </button>
-                                                                        </div>
-                                                                    </td>
-
-                                                                    <td className="px-4 py-4 text-right">
-                                                                        <div className="flex items-center justify-end gap-2">
-                                                                            {isDirty && (
-                                                                                <>
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => void handleSaveQuickDraft(p)}
-                                                                                        disabled={isSavingThis}
-                                                                                        className="inline-flex h-7 items-center justify-center rounded-lg bg-primary px-2 text-[11px] font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-                                                                                    >
-                                                                                        {isSavingThis ? <Spinner className="h-3 w-3" /> : 'Lưu'}
-                                                                                    </button>
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={() => resetQuickDraft(p.id)}
-                                                                                        className="inline-flex h-7 items-center justify-center rounded-lg border border-border px-2 text-[11px] font-bold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                                                                    >
-                                                                                        Hủy
-                                                                                    </button>
-                                                                                </>
-                                                                            )}
-                                                                            <div className="relative group inline-flex">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => handleEditProduct(p)}
-                                                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-110 hover:bg-card/40 active:scale-95"
-                                                                                    aria-label="Sửa đầy đủ"
-                                                                                >
-                                                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="h-6 w-6 object-contain" />
-                                                                                </button>
-                                                                                <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 whitespace-nowrap rounded-lg border border-border/80 bg-popover px-2.5 py-1 text-[11px] font-bold text-popover-foreground shadow-xl backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100 z-50">
-                                                                                    Sửa đầy đủ
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="relative group inline-flex">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => void handleSyncProductToPancake(p)}
-                                                                                    disabled={syncingPancakeProductId === p.id}
-                                                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-110 hover:bg-card/40 active:scale-95 disabled:cursor-wait disabled:opacity-60"
-                                                                                    aria-label="Đồng bộ Pancake"
-                                                                                >
-                                                                                    {syncingPancakeProductId === p.id ? (
-                                                                                        <Spinner className="h-5 w-5" />
-                                                                                    ) : (
-                                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp" alt="Đồng bộ" className="h-6 w-6 object-contain" />
-                                                                                    )}
-                                                                                </button>
-                                                                                <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 whitespace-nowrap rounded-lg border border-border/80 bg-popover px-2.5 py-1 text-[11px] font-bold text-popover-foreground shadow-xl backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100 z-50">
-                                                                                    Đồng bộ Pancake
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="relative group inline-flex">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => onDeleteProduct(p.id)}
-                                                                                    className="inline-flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:scale-110 hover:bg-card/40 active:scale-95"
-                                                                                    aria-label="Xóa sản phẩm"
-                                                                                >
-                                                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="h-6 w-6 object-contain" />
-                                                                                </button>
-                                                                                <span className="pointer-events-none absolute bottom-full right-0 mb-1.5 whitespace-nowrap rounded-lg border border-border/80 bg-popover px-2.5 py-1 text-[11px] font-bold text-popover-foreground shadow-xl backdrop-blur-md opacity-0 transition-opacity group-hover:opacity-100 z-50">
-                                                                                    Xóa sản phẩm
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })}
-                                                    </tbody>
-                                                </table>
-                                        </div>
-
-                                    <Pagination
-                                        currentPage={productsCurrentPage}
-                                        totalPages={totalProductPages}
-                                        onPageChange={setProductsCurrentPage}
-                                    />
-                                </>
-                            );
-                        })()}
-                    </div>
-                )}
-
-                {activeTab === 'categories' && (
-                    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {(isCategoryFormVisible || editingCategoryId) ? (
-                            <div className="w-full rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
-                                {/* Header banner with Back button, Eyebrow, Title and Action buttons */}
-                                <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
-                                    <div className="flex items-center gap-2.5 sm:gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelEditCategory}
-                                            className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:border-primary/50 hover:bg-card hover:text-primary transition-all active:scale-95 shadow-2xs"
-                                            title="Quay lại danh sách chuyên mục"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.25} stroke="currentColor" className="h-4 w-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                                            </svg>
-                                        </button>
-                                        <div>
-                                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Chuyên mục</p>
-                                            <h3 className="text-lg sm:text-2xl font-black text-foreground">
-                                                {editingCategoryId ? `Chỉnh sửa chuyên mục: ${editCategoryName || '...'}` : 'Thêm chuyên mục mới'}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelEditCategory}
-                                            className="h-8 sm:h-9 px-3 sm:px-4 rounded-xl border border-border/70 bg-background/50 text-xs font-bold text-muted-foreground hover:text-foreground active:scale-95 transition-all shadow-2xs"
-                                        >
-                                            Hủy
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={editingCategoryId ? handleSaveEditCategory : handleAddNewCategory}
-                                            className="inline-flex h-8 sm:h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-3 sm:px-5 text-xs font-bold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-95 transition-all"
-                                        >
-                                            <span>{editingCategoryId ? 'Lưu thay đổi' : 'Tạo chuyên mục'}</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <form onSubmit={editingCategoryId ? handleSaveEditCategory : handleAddNewCategory} className="space-y-4 max-w-2xl">
-                                    <div>
-                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
-                                            Tên chuyên mục <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editingCategoryId ? editCategoryName : newCategoryName}
-                                            onChange={e => {
-                                                if (editingCategoryId) {
-                                                    setEditCategoryName(e.target.value);
-                                                    if (!editCategorySlug) setEditCategorySlug(generateSlug(e.target.value));
-                                                } else {
-                                                    setNewCategoryName(e.target.value);
-                                                    if (!newCategorySlug) setNewCategorySlug(generateSlug(e.target.value));
-                                                }
-                                            }}
-                                            className="w-full admin-glass-input text-sm font-semibold"
-                                            placeholder="Nhập tên chuyên mục..."
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1 block">
-                                            Slug đường dẫn (URL thân thiện SEO) <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editingCategoryId ? editCategorySlug : newCategorySlug}
-                                            onChange={e => {
-                                                if (editingCategoryId) {
-                                                    setEditCategorySlug(e.target.value);
-                                                } else {
-                                                    setNewCategorySlug(e.target.value);
-                                                }
-                                            }}
-                                            className="w-full admin-glass-input font-mono text-xs"
-                                            placeholder="vi-du-slug"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="rounded-2xl border border-white/60 bg-background/40 p-3.5 backdrop-blur-md dark:border-white/10">
-                                        <label className="flex items-start gap-3 cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                id="categoryIsFeatured"
-                                                checked={editingCategoryId ? editCategoryIsFeatured : newCategoryIsFeatured}
-                                                onChange={e => {
-                                                    if (editingCategoryId) {
-                                                        setEditCategoryIsFeatured(e.target.checked);
-                                                    } else {
-                                                        setNewCategoryIsFeatured(e.target.checked);
-                                                    }
-                                                }}
-                                                className="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                            />
-                                            <div className="text-xs">
-                                                <p className="font-bold text-foreground flex items-center gap-1">
-                                                    <span>⭐ Hiển thị chuyên mục này trên Trang Chủ</span>
-                                                </p>
-                                                <p className="text-muted-foreground mt-0.5">
-                                                    Đưa chuyên mục này lên danh mục nổi bật ngoài Trang Chủ giúp khách hàng dễ duyệt sản phẩm hơn.
-                                                </p>
-                                            </div>
-                                        </label>
-                                    </div>
-                                    <div className="flex items-center gap-3 pt-3">
-                                        <button
-                                            type="submit"
-                                            className="bg-primary text-primary-foreground font-bold py-2.5 px-6 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-sm text-xs"
-                                        >
-                                            {editingCategoryId ? 'Lưu thay đổi' : 'Tạo chuyên mục'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleCancelEditCategory}
-                                            className="border border-border bg-background/50 px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95"
-                                        >
-                                            Hủy
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="space-y-3 sm:space-y-4">
-                                {/* 1. Header & Filter Card */}
-                                <div className={`rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all ${
-                                    showCategoryActionsMenu ? 'relative z-50' : 'relative z-30'
-                                }`}>
-                                    {/* Preset pills row */}
-                                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                        <button
-                                            type="button"
-                                            onClick={() => setCategoryFilter('all')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                categoryFilter === 'all'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Tất cả</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                categoryFilter === 'all'
-                                                    ? 'bg-primary-foreground/20 text-primary-foreground'
-                                                    : 'bg-muted text-foreground'
-                                            }`}>
-                                                {categories.length}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setCategoryFilter('featured')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                categoryFilter === 'featured'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>⭐ Nổi bật Trang Chủ</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                categoryFilter === 'featured'
-                                                    ? 'bg-primary-foreground/20 text-primary-foreground'
-                                                    : 'bg-muted text-foreground'
-                                            }`}>
-                                                {featuredCategoriesCount}
-                                            </span>
-                                        </button>
-                                    </div>
-
-                                    {/* Search & Actions row */}
-                                    <div className="flex items-center gap-2 pt-1.5">
-                                        <div className="relative flex-1 min-w-0">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                            </svg>
-                                            <input
-                                                type="text"
-                                                value={categorySearchQuery}
-                                                onChange={(e) => setCategorySearchQuery(e.target.value)}
-                                                placeholder="Tìm theo tên chuyên mục, slug..."
-                                                className="h-9 w-full rounded-xl border-0 bg-background/30 pl-9 pr-3 text-xs shadow-[inset_0_1px_3px_rgba(0,0,0,0.06)] backdrop-blur-md transition-all focus:bg-background/60 focus:ring-1 focus:ring-primary/40 placeholder:text-muted-foreground/60"
-                                            />
-                                        </div>
-
-                                        <div className="relative shrink-0">
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowCategoryActionsMenu(prev => !prev)}
-                                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 text-muted-foreground hover:text-foreground"
-                                                title="Tiện ích nhập xuất Excel"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                                                </svg>
-                                            </button>
-
-                                            {showCategoryActionsMenu && (
-                                                <>
-                                                    <div className="fixed inset-0 z-40" onClick={() => setShowCategoryActionsMenu(false)} />
-                                                    <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-white/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 z-50 animate-in fade-in zoom-in-95">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setShowCategoryActionsMenu(false);
-                                                                handleExportCategories();
-                                                            }}
-                                                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                                                        >
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-outputexcel.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                            <span>Xuất file Excel</span>
-                                                        </button>
-
-                                                        <label className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/60 cursor-pointer transition-colors">
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-inputexcel.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                            <span>Nhập từ Excel</span>
-                                                            <input type="file" accept=".xlsx, .xls" onChange={(e) => { void handleImportFile(e, 'category'); setShowCategoryActionsMenu(false); }} className="hidden" />
-                                                        </label>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setShowCategoryActionsMenu(false);
-                                                                void handleDownloadCategoryTemplate();
-                                                            }}
-                                                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                                                        >
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-taifilemau.webp" alt="" className="w-4 h-4 object-contain shrink-0" />
-                                                            <span>Tải file mẫu Excel</span>
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setEditingCategoryId(null);
-                                                setNewCategoryName('');
-                                                setNewCategorySlug('');
-                                                setNewCategoryIsFeatured(false);
-                                                setIsCategoryFormVisible(true);
-                                            }}
-                                            className="flex h-9 items-center gap-1.5 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground shadow-xs backdrop-blur-md transition-all hover:bg-primary/90 active:scale-95 shrink-0"
-                                            title="Tạo chuyên mục mới"
-                                        >
-                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="Thêm" className="w-4 h-4 object-contain" />
-                                            <span className="hidden sm:inline">Thêm mới</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* 2. List Card (Desktop Table + Mobile Cards) */}
-                                <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 overflow-hidden">
-                                    {/* Desktop Table View */}
-                                    <div className="hidden lg:block overflow-x-auto">
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                                                <tr>
-                                                    <th className="w-[45%] px-4 py-3 font-extrabold">Tên chuyên mục</th>
-                                                    <th className="w-[25%] px-4 py-3 font-extrabold">Slug đường dẫn</th>
-                                                    <th className="w-[15%] px-4 py-3 text-center font-extrabold">Trang chủ</th>
-                                                    <th className="w-[15%] px-4 py-3 text-right font-extrabold">Thao tác</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border/30">
-                                                {filteredCategories.length === 0 ? (
-                                                    <tr>
-                                                        <td colSpan={4} className="p-8 text-center text-xs text-muted-foreground">
-                                                            Không tìm thấy chuyên mục nào phù hợp.
-                                                        </td>
-                                                    </tr>
-                                                ) : (
-                                                    filteredCategories.map(cat => (
-                                                        <tr key={cat.id} className="transition-colors hover:bg-muted/20">
-                                                            <td className="px-4 py-3 font-bold text-foreground truncate">{cat.name}</td>
-                                                            <td className="px-4 py-3 font-mono text-xs text-muted-foreground truncate">{cat.slug}</td>
-                                                            <td className="px-4 py-3 text-center">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => onSaveCategory({ ...cat, is_featured: !cat.is_featured })}
-                                                                    title={cat.is_featured ? 'Bỏ khỏi Trang Chủ' : 'Đưa lên Trang Chủ'}
-                                                                    className={`text-base transition-all active:scale-95 ${cat.is_featured ? 'scale-110 text-yellow-500' : 'text-gray-300 grayscale hover:text-yellow-400'}`}
-                                                                >
-                                                                    ⭐
-                                                                </button>
-                                                            </td>
-                                                            <td className="px-4 py-3 text-right whitespace-nowrap">
-                                                                <div className="flex items-center justify-end gap-1">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => handleStartEditCategory(cat)}
-                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                                        title={`Sửa chuyên mục: ${cat.name}`}
-                                                                    >
-                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => onDeleteCategory(cat.id)}
-                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
-                                                                        title={`Xóa chuyên mục: ${cat.name}`}
-                                                                    >
-                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />
-                                                                    </button>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    ))
-                                                )}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {/* Mobile List View */}
-                                    <div className="block lg:hidden divide-y divide-border/40">
-                                        {filteredCategories.length === 0 ? (
-                                            <div className="p-6 text-center text-xs text-muted-foreground">
-                                                Không tìm thấy chuyên mục nào phù hợp.
-                                            </div>
-                                        ) : (
-                                            filteredCategories.map(cat => (
-                                                <article key={cat.id} className="relative py-2.5 px-3 transition-colors hover:bg-muted/10">
-                                                    <div className="flex items-center justify-between gap-3">
-                                                        <div className="flex min-w-0 items-center gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => onSaveCategory({ ...cat, is_featured: !cat.is_featured })}
-                                                                title={cat.is_featured ? 'Bỏ khỏi Trang Chủ' : 'Đưa lên Trang Chủ'}
-                                                                className={`text-base transition-all active:scale-95 shrink-0 ${cat.is_featured ? 'scale-110 text-yellow-500' : 'text-gray-300 grayscale'}`}
-                                                            >
-                                                                ⭐
-                                                            </button>
-                                                            <div className="min-w-0">
-                                                                <p className="truncate text-xs font-bold text-foreground">{cat.name}</p>
-                                                                <p className="font-mono text-[11px] text-muted-foreground truncate">{cat.slug}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex shrink-0 items-center gap-1">
-                                                            <button onClick={() => handleStartEditCategory(cat)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-primary active:scale-95" title="Sửa">
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
-                                                            </button>
-                                                            <button onClick={() => onDeleteCategory(cat.id)} className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted hover:text-destructive active:scale-95" title="Xóa">
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </article>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'discounts' && (
-                    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {(isDiscountFormVisible || editingDiscountId) ? (
-                            <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
-                                <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
-                                    <div className="flex items-center gap-2.5 sm:gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={resetDiscountForm}
-                                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:border-primary/50 hover:bg-card hover:text-primary transition-all active:scale-95 shadow-2xs"
-                                            title="Quay lại danh sách mã giảm giá"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                                            </svg>
-                                        </button>
-                                        <div>
-                                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Mã giảm giá</p>
-                                            <h3 className="text-xl sm:text-2xl font-black text-foreground">
-                                                {editingDiscountId ? `Cập nhật mã: ${discountForm.code}` : 'Tạo mã giảm giá mới'}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={resetDiscountForm}
-                                        className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-                                    >
-                                        Hủy
-                                    </button>
-                                </div>
-
-                                <form onSubmit={handleSaveDiscountCode} className="space-y-4 max-w-2xl">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Mã giảm giá <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="text"
-                                            value={discountForm.code}
-                                            onChange={(e) => setDiscountForm(prev => ({ ...prev, code: e.target.value.toUpperCase().replace(/\s+/g, '') }))}
-                                            className="w-full admin-glass-input font-mono uppercase"
-                                            placeholder="VD: ISKIN10"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Loại giảm</label>
-                                            <select
-                                                value={discountForm.type}
-                                                onChange={(e) => setDiscountForm(prev => ({
-                                                    ...prev,
-                                                    type: e.target.value as DiscountCode['type'],
-                                                    max_discount_amount: e.target.value === 'fixed_amount' ? '' : prev.max_discount_amount,
-                                                }))}
-                                                className="w-full admin-glass-input"
-                                            >
-                                                <option value="percentage">Theo phần trăm (%)</option>
-                                                <option value="fixed_amount">Theo số tiền (VND)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Giá trị giảm <span className="text-red-500">*</span></label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                step={discountForm.type === 'percentage' ? 0.01 : 1000}
-                                                value={discountForm.value}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, value: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder={discountForm.type === 'percentage' ? '10' : '50000'}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Đơn tối thiểu (VND)</label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                step={1000}
-                                                value={discountForm.min_purchase_amount}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, min_purchase_amount: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder="0"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Giảm tối đa (VND)</label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                step={1000}
-                                                value={discountForm.max_discount_amount}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, max_discount_amount: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder={discountForm.type === 'percentage' ? 'Không bắt buộc' : 'Không áp dụng'}
-                                                disabled={discountForm.type !== 'percentage'}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Giới hạn tổng lượt</label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                step={1}
-                                                value={discountForm.usage_limit}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, usage_limit: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder="Để trống = không giới hạn"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Giới hạn mỗi khách</label>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                step={1}
-                                                value={discountForm.usage_limit_per_user}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, usage_limit_per_user: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder="Để trống = không giới hạn"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Bắt đầu hiệu lực</label>
-                                            <input
-                                                type="datetime-local"
-                                                value={discountForm.starts_at}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, starts_at: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Kết thúc hiệu lực</label>
-                                            <input
-                                                type="datetime-local"
-                                                value={discountForm.ends_at}
-                                                onChange={(e) => setDiscountForm(prev => ({ ...prev, ends_at: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Mô tả chương trình</label>
-                                        <textarea
-                                            value={discountForm.description}
-                                            onChange={(e) => setDiscountForm(prev => ({ ...prev, description: e.target.value }))}
-                                            className="w-full admin-glass-input min-h-20 text-xs"
-                                            placeholder="Ví dụ: Áp dụng chiến dịch ưu đãi hè..."
-                                        />
-                                    </div>
-
-                                    <div className="flex items-center gap-2 pt-1">
-                                        <input
-                                            id="discount_is_active"
-                                            type="checkbox"
-                                            checked={discountForm.is_active}
-                                            onChange={(e) => setDiscountForm(prev => ({ ...prev, is_active: e.target.checked }))}
-                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                        />
-                                        <label htmlFor="discount_is_active" className="text-sm font-semibold cursor-pointer select-none">
-                                            Kích hoạt mã giảm giá ngay
-                                        </label>
-                                    </div>
-
-                                    <div className="flex items-center gap-3 pt-3">
-                                        <button
-                                            type="submit"
-                                            disabled={isSavingDiscountCode}
-                                            className="bg-primary text-primary-foreground font-bold py-2.5 px-6 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-sm text-xs disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {isSavingDiscountCode ? <Spinner className="w-4 h-4" /> : (editingDiscountId ? 'Cập nhật mã' : 'Tạo mã giảm giá')}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={resetDiscountForm}
-                                            className="border border-border bg-background/50 px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95"
-                                        >
-                                            Hủy
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="space-y-3 sm:space-y-4">
-                                {/* 1. Header & Filter Card */}
-                                <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all relative z-30">
-                                    {/* Preset pills row */}
-                                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                        <button
-                                            type="button"
-                                            onClick={() => setDiscountFilter('all')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                discountFilter === 'all'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Tất cả</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                discountFilter === 'all' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {discountCodes.length}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setDiscountFilter('active')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                discountFilter === 'active'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Đang bật</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                discountFilter === 'active' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {discountSummary.active}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setDiscountFilter('inactive')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                discountFilter === 'inactive'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Đang tắt</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                discountFilter === 'inactive' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {discountSummary.inactive}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setDiscountFilter('percentage')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                discountFilter === 'percentage'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Theo %</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                discountFilter === 'percentage' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {discountCodes.filter(d => d.type === 'percentage').length}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setDiscountFilter('fixed_amount')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                discountFilter === 'fixed_amount'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Theo tiền (VND)</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                discountFilter === 'fixed_amount' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {discountCodes.filter(d => d.type === 'fixed_amount').length}
-                                            </span>
-                                        </button>
-                                    </div>
-
-                                    {/* Search bar & action buttons */}
-                                    <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-                                        <div className="relative flex-1">
-                                            <input
-                                                type="text"
-                                                placeholder="Tìm theo mã code, mô tả..."
-                                                value={discountSearchQuery}
-                                                onChange={e => setDiscountSearchQuery(e.target.value)}
-                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-                                            />
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                            </svg>
-                                            {discountSearchQuery && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDiscountSearchQuery('')}
-                                                    className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Nút Tải lại */}
-                                        <button
-                                            type="button"
-                                            onClick={() => void loadDiscountCodes()}
-                                            disabled={isLoadingDiscountCodes}
-                                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 shrink-0 text-muted-foreground hover:text-foreground disabled:opacity-50"
-                                            title="Tải lại danh sách mã giảm giá"
-                                        >
-                                            {isLoadingDiscountCodes ? (
-                                                <Spinner className="w-4 h-4" />
-                                            ) : (
-                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                                </svg>
-                                            )}
-                                        </button>
-
-                                        {/* Nút Thêm mới */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                resetDiscountForm();
-                                                setIsDiscountFormVisible(true);
-                                            }}
-                                            className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all shrink-0 active:scale-95"
-                                            title="Tạo mã giảm giá mới"
-                                        >
-                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="" className="w-5 h-5 object-contain" />
-                                            <span className="hidden sm:inline">Thêm mới</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* 2. List Card */}
-                                <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 overflow-hidden">
-                                    {isLoadingDiscountCodes ? (
-                                        <div className="flex justify-center p-10"><Spinner /></div>
-                                    ) : filteredDiscountCodes.length === 0 ? (
-                                        <p className="text-muted-foreground text-center p-8 text-xs">Chưa có mã giảm giá nào phù hợp.</p>
-                                    ) : (
-                                        <>
-                                            {/* Mobile List with 10px 12px (py-2.5 px-3) padding */}
-                                            <div className="block lg:hidden divide-y divide-border/40">
-                                                {filteredDiscountCodes.map((discount) => (
-                                                    <article key={discount.id || discount.code} className="py-2.5 px-3 transition-colors hover:bg-muted/10">
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <div className="min-w-0">
-                                                                <span className="font-mono text-xs font-black text-foreground">{discount.code}</span>
-                                                                {discount.description && <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">{discount.description}</p>}
-                                                            </div>
-                                                            <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${discount.is_active ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'}`}>
-                                                                {discount.is_active ? <CheckCircleIcon className="w-3 h-3" /> : <XCircleIcon className="w-3 h-3" />}
-                                                                {discount.is_active ? 'Bật' : 'Tắt'}
-                                                            </span>
-                                                        </div>
-                                                        <div className="mt-2 grid grid-cols-2 gap-1 text-[11px]">
-                                                            <div><span className="text-muted-foreground">Loại: </span><span className="font-bold">{discount.type === 'percentage' ? `${discount.value}%` : formatCurrency(discount.value)}</span></div>
-                                                            <div><span className="text-muted-foreground">Đã dùng: </span><span className="font-bold">{discount.usage_count ?? 0}{discount.usage_limit ? ` / ${discount.usage_limit}` : ' / ∞'}</span></div>
-                                                            <div><span className="text-muted-foreground">Đơn min: </span><span className="font-bold">{formatCurrency(discount.min_purchase_amount || 0)}</span></div>
-                                                            <div><span className="text-muted-foreground">Mỗi khách: </span><span className="font-bold">{discount.usage_limit_per_user ?? '∞'}</span></div>
-                                                        </div>
-                                                        <div className="mt-2.5 flex items-center justify-end gap-1 pt-1.5 border-t border-border/30">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleStartEditDiscount(discount)}
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-foreground hover:bg-card border border-border/60 active:scale-95"
-                                                            >
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="h-3.5 w-3.5 object-contain" />
-                                                                Sửa
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => void handleDeleteDiscountCode(discount)}
-                                                                disabled={deletingDiscountId === discount.id}
-                                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-destructive hover:bg-card border border-border/60 active:scale-95 disabled:opacity-50"
-                                                            >
-                                                                {deletingDiscountId === discount.id ? <Spinner className="h-3.5 w-3.5" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="h-3.5 w-3.5 object-contain" />}
-                                                                Xóa
-                                                            </button>
-                                                        </div>
-                                                    </article>
-                                                ))}
-                                            </div>
-
-                                            {/* Desktop Table */}
-                                            <div className="hidden overflow-x-auto lg:block">
-                                                <table className="w-full text-sm text-left">
-                                                    <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                                                        <tr>
-                                                            <th className="px-4 py-3 font-extrabold">Mã giảm giá</th>
-                                                            <th className="px-4 py-3 font-extrabold">Loại giảm</th>
-                                                            <th className="px-4 py-3 font-extrabold">Điều kiện áp dụng</th>
-                                                            <th className="px-4 py-3 font-extrabold">Lượt dùng</th>
-                                                            <th className="px-4 py-3 font-extrabold">Thời hạn hiệu lực</th>
-                                                            <th className="px-4 py-3 font-extrabold">Trạng thái</th>
-                                                            <th className="px-4 py-3 text-right font-extrabold">Thao tác</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-border/30">
-                                                        {filteredDiscountCodes.map((discount) => (
-                                                            <tr key={discount.id || discount.code} className="transition-colors hover:bg-muted/20">
-                                                                <td className="px-4 py-3">
-                                                                    <p className="font-mono font-bold text-foreground text-xs">{discount.code}</p>
-                                                                    {discount.description && <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">{discount.description}</p>}
-                                                                </td>
-                                                                <td className="px-4 py-3">
-                                                                    {discount.type === 'percentage' ? (
-                                                                        <span className="font-bold text-xs text-primary">{discount.value}%</span>
-                                                                    ) : (
-                                                                        <span className="font-bold text-xs text-primary">{formatCurrency(discount.value)}</span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-xs">
-                                                                    <p>Đơn tối thiểu: <span className="font-semibold">{formatCurrency(discount.min_purchase_amount || 0)}</span></p>
-                                                                    {discount.type === 'percentage' && (
-                                                                        <p className="text-[11px] text-muted-foreground">Giảm tối đa: <span className="font-semibold">{discount.max_discount_amount ? formatCurrency(discount.max_discount_amount) : 'Không giới hạn'}</span></p>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-4 py-3 text-xs">
-                                                                    <p className="font-semibold">
-                                                                        {discount.usage_count ?? 0}
-                                                                        {discount.usage_limit ? ` / ${discount.usage_limit}` : ' / ∞'}
-                                                                    </p>
-                                                                    <p className="text-[11px] text-muted-foreground">
-                                                                        / khách: {discount.usage_limit_per_user ?? '∞'}
-                                                                    </p>
-                                                                </td>
-                                                                <td className="px-4 py-3 text-xs">
-                                                                    <p>{discount.starts_at ? new Date(discount.starts_at).toLocaleDateString('vi-VN') : 'Ngay lập tức'}</p>
-                                                                    <p className="text-[11px] text-muted-foreground">{discount.ends_at ? new Date(discount.ends_at).toLocaleDateString('vi-VN') : 'Không giới hạn'}</p>
-                                                                </td>
-                                                                <td className="px-4 py-3">
-                                                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${discount.is_active ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'}`}>
-                                                                        {discount.is_active ? <CheckCircleIcon className="w-3.5 h-3.5" /> : <XCircleIcon className="w-3.5 h-3.5" />}
-                                                                        {discount.is_active ? 'Đang bật' : 'Đang tắt'}
-                                                                    </span>
-                                                                </td>
-                                                                <td className="px-4 py-3 text-right whitespace-nowrap">
-                                                                    <div className="flex items-center justify-end gap-1">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => handleStartEditDiscount(discount)}
-                                                                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                                            title={`Sửa mã: ${discount.code}`}
-                                                                        >
-                                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
-                                                                        </button>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => void handleDeleteDiscountCode(discount)}
-                                                                            disabled={deletingDiscountId === discount.id}
-                                                                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-destructive transition-all active:scale-95 disabled:opacity-50"
-                                                                            title={`Xóa mã: ${discount.code}`}
-                                                                        >
-                                                                            {deletingDiscountId === discount.id ? <Spinner className="w-4 h-4" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />}
-                                                                        </button>
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {activeTab === 'taxes' && (
-                    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {/* 1. Header & Toolbar Card */}
-                        <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all relative z-30">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                {/* Preset pills row */}
-                                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground shadow-xs">
-                                        <span>Hồ sơ thuế</span>
-                                        <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-primary-foreground/20 text-primary-foreground">
-                                            {taxProfiles.length}
-                                        </span>
-                                    </div>
-                                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold border border-border/60 bg-background/40 text-muted-foreground">
-                                        <span>Mặc định</span>
-                                        <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-muted text-foreground">
-                                            {taxProfiles.filter(p => p.is_default).length}
-                                        </span>
-                                    </div>
-                                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold border border-border/60 bg-background/40 text-muted-foreground">
-                                        <span>Đang bật</span>
-                                        <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-muted text-foreground">
-                                            {taxProfiles.filter(p => p.is_active).length}
-                                        </span>
-                                    </div>
-                                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold border border-border/60 bg-background/40 text-muted-foreground">
-                                        <span>Ghi đè tỉnh thành</span>
-                                        <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-muted text-foreground">
-                                            {allTaxRates.length}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Action button */}
-                                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                                    <button
-                                        type="button"
-                                        onClick={() => void loadTaxSettings()}
-                                        disabled={isLoadingTaxSettings}
-                                        className="flex h-9 items-center gap-1.5 px-3 rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 text-xs font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
-                                        title="Tải lại cài đặt thuế"
-                                    >
-                                        {isLoadingTaxSettings ? (
-                                            <Spinner className="w-3.5 h-3.5" />
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                            </svg>
-                                        )}
-                                        <span>Tải lại</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 2. Tax Profiles Management Grid */}
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
-                            {/* Form Card */}
-                            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 mx-1 sm:mx-0">
-                                <div className="flex items-center justify-between pb-3 border-b border-border/40 mb-4">
-                                    <h3 className="text-base font-bold text-foreground">
-                                        {editingTaxProfileId ? 'Cập nhật hồ sơ thuế' : 'Tạo hồ sơ thuế mới'}
-                                    </h3>
-                                    {editingTaxProfileId && (
-                                        <button
-                                            type="button"
-                                            onClick={resetTaxProfileForm}
-                                            className="text-xs font-semibold text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-lg border border-border/60 bg-background/50 active:scale-95"
-                                        >
-                                            Hủy sửa
-                                        </button>
-                                    )}
-                                </div>
-
-                                <form onSubmit={handleSaveTaxProfile} className="space-y-3.5">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Mã hồ sơ <span className="text-red-500">*</span></label>
-                                            <input
-                                                type="text"
-                                                value={taxProfileForm.code}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, code: e.target.value.toUpperCase().replace(/\s+/g, '_') }))}
-                                                className="w-full admin-glass-input font-mono"
-                                                placeholder="VAT_STANDARD"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Tên hồ sơ <span className="text-red-500">*</span></label>
-                                            <input
-                                                type="text"
-                                                value={taxProfileForm.name}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, name: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder="VAT tiêu chuẩn"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Phương thức</label>
-                                            <select
-                                                value={taxProfileForm.tax_mode}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, tax_mode: e.target.value as TaxProfile['tax_mode'] }))}
-                                                className="w-full admin-glass-input"
-                                            >
-                                                <option value="exclusive">Exclusive (Chưa gồm thuế)</option>
-                                                <option value="inclusive">Inclusive (Đã gồm thuế)</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Thuế chuẩn (%)</label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                max={100}
-                                                step={0.01}
-                                                value={taxProfileForm.default_rate}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, default_rate: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Tiền tệ</label>
-                                            <input
-                                                type="text"
-                                                value={taxProfileForm.currency}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, currency: e.target.value.toUpperCase() }))}
-                                                className="w-full admin-glass-input font-mono uppercase"
-                                                placeholder="VND"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Bắt đầu hiệu lực</label>
-                                            <input
-                                                type="datetime-local"
-                                                value={taxProfileForm.starts_at}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, starts_at: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Kết thúc hiệu lực</label>
-                                            <input
-                                                type="datetime-local"
-                                                value={taxProfileForm.ends_at}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, ends_at: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-4 pt-1">
-                                        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                checked={taxProfileForm.applies_to_shipping}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, applies_to_shipping: e.target.checked }))}
-                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                            />
-                                            Tính thuế cho ship
-                                        </label>
-                                        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                checked={taxProfileForm.is_active}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, is_active: e.target.checked }))}
-                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                            />
-                                            Đang kích hoạt
-                                        </label>
-                                        <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none">
-                                            <input
-                                                type="checkbox"
-                                                checked={taxProfileForm.is_default}
-                                                onChange={(e) => setTaxProfileForm(prev => ({ ...prev, is_default: e.target.checked }))}
-                                                className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                            />
-                                            Hồ sơ mặc định
-                                        </label>
-                                    </div>
-
-                                    <div className="pt-2">
-                                        <button
-                                            type="submit"
-                                            disabled={isSavingTaxProfile}
-                                            className="w-full bg-primary text-primary-foreground font-bold py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-sm text-xs disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {isSavingTaxProfile ? <Spinner className="w-4 h-4" /> : (editingTaxProfileId ? 'Cập nhật hồ sơ thuế' : 'Tạo hồ sơ thuế')}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            {/* Profiles List Card */}
-                            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 mx-1 sm:mx-0 overflow-hidden">
-                                <div className="pb-3 border-b border-border/40 mb-3">
-                                    <h3 className="text-base font-bold text-foreground">Danh sách hồ sơ ({taxProfiles.length})</h3>
-                                </div>
-
-                                {isLoadingTaxSettings ? (
-                                    <div className="flex justify-center p-10"><Spinner /></div>
-                                ) : taxProfiles.length === 0 ? (
-                                    <p className="text-muted-foreground text-center p-8 text-xs">Chưa có hồ sơ thuế nào.</p>
-                                ) : (
-                                    <div className="divide-y divide-border/30 max-h-[480px] overflow-y-auto pr-1">
-                                        {taxProfiles.map(profile => (
-                                            <div key={profile.id} className="py-3 transition-colors hover:bg-muted/10 rounded-xl px-2">
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="min-w-0">
-                                                        <div className="flex flex-wrap items-center gap-1.5">
-                                                            <span className="font-mono text-xs font-black text-foreground">{profile.code}</span>
-                                                            {profile.is_default && <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary">Mặc định</span>}
-                                                            {profile.is_active ? (
-                                                                <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400">Đang bật</span>
-                                                            ) : (
-                                                                <span className="inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400">Đang tắt</span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-xs font-bold text-foreground mt-1">{profile.name}</p>
-                                                        <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                                                            <p>Chế độ: <span className="font-semibold text-foreground">{profile.tax_mode}</span></p>
-                                                            <p>Mức thuế: <span className="font-semibold text-primary">{rateToPercentInput(profile.default_rate)}%</span></p>
-                                                            <p>Tính ship: <span className="font-semibold text-foreground">{profile.applies_to_shipping ? 'Có' : 'Không'}</span></p>
-                                                            <p>Tiền tệ: <span className="font-semibold text-foreground">{profile.currency}</span></p>
-                                                        </div>
-                                                        <p className="text-[10px] text-muted-foreground mt-1">Ghi đè: {profile.rates?.length || 0} khu vực</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-1 shrink-0">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleStartEditTaxProfile(profile)}
-                                                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                            title={`Sửa hồ sơ: ${profile.name}`}
-                                                        >
-                                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-4 h-4 object-contain" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => void handleDeleteTaxProfile(profile)}
-                                                            disabled={deletingTaxProfileId === profile.id}
-                                                            className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-card hover:text-destructive transition-all active:scale-95 disabled:opacity-50"
-                                                            title={`Xóa hồ sơ: ${profile.name}`}
-                                                        >
-                                                            {deletingTaxProfileId === profile.id ? <Spinner className="w-4 h-4" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-4 h-4 object-contain" />}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* 3. Rate Overrides Grid */}
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4">
-                            {/* Form Card */}
-                            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 mx-1 sm:mx-0">
-                                <div className="flex items-center justify-between pb-3 border-b border-border/40 mb-4">
-                                    <h3 className="text-base font-bold text-foreground">
-                                        {editingTaxRateId ? 'Cập nhật ghi đè thuế (Rate Override)' : 'Tạo ghi đè thuế (Rate Override)'}
-                                    </h3>
-                                    {editingTaxRateId && (
-                                        <button
-                                            type="button"
-                                            onClick={() => resetTaxRateForm(taxRateForm.tax_profile_id)}
-                                            className="text-xs font-semibold text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-lg border border-border/60 bg-background/50 active:scale-95"
-                                        >
-                                            Hủy sửa
-                                        </button>
-                                    )}
-                                </div>
-
-                                <form onSubmit={handleSaveTaxRate} className="space-y-3.5">
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Hồ sơ thuế áp dụng <span className="text-red-500">*</span></label>
-                                        <select
-                                            value={taxRateForm.tax_profile_id}
-                                            onChange={(e) => setTaxRateForm(prev => ({ ...prev, tax_profile_id: e.target.value }))}
-                                            className="w-full admin-glass-input"
-                                            required
-                                        >
-                                            <option value="">Chọn hồ sơ thuế</option>
-                                            {taxProfiles.map(profile => (
-                                                <option key={profile.id} value={profile.id}>{profile.code} - {profile.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Tỉnh/Thành</label>
-                                            <input
-                                                type="text"
-                                                value={taxRateForm.province}
-                                                onChange={(e) => setTaxRateForm(prev => ({ ...prev, province: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder="VD: Hồ Chí Minh"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Quận/Huyện</label>
-                                            <input
-                                                type="text"
-                                                value={taxRateForm.district}
-                                                onChange={(e) => setTaxRateForm(prev => ({ ...prev, district: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                placeholder="Để trống = cả tỉnh"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Mức thuế (%) <span className="text-red-500">*</span></label>
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                max={100}
-                                                step={0.01}
-                                                value={taxRateForm.rate}
-                                                onChange={(e) => setTaxRateForm(prev => ({ ...prev, rate: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Độ ưu tiên</label>
-                                            <input
-                                                type="number"
-                                                step={1}
-                                                value={taxRateForm.priority}
-                                                onChange={(e) => setTaxRateForm(prev => ({ ...prev, priority: e.target.value }))}
-                                                className="w-full admin-glass-input"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Tiền tệ</label>
-                                            <input
-                                                type="text"
-                                                value={taxRateForm.currency}
-                                                onChange={(e) => setTaxRateForm(prev => ({ ...prev, currency: e.target.value.toUpperCase() }))}
-                                                className="w-full admin-glass-input font-mono uppercase"
-                                                placeholder="Mặc định hồ sơ"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Thuế ship</label>
-                                            <select
-                                                value={taxRateForm.applies_to_shipping}
-                                                onChange={(e) => setTaxRateForm(prev => ({ ...prev, applies_to_shipping: e.target.value as TaxRateFormState['applies_to_shipping'] }))}
-                                                className="w-full admin-glass-input"
-                                            >
-                                                <option value="inherit">Kế thừa từ profile</option>
-                                                <option value="true">Có tính ship</option>
-                                                <option value="false">Không tính ship</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex items-center pt-5">
-                                            <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer select-none">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={taxRateForm.is_active}
-                                                    onChange={(e) => setTaxRateForm(prev => ({ ...prev, is_active: e.target.checked }))}
-                                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                                />
-                                                Override đang kích hoạt
-                                            </label>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-2">
-                                        <button
-                                            type="submit"
-                                            disabled={isSavingTaxRate || !taxProfiles.length}
-                                            className="w-full bg-primary text-primary-foreground font-bold py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-sm text-xs disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {isSavingTaxRate ? <Spinner className="w-4 h-4" /> : (editingTaxRateId ? 'Cập nhật ghi đè' : 'Tạo ghi đè thuế')}
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
-                            {/* Overrides Table Card */}
-                            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5 mx-1 sm:mx-0 overflow-hidden">
-                                <div className="pb-3 border-b border-border/40 mb-3">
-                                    <h3 className="text-base font-bold text-foreground">Danh sách ghi đè ({allTaxRates.length})</h3>
-                                </div>
-
-                                {isLoadingTaxSettings ? (
-                                    <div className="flex justify-center p-10"><Spinner /></div>
-                                ) : allTaxRates.length === 0 ? (
-                                    <p className="text-muted-foreground text-center p-8 text-xs">Chưa có rate override nào.</p>
-                                ) : (
-                                    <div className="overflow-x-auto max-h-[480px] overflow-y-auto">
-                                        <table className="w-full text-sm text-left">
-                                            <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                                                <tr>
-                                                    <th className="px-3 py-2 font-extrabold">Hồ sơ</th>
-                                                    <th className="px-3 py-2 font-extrabold">Khu vực</th>
-                                                    <th className="px-3 py-2 font-extrabold">Mức thuế</th>
-                                                    <th className="px-3 py-2 font-extrabold">Ưu tiên</th>
-                                                    <th className="px-3 py-2 font-extrabold">Trạng thái</th>
-                                                    <th className="px-3 py-2 text-right font-extrabold">Thao tác</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border/30">
-                                                {allTaxRates.map((rate) => (
-                                                    <tr key={rate.id} className="transition-colors hover:bg-muted/20">
-                                                        <td className="px-3 py-2">
-                                                            <p className="font-mono font-bold text-xs text-foreground">{rate.profile_code}</p>
-                                                        </td>
-                                                        <td className="px-3 py-2 text-xs">
-                                                            <p className="font-semibold">{rate.province || 'Toàn quốc'}</p>
-                                                            {rate.district && <p className="text-[10px] text-muted-foreground">{rate.district}</p>}
-                                                        </td>
-                                                        <td className="px-3 py-2 text-xs font-bold text-primary">
-                                                            {rateToPercentInput(rate.rate)}%
-                                                        </td>
-                                                        <td className="px-3 py-2 text-xs font-mono">{rate.priority}</td>
-                                                        <td className="px-3 py-2">
-                                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${rate.is_active ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'}`}>
-                                                                {rate.is_active ? 'Bật' : 'Tắt'}
-                                                            </span>
-                                                        </td>
-                                                        <td className="px-3 py-2 text-right whitespace-nowrap">
-                                                            <div className="flex items-center justify-end gap-1">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => handleStartEditTaxRate(rate)}
-                                                                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                                    title="Sửa"
-                                                                >
-                                                                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-3.5 h-3.5 object-contain" />
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => void handleDeleteTaxRate(rate)}
-                                                                    disabled={deletingTaxRateId === rate.id}
-                                                                    className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-card hover:text-destructive transition-all active:scale-95 disabled:opacity-50"
-                                                                    title="Xóa"
-                                                                >
-                                                                    {deletingTaxRateId === rate.id ? <Spinner className="w-3.5 h-3.5" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-3.5 h-3.5 object-contain" />}
-                                                                </button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'orders' && (() => {
+            <div className="space-y-3 sm:space-y-4 bg-transparent border-0 shadow-none p-0 sm:p-2 md:p-5 -mx-3 sm:mx-0">
+                {(() => {
                     const ORDER_PRESET_TABS: Array<{ key: AdminPharmacyOrderPreset; label: string }> = [
                         { key: 'all', label: 'Tất cả đơn' },
                         { key: 'priority_queue', label: 'Ưu tiên ngay' },
@@ -6019,540 +4190,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                         </div>
                     );
                 })()}
-
-                {activeTab === 'ghtk_settings' && (
-                    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {/* 1. Header & Toolbar Card */}
-                        <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all relative z-30">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                                {/* Status pills row */}
-                                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground shadow-xs">
-                                        <span>Giao Hàng Tiết Kiệm</span>
-                                    </div>
-                                    <div className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ${
-                                        ghtkConnectionStatus === 'ready'
-                                            ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400'
-                                            : ghtkConnectionStatus === 'missing_token'
-                                            ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-                                            : ghtkConnectionStatus === 'error'
-                                            ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
-                                            : 'border border-border/60 bg-background/40 text-muted-foreground'
-                                    }`}>
-                                        <span className={`h-2 w-2 rounded-full ${
-                                            ghtkConnectionStatus === 'ready'
-                                                ? 'bg-green-500 animate-pulse'
-                                                : ghtkConnectionStatus === 'missing_token'
-                                                ? 'bg-amber-500'
-                                                : ghtkConnectionStatus === 'error'
-                                                ? 'bg-red-500'
-                                                : 'bg-muted-foreground'
-                                        }`} />
-                                        <span>
-                                            {ghtkConnectionStatus === 'ready' && 'Đã kết nối'}
-                                            {ghtkConnectionStatus === 'missing_token' && 'Chưa có Token'}
-                                            {ghtkConnectionStatus === 'error' && 'Lỗi kết nối'}
-                                            {ghtkConnectionStatus === 'unknown' && 'Chưa kiểm tra'}
-                                        </span>
-                                    </div>
-                                    <div className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold border border-border/60 bg-background/40 text-muted-foreground">
-                                        <span>Kho lấy hàng</span>
-                                        <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-muted text-foreground">
-                                            {pickAddresses.length}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Action button */}
-                                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-                                    <button
-                                        type="button"
-                                        onClick={handleFetchPickAddresses}
-                                        disabled={isLoadingAddresses}
-                                        className="flex h-9 items-center gap-1.5 px-3 rounded-xl border border-border/60 bg-background/40 shadow-2xs backdrop-blur-md transition-all hover:bg-muted/50 active:scale-95 text-xs font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
-                                        title="Kiểm tra kết nối và cập nhật kho lấy hàng"
-                                    >
-                                        {isLoadingAddresses ? (
-                                            <Spinner className="w-3.5 h-3.5" />
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                                            </svg>
-                                        )}
-                                        <span>Tải lại kho</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 2. Webhook Configuration Card */}
-                        <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-6 mx-1 sm:mx-0">
-                            <div className="flex items-center justify-between pb-3 border-b border-border/40 mb-4">
-                                <div>
-                                    <h3 className="text-base font-bold text-foreground">Webhook URL Cập nhật vận đơn tự động</h3>
-                                    <p className="text-xs text-muted-foreground mt-0.5">Sao chép URL này dán vào cấu hình Webhook tài khoản GHTK để đồng bộ trạng thái đơn hàng thời gian thực.</p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 max-w-3xl">
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 rounded-xl bg-background/40 backdrop-blur-xl border border-border/60 shadow-inner">
-                                    <input
-                                        type="text"
-                                        readOnly
-                                        value={ghtkWebhookSampleUrl}
-                                        className="bg-transparent flex-1 px-2.5 py-1.5 text-xs font-mono text-foreground select-all outline-none"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(ghtkWebhookSampleUrl);
-                                            addToast('Đã sao chép Webhook URL GHTK', { type: 'success' });
-                                        }}
-                                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-bold shadow-xs hover:bg-primary/90 active:scale-95 transition-all shrink-0"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
-                                        </svg>
-                                        <span>Sao chép URL</span>
-                                    </button>
-                                </div>
-                                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 shrink-0 text-primary">
-                                        <path fillRule="evenodd" d="M10 1a4.5 4.5 0 0 0-4.5 4.5V9H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-.5V5.5A4.5 4.5 0 0 0 10 1Zm3 8V5.5a3 3 0 1 0-6 0V9h6Z" clipRule="evenodd" />
-                                    </svg>
-                                    <span>Bảo mật: Token xác thực webhook được bảo vệ qua biến môi trường bí mật Cloudflare Worker và tự động kiểm tra chữ ký dữ liệu.</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 3. Pick Addresses Card */}
-                        <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-6 mx-1 sm:mx-0">
-                            <div className="flex justify-between items-center pb-3 border-b border-border/40 mb-4">
-                                <div>
-                                    <h3 className="text-base font-bold text-foreground">Kho & Địa chỉ lấy hàng GHTK ({pickAddresses.length})</h3>
-                                    <p className="text-xs text-muted-foreground mt-0.5">Danh sách các bưu cục / kho hàng đã liên kết trên hệ thống GHTK.</p>
-                                </div>
-                            </div>
-
-                            {isLoadingAddresses ? (
-                                <div className="flex justify-center p-8"><Spinner /></div>
-                            ) : pickAddresses.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                                    {pickAddresses.map(addr => (
-                                        <div
-                                            key={addr.pick_address_id}
-                                            className={`p-3.5 rounded-2xl border transition-all ${
-                                                addr.is_default
-                                                    ? 'border-primary/50 bg-primary/10 shadow-xs'
-                                                    : 'border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10'
-                                            }`}
-                                        >
-                                            <div className="flex justify-between items-start gap-2">
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="font-bold text-xs sm:text-sm text-foreground truncate">{addr.pick_name}</p>
-                                                        {addr.is_default && (
-                                                            <span className="inline-flex items-center rounded-full bg-primary/20 text-primary px-2 py-0.5 text-[10px] font-bold">
-                                                                Mặc định
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{addr.pick_address}</p>
-                                                    <p className="text-xs text-muted-foreground font-mono mt-1">SĐT: {addr.pick_tel}</p>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleViewAddressDetail(addr)}
-                                                    className="inline-flex items-center px-2.5 py-1.5 rounded-xl border border-border/60 bg-background/50 text-xs font-semibold text-primary hover:bg-card active:scale-95 transition-all shrink-0"
-                                                >
-                                                    Chi tiết
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="p-8 text-center text-xs text-muted-foreground">
-                                    Chưa có dữ liệu kho. Nhấn nút &quot;Tải lại kho&quot; để đồng bộ từ GHTK.
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'brands' && (
-                    <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-                        {(isBrandFormVisible || editingBrandId) ? (
-                            <div className="w-full rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
-                                <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
-                                    <div className="flex items-center gap-2.5 sm:gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsBrandFormVisible(false);
-                                                handleCancelEditBrand();
-                                            }}
-                                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background/50 text-muted-foreground hover:border-primary/50 hover:bg-card hover:text-primary transition-all active:scale-95 shadow-2xs"
-                                            title="Quay lại danh sách thương hiệu"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-                                            </svg>
-                                        </button>
-                                        <div>
-                                            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">Thương hiệu</p>
-                                            <h3 className="text-xl sm:text-2xl font-black text-foreground">
-                                                {editingBrandId ? `Cập nhật thương hiệu: ${editBrandName || '...'}` : 'Tạo thương hiệu mới'}
-                                            </h3>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsBrandFormVisible(false);
-                                            handleCancelEditBrand();
-                                        }}
-                                        className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-                                    >
-                                        Hủy
-                                    </button>
-                                </div>
-
-                                <div className="rounded-2xl flex min-h-[220px] flex-col items-center justify-center rounded-[1.45rem] border border-dashed p-4 sm:p-6 text-center transition-all border-primary/25 bg-gradient-to-br from-primary/[0.07] via-card/70 to-sky-100/50 dark:to-slate-900/50 mb-5">
-                                    <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[1.25rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 overflow-hidden flex items-center justify-center p-3">
-                                        {editingBrandId ? (
-                                            editBrandPreviewUrl ? (
-                                                <img src={editBrandPreviewUrl} alt="Preview logo thương hiệu" className="w-full h-full object-contain" />
-                                            ) : editingBrand?.logo_url ? (
-                                                <img src={editingBrand.logo_url} alt={editingBrand.name} className="w-full h-full object-contain" />
-                                            ) : (
-                                                <div className="text-center px-2">
-                                                    <p className="text-xs font-semibold text-muted-foreground">Chưa có logo</p>
-                                                    <p className="text-[10px] text-muted-foreground mt-0.5">Tải logo ở bên dưới</p>
-                                                </div>
-                                            )
-                                        ) : newBrandPreviewUrl ? (
-                                            <img src={newBrandPreviewUrl} alt="Preview logo mới" className="w-full h-full object-contain" />
-                                        ) : (
-                                            <div className="text-center px-2">
-                                                <p className="text-xs font-semibold text-muted-foreground">Preview logo</p>
-                                                <p className="text-[10px] text-muted-foreground mt-0.5">Logo hiển thị tại đây</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="mt-3 flex flex-wrap gap-2 text-xs justify-center">
-                                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2.5 py-0.5 font-semibold text-[11px]">
-                                            {editingBrandId ? 'Đang chỉnh sửa' : 'Thương hiệu mới'}
-                                        </span>
-                                        <span className="inline-flex items-center rounded-full bg-muted text-muted-foreground px-2.5 py-0.5 font-semibold text-[11px]">
-                                            {editingBrandId
-                                                ? (editBrandImage ? `Logo mới: ${editBrandImage.name}` : 'Đang dùng logo hiện tại')
-                                                : (newBrandImage ? `Đã chọn: ${newBrandImage.name}` : 'Chưa chọn logo')}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <form
-                                    onSubmit={(e) => {
-                                        if (editingBrandId) {
-                                            e.preventDefault();
-                                            void handleSaveEditBrand();
-                                        } else {
-                                            void handleAddNewBrand(e);
-                                        }
-                                    }}
-                                    className="space-y-4 max-w-2xl"
-                                >
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Tên thương hiệu <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="text"
-                                            value={editingBrandId ? editBrandName : newBrandName}
-                                            onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (editingBrandId) {
-                                                    setEditBrandName(value);
-                                                } else {
-                                                    setNewBrandName(value);
-                                                    setNewBrandSlug(generateSlug(value));
-                                                }
-                                            }}
-                                            className="w-full admin-glass-input"
-                                            placeholder="Ví dụ: La Roche-Posay"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Slug đường dẫn <span className="text-red-500">*</span></label>
-                                        <input
-                                            type="text"
-                                            value={editingBrandId ? editBrandSlug : newBrandSlug}
-                                            onChange={(e) => editingBrandId ? setEditBrandSlug(e.target.value) : setNewBrandSlug(e.target.value)}
-                                            className="w-full admin-glass-input font-mono text-xs"
-                                            placeholder="la-roche-posay"
-                                            required
-                                        />
-                                        <p className="text-[11px] text-muted-foreground mt-1">Slug sạch giúp route và SEO ổn định.</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Mô tả chi tiết thương hiệu</label>
-                                        <textarea
-                                            value={editingBrandId ? editBrandDescription : newBrandDescription}
-                                            onChange={(e) => editingBrandId ? setEditBrandDescription(e.target.value) : setNewBrandDescription(e.target.value)}
-                                            className="w-full admin-glass-input min-h-[140px] text-xs"
-                                            placeholder={'Viết 2-3 đoạn mô tả để dùng cho trang /thuong-hieu/<slug>, SEO và nội dung giới thiệu thương hiệu.'}
-                                        />
-                                        <p className="text-[11px] text-muted-foreground mt-1">Nội dung này hiển thị ở landing page của thương hiệu.</p>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Logo thương hiệu</label>
-                                        <ImageDropzone
-                                            onFilesSelected={(files) => {
-                                                const nextFile = files[0] || null;
-                                                if (editingBrandId) {
-                                                    setEditBrandImage(nextFile);
-                                                    return;
-                                                }
-                                                setNewBrandImage(nextFile);
-                                            }}
-                                            className="h-32"
-                                            label={editingBrandId ? 'Kéo logo mới vào đây hoặc' : 'Kéo logo thương hiệu vào đây hoặc'}
-                                            helpText="PNG, JPG, WEBP. Logo sẽ được nén và chuyển WebP tự động khi lưu."
-                                            selectedFileLabel={
-                                                editingBrandId
-                                                    ? (editBrandImage ? `Đã chọn: ${editBrandImage.name}` : null)
-                                                    : (newBrandImage ? `Đã chọn: ${newBrandImage.name}` : null)
-                                            }
-                                        />
-                                        {(editingBrandId ? editBrandImage : newBrandImage) && (
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (editingBrandId) {
-                                                        setEditBrandImage(null);
-                                                        return;
-                                                    }
-                                                    setNewBrandImage(null);
-                                                }}
-                                                className="mt-2 inline-flex items-center rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted-foreground hover:bg-muted transition-colors"
-                                            >
-                                                Bỏ ảnh đã chọn
-                                            </button>
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center gap-3 pt-3">
-                                        <button
-                                            type="submit"
-                                            disabled={
-                                                editingBrandId
-                                                    ? (isSavingEditBrand || !editBrandName || !editBrandSlug)
-                                                    : (isSavingBrand || !newBrandName || !newBrandSlug)
-                                            }
-                                            className="bg-primary text-primary-foreground font-bold py-2.5 px-6 rounded-xl hover:bg-primary/90 transition-all active:scale-95 shadow-sm text-xs disabled:opacity-50 flex items-center justify-center gap-2"
-                                        >
-                                            {editingBrandId
-                                                ? (isSavingEditBrand ? <Spinner className="w-4 h-4" /> : 'Lưu thương hiệu')
-                                                : (isSavingBrand ? <Spinner className="w-4 h-4" /> : 'Tạo thương hiệu')}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsBrandFormVisible(false);
-                                                handleCancelEditBrand();
-                                            }}
-                                            className="border border-border bg-background/50 px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted hover:text-foreground transition-all active:scale-95"
-                                        >
-                                            Hủy
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        ) : (
-                            <div className="space-y-3 sm:space-y-4">
-                                {/* 1. Header & Filter Card */}
-                                <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all relative z-30">
-                                    {/* Preset pills row */}
-                                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                                        <button
-                                            type="button"
-                                            onClick={() => setBrandFilter('all')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                brandFilter === 'all'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Tất cả</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                brandFilter === 'all' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {brands.length}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setBrandFilter('has_logo')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                brandFilter === 'has_logo'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Có logo</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                brandFilter === 'has_logo' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {brandSummary.brandsWithLogo}
-                                            </span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setBrandFilter('no_logo')}
-                                            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                                                brandFilter === 'no_logo'
-                                                    ? 'bg-primary text-primary-foreground shadow-xs'
-                                                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                                            }`}
-                                        >
-                                            <span>Chưa có logo</span>
-                                            <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                                                brandFilter === 'no_logo' ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                                            }`}>
-                                                {Math.max(0, brands.length - brandSummary.brandsWithLogo)}
-                                            </span>
-                                        </button>
-                                    </div>
-
-                                    {/* Search bar & action buttons */}
-                                    <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-                                        <div className="relative flex-1">
-                                            <input
-                                                type="text"
-                                                placeholder="Tìm theo tên thương hiệu, slug, mô tả..."
-                                                value={brandSearchQuery}
-                                                onChange={e => setBrandSearchQuery(e.target.value)}
-                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-                                            />
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                                            </svg>
-                                            {brandSearchQuery && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setBrandSearchQuery('')}
-                                                    className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {/* Nút Thêm mới */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setNewBrandName('');
-                                                setNewBrandSlug('');
-                                                setNewBrandDescription('');
-                                                setNewBrandImage(null);
-                                                setIsBrandFormVisible(true);
-                                            }}
-                                            className="flex items-center gap-1.5 h-9 px-2.5 sm:px-3 rounded-xl bg-primary text-primary-foreground font-semibold text-xs shadow-xs hover:bg-primary/90 transition-all shrink-0 active:scale-95"
-                                            title="Thêm thương hiệu mới"
-                                        >
-                                            <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp" alt="" className="w-5 h-5 object-contain" />
-                                            <span className="hidden sm:inline">Thêm mới</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* 2. List Card */}
-                                <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 p-3 sm:p-4">
-                                    {filteredBrands.length === 0 ? (
-                                        <div className="p-8 text-center text-xs text-muted-foreground">
-                                            Không tìm thấy thương hiệu nào phù hợp.
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
-                                            {filteredBrands.map((brand) => {
-                                                const isEditingThisBrand = editingBrandId === brand.id;
-                                                return (
-                                                    <div
-                                                        key={brand.id}
-                                                        className={`rounded-2xl transition-all flex flex-col sm:flex-row p-3 gap-3 sm:gap-4 items-start sm:items-center ${
-                                                            isEditingThisBrand
-                                                                ? 'border-0 ring-2 ring-primary/50 bg-primary/20 backdrop-blur-xl'
-                                                                : 'border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 hover:-translate-y-0.5 hover:bg-card/90'
-                                                        }`}
-                                                    >
-                                                        {/* Logo */}
-                                                        <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-[1.1rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 overflow-hidden flex items-center justify-center p-2">
-                                                            {brand.logo_url ? (
-                                                                <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
-                                                            ) : (
-                                                                <div className="text-center">
-                                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase">No Logo</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Info */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <h4 className="text-sm sm:text-base font-black truncate text-foreground">{brand.name}</h4>
-                                                                {isEditingThisBrand && (
-                                                                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                                                        Đang sửa
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <p className="font-mono text-[11px] text-muted-foreground truncate mt-0.5">{brand.slug}</p>
-                                                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                                                <span className="inline-flex items-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-[10px] font-semibold">
-                                                                    {brand.productCount} SP
-                                                                </span>
-                                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${brand.logo_url ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}`}>
-                                                                    {brand.logo_url ? 'Có logo' : 'Thiếu logo'}
-                                                                </span>
-                                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${brand.descriptionSnippet ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                                                    {brand.descriptionSnippet ? 'Có mô tả' : 'Thiếu mô tả'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Actions */}
-                                                        <div className="flex sm:flex-col gap-1.5 shrink-0 w-full sm:w-auto mt-2 sm:mt-0 items-center justify-end">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleStartEditBrand(brand)}
-                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                                title={`Sửa thương hiệu: ${brand.name}`}
-                                                            >
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-5 h-5 object-contain" />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleDeleteBrandConfirm(brand)}
-                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
-                                                                title={`Xóa thương hiệu: ${brand.name}`}
-                                                            >
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-5 h-5 object-contain" />
-                                                            </button>
-                                                        </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            )}
-            </>
+            </div>
         );
     };
 

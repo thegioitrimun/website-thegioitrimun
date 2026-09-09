@@ -191,10 +191,10 @@ const Sidebar: React.FC<SidebarProps> = ({
                                                 onLogout();
                                                 onClose();
                                             }}
-                                            className="flex items-center text-lg text-left hover:bg-accent p-3 rounded-md transition-all-smooth font-medium text-destructive"
+                                            className="flex items-center text-lg text-left hover:bg-accent p-3 rounded-md transition-all-smooth font-medium text-destructive dark:text-foreground dark:hover:text-rose-400"
                                             style={{ transitionDelay: `${(navLinks.length + 1) * 50}ms` }}
                                         >
-                                            <span className="mr-4 shrink-0"><LogoutIcon className="w-6 h-6" /></span>
+                                            <span className="mr-4 shrink-0 text-destructive dark:text-rose-400"><LogoutIcon className="w-6 h-6" /></span>
                                             <span>{t('auth.logout', 'Đăng xuất')}</span>
                                         </button>
                                     )}

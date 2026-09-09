@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Product, ProductBrand } from '../types';
 import { ArrowRightIcon, SearchIcon } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 import { getBrandDescriptionSnippet, getBrandInitials, normalizeBrandMatchKey } from '../src/brandUtils';
 
 interface BrandDirectoryPageProps {
@@ -187,26 +188,12 @@ const BrandDirectoryPage: React.FC<BrandDirectoryPageProps> = ({
 
             {/* Apple Glass Search & Segmented Filter Bar */}
             <div className="mt-6 flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative max-w-md flex-1">
-                <SearchIcon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={labels.searchPlaceholder}
-                  className="w-full rounded-full border border-white/60 bg-white/80 py-2.5 pl-11 pr-9 font-hero-body text-sm font-medium text-foreground placeholder:text-muted-foreground/70 shadow-xs backdrop-blur-xl transition focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/10"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground transition hover:text-foreground"
-                    aria-label="Clear search"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
+              <GlassSearchInput
+                value={query}
+                onChange={setQuery}
+                placeholder={labels.searchPlaceholder}
+                className="max-w-md flex-1"
+              />
 
               <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto rounded-full border border-white/60 bg-white/60 p-1 shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
                 {filterButtons.map((btn) => (

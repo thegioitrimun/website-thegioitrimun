@@ -21,7 +21,7 @@ test('client deletion calls the atomic RPC before removing storage files', async
   const deleteEnd = source.indexOf('export async function saveProductCategory', deleteStart);
   const deleteSource = source.slice(deleteStart, deleteEnd);
   const rpcIndex = deleteSource.indexOf("rpc('admin_delete_or_archive_product'");
-  const storageIndex = deleteSource.indexOf("removePublicImages('product-images'");
+  const storageIndex = deleteSource.indexOf("removePublicImages('product-images'", rpcIndex);
 
   assert.ok(rpcIndex >= 0, 'deleteProduct must use the atomic delete-or-archive RPC');
   assert.ok(storageIndex > rpcIndex, 'storage cleanup must happen only after the database deletion succeeds');

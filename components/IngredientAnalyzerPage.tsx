@@ -11,7 +11,7 @@ import {
     XCircleIcon,
 } from './icons';
 import { useBiDirectionalSticky } from '../hooks/useBiDirectionalSticky';
-import { AnimatedCounter, AnimatedConicScoreGauge } from './AnimatedCounter';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
 export type AnalyzerLanguage = 'vi' | 'en';
 export type EwgBucket = 'low' | 'moderate' | 'high' | 'unknown';
@@ -84,7 +84,7 @@ const copy = {
         title: 'Phân tích thành phần mỹ phẩm',
         subtitle: 'Dán bảng thành phần INCI để kiểm tra mức rủi ro EWG, ghi chú nhanh và mức phù hợp theo loại da.',
         disclaimer: 'Công cụ này hỗ trợ đọc thành phần, không thay thế tư vấn của bác sĩ da liễu.',
-        placeholder: 'Ví dụ: Water, Glycerin, Butylene Glycol, Sodium Hyaluronate...',
+        placeholder: 'Dán hoặc gõ bảng thành phần mỹ phẩm (INCI) tại đây... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate...',
         analyze: 'Phân tích ngay',
         sample: 'Dùng mẫu thử',
         clear: 'Xóa',
@@ -134,7 +134,7 @@ const copy = {
         title: 'Cosmetic ingredient analyzer',
         subtitle: 'Paste an INCI list to review EWG risk, quick notes, and skin-type fit.',
         disclaimer: 'This tool helps read ingredients and does not replace dermatology advice.',
-        placeholder: 'Example: Water, Glycerin, Butylene Glycol, Sodium Hyaluronate...',
+        placeholder: 'Paste or type cosmetics INCI here... E.g. Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate...',
         analyze: 'Analyze',
         sample: 'Use sample',
         clear: 'Clear',
@@ -303,17 +303,43 @@ function skinHeading(prefix: string, label: string, lang: 'vi' | 'en') {
 }
 
 function ScoreRing({ score }: { score: number }) {
+    const ringRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(ringRef, { threshold: 0.1, triggerOnce: true });
+    const [animatedScore, setAnimatedScore] = useState(0);
+
+    useEffect(() => {
+        if (!isVisible) return;
+        let startTime: number | null = null;
+        let animId: number;
+        const target = Math.max(0, Math.min(score, 100));
+        const duration = 1100;
+        const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
+
+        const step = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            setAnimatedScore(Math.round(target * easeOutQuart(progress)));
+            if (progress < 1) {
+                animId = requestAnimationFrame(step);
+            } else {
+                setAnimatedScore(target);
+            }
+        };
+
+        animId = requestAnimationFrame(step);
+        return () => cancelAnimationFrame(animId);
+    }, [isVisible, score]);
+
     return (
-        <div className="mx-auto flex shrink-0 items-center justify-center md:mx-0">
-            <AnimatedConicScoreGauge
-                score={score}
-                size={140}
-                innerSize={102}
-                color="hsl(var(--primary))"
-                bgColor="#d8e2e7"
-                textSize="text-3xl md:text-4xl"
-                className="!h-32 !w-32 md:!h-40 md:!w-40"
-            />
+        <div
+            ref={ringRef}
+            className="mx-auto grid h-32 w-32 shrink-0 place-items-center rounded-full md:mx-0 md:h-44 md:w-44 transition-transform duration-500 hover:scale-105 shadow-sm"
+            style={{ background: `conic-gradient(hsl(var(--primary)) ${animatedScore}%, #d8e2e7 0)` }}
+            aria-label={`${score}%`}
+        >
+            <div className="grid h-[72%] w-[72%] place-items-center rounded-full bg-white dark:bg-[#0f1722] shadow-inner">
+                <span className="text-3xl font-bold leading-none tracking-normal text-foreground md:text-5xl">{animatedScore}%</span>
+            </div>
         </div>
     );
 }
@@ -322,37 +348,10 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
     const [expanded, setExpanded] = useState(false);
     const [hoveredSegment, setHoveredSegment] = useState<EwgBucket | null>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const arcRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(arcRef, { threshold: 0.1, triggerOnce: true });
     const [isAnimated, setIsAnimated] = useState(false);
-    const gaugeRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        let timer: ReturnType<typeof setTimeout> | null = null;
-        let observer: IntersectionObserver | null = null;
-
-        const trigger = () => {
-            timer = setTimeout(() => {
-                setIsAnimated(true);
-            }, 60);
-        };
-
-        if (typeof IntersectionObserver !== 'undefined' && gaugeRef.current) {
-            observer = new IntersectionObserver((entries) => {
-                const [entry] = entries;
-                if (entry && entry.isIntersecting) {
-                    trigger();
-                    if (observer) observer.disconnect();
-                }
-            }, { threshold: 0.1 });
-            observer.observe(gaugeRef.current);
-        } else {
-            trigger();
-        }
-
-        return () => {
-            if (timer) clearTimeout(timer);
-            if (observer) observer.disconnect();
-        };
-    }, [total]);
+    const [animatedTotal, setAnimatedTotal] = useState(0);
 
     const values: Array<{ key: EwgBucket; label: string; count: number }> = [
         { key: 'low', label: labels.low, count: ewg.low || 0 },
@@ -361,6 +360,33 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
         { key: 'unknown', label: labels.unknown, count: ewg.unknown || 0 },
     ];
     let offset = 0;
+
+    useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => setIsAnimated(true), 60);
+            let startTime: number | null = null;
+            let animId: number;
+            const duration = 1100;
+            const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
+
+            const step = (timestamp: number) => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                setAnimatedTotal(Math.round(total * easeOutQuart(progress)));
+                if (progress < 1) {
+                    animId = requestAnimationFrame(step);
+                } else {
+                    setAnimatedTotal(total);
+                }
+            };
+
+            animId = requestAnimationFrame(step);
+            return () => {
+                clearTimeout(timer);
+                cancelAnimationFrame(animId);
+            };
+        }
+    }, [isVisible, total]);
 
     return (
         <section
@@ -379,7 +405,7 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
                     </p>
                 </div>
                 <div 
-                    ref={gaugeRef}
+                    ref={arcRef}
                     className={cx('relative mx-auto w-full', compact ? 'max-w-[250px]' : 'max-w-[360px] lg:mx-0')}
                     onMouseLeave={() => setHoveredSegment(null)}
                 >
@@ -401,9 +427,8 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
                                     strokeDasharray={isAnimated ? `${percent} ${100 - percent}` : `0 100`}
                                     strokeDashoffset={isAnimated ? dashOffset : 0}
                                     style={{
-                                        transition: isAnimated
-                                            ? `stroke-dasharray 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, stroke-dashoffset 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, opacity 0.2s ease`
-                                            : 'none',
+                                        transition: 'stroke-dasharray 1100ms cubic-bezier(0.16, 1, 0.3, 1), stroke-dashoffset 1100ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease',
+                                        transitionDelay: `${index * 80}ms`,
                                     }}
                                     onMouseEnter={() => setHoveredSegment(item.key)}
                                     onMouseMove={(e) => {
@@ -422,9 +447,7 @@ function RiskArc({ ewg, total, labels, compact = false }: { ewg: AnalyzerRespons
                         })}
                     </svg>
                     <div className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center text-center">
-                        <strong className={cx('font-bold leading-none text-foreground tabular-nums', compact ? 'text-4xl' : 'text-5xl md:text-6xl')}>
-                            <AnimatedCounter value={isAnimated ? total : 0} duration={1000} />
-                        </strong>
+                        <strong className={cx('font-bold leading-none text-foreground', compact ? 'text-4xl' : 'text-5xl md:text-6xl')}>{animatedTotal}</strong>
                         <span className={cx('mt-2 font-bold text-muted-foreground', compact ? 'text-sm' : 'text-base md:text-lg')}>{labels.totalIngredients}</span>
                     </div>
                     {hoveredSegment && (
@@ -513,69 +536,56 @@ function EmptyState({ labels }: { labels: typeof copy.vi }) {
 function SkinSuitabilityBar({
     goodCount,
     badCount,
+    total,
     goodPercent,
     badPercent,
 }: {
     goodCount: number;
     badCount: number;
+    total: number;
     goodPercent: number;
     badPercent: number;
 }) {
-    const [isFilled, setIsFilled] = useState(false);
     const barRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(barRef, { threshold: 0.1, triggerOnce: true });
+    const [isAnimated, setIsAnimated] = useState(false);
 
     useEffect(() => {
-        let timer: ReturnType<typeof setTimeout> | null = null;
-        let observer: IntersectionObserver | null = null;
-
-        const trigger = () => {
-            timer = setTimeout(() => {
-                setIsFilled(true);
-            }, 60);
-        };
-
-        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    const [entry] = entries;
-                    if (entry && entry.isIntersecting) {
-                        trigger();
-                        if (observer) observer.disconnect();
-                    }
-                },
-                { threshold: 0.05 }
-            );
-            observer.observe(barRef.current);
-        } else {
-            trigger();
+        if (isVisible && total > 0) {
+            const timer = setTimeout(() => setIsAnimated(true), 50);
+            return () => clearTimeout(timer);
         }
+    }, [isVisible, total]);
 
-        return () => {
-            if (timer) clearTimeout(timer);
-            if (observer) observer.disconnect();
-        };
-    }, [goodPercent, badPercent]);
+    if (!total) return null;
 
     return (
-        <div ref={barRef} className="flex h-full w-full">
+        <div ref={barRef} className="relative flex h-full w-full overflow-hidden rounded-full">
             {goodCount ? (
                 <span
-                    className="h-full bg-[#82df70] first:rounded-l-full last:rounded-r-full"
+                    className="h-full bg-[#82df70] first:rounded-l-full last:rounded-r-full transition-[width] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
                     style={{
-                        width: isFilled ? `${goodPercent}%` : '0%',
-                        transition: isFilled ? 'width 1.1s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+                        width: isAnimated ? `${goodPercent}%` : '0%',
                     }}
                 />
             ) : null}
             {badCount ? (
                 <span
-                    className="h-full bg-[#e95e6a] first:rounded-l-full last:rounded-r-full"
+                    className="h-full bg-[#e95e6a] first:rounded-l-full last:rounded-r-full transition-[width] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
                     style={{
-                        width: isFilled ? `${badPercent}%` : '0%',
-                        transition: isFilled ? 'width 1.1s cubic-bezier(0.22, 1, 0.36, 1) 90ms' : 'none',
+                        width: isAnimated ? `${badPercent}%` : '0%',
+                        transitionDelay: goodCount ? '90ms' : '0ms',
                     }}
                 />
             ) : null}
+            {isAnimated && (
+                <span
+                    className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-full"
+                    aria-hidden="true"
+                >
+                    <span className="block h-full w-2/3 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-ewg-shine" />
+                </span>
+            )}
         </div>
     );
 }
@@ -645,14 +655,13 @@ function SkinTypeSection({ skinRows, labels, lang, compact = false }: { skinRows
 
                                     <div className={cx('flex min-w-0 flex-1 items-center gap-2', !compact && 'sm:gap-3 md:gap-4')}>
                                         <div className={cx('min-w-0 flex-1 overflow-hidden rounded-full bg-[#eef2f3] dark:bg-slate-800', compact ? 'h-2' : 'h-2 md:h-4')}>
-                                            {total ? (
-                                                <SkinSuitabilityBar
-                                                    goodCount={goodCount}
-                                                    badCount={badCount}
-                                                    goodPercent={goodPercent}
-                                                    badPercent={badPercent}
-                                                />
-                                            ) : null}
+                                            <SkinSuitabilityBar
+                                                goodCount={goodCount}
+                                                badCount={badCount}
+                                                total={total}
+                                                goodPercent={goodPercent}
+                                                badPercent={badPercent}
+                                            />
                                         </div>
                                         <div className={cx('shrink-0 text-right font-bold', compact ? 'w-9 text-[13px]' : 'w-10 text-[14px] sm:w-12 sm:text-[15px] md:w-20 md:text-[19px]')}>
                                             {total ? (
@@ -708,8 +717,6 @@ function SkinTypeSection({ skinRows, labels, lang, compact = false }: { skinRows
 }
 
 function IngredientHazardScale({ ingredients, labels }: { ingredients: AnalyzerIngredient[]; labels: typeof copy.vi }) {
-    const [isFilled, setIsFilled] = useState(false);
-    const barRef = useRef<HTMLDivElement>(null);
     const values = ingredients.flatMap((item) => ewgScoreValues(item.ewg_score));
     const lower = values.length ? Math.min(...values) : 1;
     const higher = values.length ? Math.max(...values) : 10;
@@ -733,58 +740,47 @@ function IngredientHazardScale({ ingredients, labels }: { ingredients: AnalyzerI
             basis: total ? `${(counts[definition.key] / total) * 100}%` : '0%',
         }));
 
+    const [isAnimated, setIsAnimated] = useState(false);
+    const barRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(barRef, {
+        threshold: 0.1,
+        triggerOnce: true,
+    });
+
     useEffect(() => {
-        let timer: ReturnType<typeof setTimeout> | null = null;
-        let observer: IntersectionObserver | null = null;
-
-        const trigger = () => {
-            timer = setTimeout(() => {
-                setIsFilled(true);
+        if (isVisible && segments.length > 0) {
+            const timer = setTimeout(() => {
+                setIsAnimated(true);
             }, 60);
-        };
-
-        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    const [entry] = entries;
-                    if (entry && entry.isIntersecting) {
-                        trigger();
-                        if (observer) observer.disconnect();
-                    }
-                },
-                { threshold: 0.05 }
-            );
-            observer.observe(barRef.current);
-        } else {
-            trigger();
+            return () => clearTimeout(timer);
         }
-
-        return () => {
-            if (timer) clearTimeout(timer);
-            if (observer) observer.disconnect();
-        };
-    }, [total]);
+    }, [isVisible, segments.length]);
 
     return (
-        <div ref={barRef} className="mt-6">
-            <div className="flex h-4 overflow-hidden rounded-full bg-[#e9eef1] dark:bg-slate-800">
+        <div className="mt-6">
+            <div ref={barRef} className="relative flex h-4 overflow-hidden rounded-full bg-[#e9eef1] dark:bg-slate-800 shadow-inner">
                 {segments.map((segment, index) => (
                     <span
                         key={segment.key}
-                        className="h-full border-r-2 border-white dark:border-slate-900 last:border-r-0"
+                        className="h-full border-r-2 border-white dark:border-slate-900 last:border-r-0 min-w-0 transition-[flex-basis,width,opacity] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
                         style={{
                             backgroundColor: segment.color,
-                            flexBasis: isFilled ? segment.basis : '0%',
-                            width: isFilled ? segment.basis : '0%',
-                            opacity: isFilled ? 1 : 0,
-                            transition: isFilled
-                                ? `flex-basis 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, width 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, opacity 0.4s ease ${index * 80}ms`
-                                : 'none',
+                            flexBasis: isAnimated ? segment.basis : '0%',
+                            width: isAnimated ? segment.basis : '0%',
+                            transitionDelay: `${index * 60}ms`,
                         }}
                         title={`${segment.label}: ${segment.count}`}
                         aria-label={`${segment.label}: ${segment.count}`}
                     />
                 ))}
+                {isAnimated && (
+                    <span
+                        className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-full"
+                        aria-hidden="true"
+                    >
+                        <span className="block h-full w-2/3 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-ewg-shine" />
+                    </span>
+                )}
             </div>
             <div className="mt-3 flex items-center justify-between text-sm font-bold text-muted-foreground">
                 <span>{labels.lowerHazard} ({lower})</span>
@@ -1237,28 +1233,37 @@ export default function IngredientAnalyzerPage() {
                             <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-muted-foreground md:mx-0 md:mt-5 md:text-lg md:leading-8">{labels.subtitle}</p>
 
                         </div>
-                        <div className="rounded-[28px] border border-white/70 bg-white/82 p-4 shadow-[0_22px_60px_-48px_rgba(36,46,57,0.48)] dark:border-white/10 dark:bg-[rgba(15,23,34,0.75)] dark:shadow-[0_22px_60px_-48px_rgba(0,0,0,0.7)] backdrop-blur md:p-5">
+                        <div className="rounded-[28px] border border-white/70 bg-card/85 p-4 shadow-[0_22px_60px_-48px_rgba(36,46,57,0.48)] dark:border-white/10 dark:bg-[rgba(15,23,34,0.75)] dark:shadow-[0_22px_60px_-48px_rgba(0,0,0,0.7)] backdrop-blur-xl md:p-5">
                             <textarea
                                 value={inciText}
                                 onChange={(event) => setInciText(event.target.value)}
+                                rows={4}
                                 placeholder={labels.placeholder}
-                                className="min-h-[190px] w-full resize-y rounded-[22px] border border-border bg-white p-5 text-base font-medium leading-7 text-foreground outline-none transition focus:border-primary/45 focus:ring-4 focus:ring-primary/10 dark:bg-[#0b1320] dark:border-white/15 dark:text-white dark:focus:border-primary/60"
+                                className="w-full resize-none rounded-[22px] border-0 bg-black/[0.03] p-4 text-sm font-medium leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-inner backdrop-blur-md focus:bg-white/90 focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.05] dark:text-white dark:focus:bg-white/[0.08]"
                             />
-                            {error ? <p className="mt-3 text-sm font-bold text-secondary">{error}</p> : null}
-                            <div className="mt-4 flex flex-wrap items-center gap-3">
+                            {error ? <p className="mt-2.5 text-xs font-bold text-destructive">{error}</p> : null}
+                            <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-2.5">
                                 <button
                                     type="button"
                                     onClick={submitAnalysis}
                                     disabled={isLoading}
-                                    className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground shadow-[0_18px_38px_-28px_rgba(26,51,29,0.86)] transition hover:bg-primary/92 disabled:cursor-wait disabled:opacity-70 btn-press"
+                                    className="inline-flex h-9 sm:h-10 items-center justify-center gap-1.5 rounded-full bg-primary px-4 sm:px-5 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95 disabled:cursor-wait disabled:opacity-70 btn-press"
                                 >
-                                    {isLoading ? <LoadingIcon className="h-5 w-5 animate-spin" /> : <ArrowRightIcon className="h-5 w-5" />}
-                                    {labels.analyze}
+                                    {isLoading ? <LoadingIcon className="h-4 w-4 animate-spin" /> : <ArrowRightIcon className="h-4 w-4" />}
+                                    <span>{labels.analyze}</span>
                                 </button>
-                                <button type="button" onClick={() => setInciText(DEMO_INCI)} className="min-h-[48px] rounded-full border border-border bg-white px-5 text-sm font-bold text-foreground transition hover:border-primary/35 hover:text-primary btn-press dark:bg-white/10 dark:border-white/15 dark:text-white dark:hover:bg-white/15">
+                                <button
+                                    type="button"
+                                    onClick={() => setInciText(DEMO_INCI)}
+                                    className="inline-flex h-9 sm:h-10 items-center justify-center rounded-full border border-border/70 bg-background/50 px-3.5 sm:px-4 text-xs sm:text-sm font-semibold text-foreground backdrop-blur-md transition-all hover:bg-muted hover:text-primary active:scale-95 btn-press dark:bg-white/5 dark:border-white/10 dark:text-white"
+                                >
                                     {labels.sample}
                                 </button>
-                                <button type="button" onClick={() => { setInciText(''); setAnalysis(null); setError(''); }} className="min-h-[48px] rounded-full px-4 text-sm font-bold text-muted-foreground transition hover:text-foreground">
+                                <button
+                                    type="button"
+                                    onClick={() => { setInciText(''); setAnalysis(null); setError(''); }}
+                                    className="inline-flex h-9 sm:h-10 items-center justify-center rounded-full px-3 text-xs sm:text-sm font-semibold text-muted-foreground transition-all hover:text-foreground hover:bg-muted/50 active:scale-95"
+                                >
                                     {labels.clear}
                                 </button>
                             </div>

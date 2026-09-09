@@ -2,8 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 
-const SOURCE_SVG_PATH = '/Users/PHUC/Desktop/logo.svg';
-const DARK_SVG_PATH = '/Users/PHUC/Desktop/logo_darkmode.svg';
+const SOURCE_SVG_PATH = fs.existsSync('/Users/PHUC/Desktop/logo.svg')
+  ? '/Users/PHUC/Desktop/logo.svg'
+  : path.resolve('public/icons/logo.svg');
+const DARK_SVG_PATH = fs.existsSync('/Users/PHUC/Desktop/logo_darkmode.svg')
+  ? '/Users/PHUC/Desktop/logo_darkmode.svg'
+  : path.resolve('public/icons/logo-dark.svg');
 const PUBLIC_DIR = path.resolve('public');
 const ICONS_DIR = path.resolve(PUBLIC_DIR, 'icons');
 

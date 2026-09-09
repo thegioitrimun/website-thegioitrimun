@@ -5949,6 +5949,10 @@ export async function quoteProductOrderTotals(params: {
 }
 
 // --- Shipping APIs ---
+export async function getShippingFeePolicy(): Promise<import('../types').ShippingFeePolicy> {
+    return d1ApiFetch<import('../types').ShippingFeePolicy>('/api/shipping/policy');
+}
+
 export async function calculateShippingFee(address: { street: string, province: string, district: string, ward: string }, items: CartItem[]): Promise<{ fee: number; estimated_delivery_time: string; }> {
     const weightInKg = items.reduce((acc, item) => acc + (item.quantity * 0.2), 0); // Assume each item is 0.2kg
     const weightInGrams = Math.round(Math.max(weightInKg, 0.1) * 1000); // GHTK requires weight in grams

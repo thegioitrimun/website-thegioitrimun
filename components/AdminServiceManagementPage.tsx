@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import type { AdminNavigationView, Service } from '../types';
 import { PlusCircleIcon, SearchIcon, XCircleIcon } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 import AnimatedSection from './AnimatedSection';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
 import ServiceEditorForm from './ServiceEditorForm';
@@ -128,30 +129,17 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
 
         {/* Row 2: Search + Add Service Button */}
         <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm theo tên dịch vụ, mô tả, slug..."
-              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-            />
-            <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <XCircleIcon className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
+          <GlassSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder="Tìm theo tên dịch vụ, mô tả, slug..."
+            className="flex-1 min-w-0"
+          />
 
           <button
             type="button"
             onClick={handleAddNew}
-            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-xl bg-primary px-3.5 sm:px-4 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs backdrop-blur-md transition-all hover:bg-primary/90 active:scale-95 shrink-0"
+            className="inline-flex h-10 sm:h-11 items-center justify-center gap-1.5 rounded-2xl bg-primary px-3.5 sm:px-4 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs backdrop-blur-md transition-all hover:bg-primary/90 active:scale-95 shrink-0"
           >
             <PlusCircleIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Thêm dịch vụ mới</span>

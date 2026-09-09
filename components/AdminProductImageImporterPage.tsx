@@ -13,6 +13,7 @@ import {
   TrashIcon,
   XCircleIcon,
 } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 
 type AdminProductImageImporterPageProps = {
   onNavigate: (page: AdminNavigationView) => void;
@@ -791,10 +792,13 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Preview</p>
                   <h2 className="mt-1 text-xl font-black text-foreground">Ảnh sẽ được thêm</h2>
                 </div>
-                <label className="flex min-w-0 items-center gap-2 rounded-full border border-border bg-background/65 px-4 py-2 sm:w-72">
-                  <SearchIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  <input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Tìm sản phẩm hoặc file" className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none" />
-                </label>
+                <GlassSearchInput
+                  value={searchQuery}
+                  onChange={(val) => setSearchQuery(val)}
+                  onClear={() => setSearchQuery('')}
+                  placeholder="Tìm sản phẩm hoặc file..."
+                  containerClassName="sm:w-72"
+                />
               </div>
               <div className="max-h-[720px] overflow-y-auto p-3 sm:p-4">
                 {filteredPreview.length ? (

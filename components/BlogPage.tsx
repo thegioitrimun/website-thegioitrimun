@@ -4,7 +4,6 @@ import type { BlogCategory, BlogPost } from '../types';
 import {
   ArrowRightIcon,
   BlogIcon,
-  CheckCircleIcon,
   CloseIcon,
   EyeIcon,
   SearchIcon,
@@ -296,12 +295,7 @@ const BlogPage: React.FC<BlogPageProps> = ({
           <aside className="hidden xl:block">
             <BlogSection className="sticky top-24 overflow-hidden rounded-[28px] border border-white/60 bg-white/70 p-5 shadow-[0_20px_45px_-30px_rgba(0,0,0,0.07)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.65)] dark:shadow-[0_24px_50px_-28px_rgba(0,0,0,0.55)]">
               <div className="border-b border-border/40 pb-4">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-primary shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-black/50">
-                  <BlogIcon className="h-3 w-3" />
-                  <span>{t('blog.topic_library', 'Thư viện chủ đề')}</span>
-                </div>
-                <h2 className="mt-2 text-xl font-black tracking-[-0.03em] text-foreground">{t('blog.topics', 'Chủ đề')}</h2>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t('blog.topic_library_hint')}</p>
+                <h2 className="text-xl font-black tracking-[-0.03em] text-foreground">{t('blog.topics', 'Chủ đề')}</h2>
               </div>
 
               <div className="mt-4 space-y-2">
@@ -340,18 +334,6 @@ const BlogPage: React.FC<BlogPageProps> = ({
                 })}
               </div>
 
-              {/* Medical Evidence Standard Pill */}
-              <div className="mt-5 rounded-[20px] border border-white/60 bg-white/60 p-3.5 backdrop-blur-xl dark:border-white/5 dark:bg-white/5">
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-4 w-4 text-primary shrink-0" />
-                  <p className="text-[11px] font-bold text-foreground">
-                    {t('blog.evidence_standard', 'Kiểm chứng y khoa')}
-                  </p>
-                </div>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {t('blog.evidence_standard_desc', '100% nội dung được biên soạn theo chuẩn lâm sàng da liễu.')}
-                </p>
-              </div>
             </BlogSection>
           </aside>
 
@@ -639,13 +621,6 @@ const BlogPage: React.FC<BlogPageProps> = ({
 
                       {/* Spotlight Stories Side List */}
                       <div className="grid gap-3.5 self-start">
-                        <BlogSection className="hidden md:block">
-                          <div className="rounded-[22px] border border-white/60 bg-white/70 p-4 shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.65)]">
-                            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-primary">{t('blog.spotlight_title', 'Chuyên đề nổi bật')}</p>
-                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t('blog.featured_story_hint')}</p>
-                          </div>
-                        </BlogSection>
-
                         {spotlightPosts.map((post) => (
                           <BlogSection key={post.slug}>
                             <button

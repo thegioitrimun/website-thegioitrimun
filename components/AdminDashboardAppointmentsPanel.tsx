@@ -16,6 +16,7 @@ import {
 } from './icons';
 import { useToast } from '../hooks/useToast';
 import { exportWorkbook } from '../src/workbookExport';
+import { GlassSearchInput } from './GlassInputs';
 
 export type AppointmentPanelSeed = {
   searchQuery?: string;
@@ -264,66 +265,6 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
     setDateFrom('');
     setDateTo('');
   };
-
-  type AppointmentPreset = 'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'today';
-
-  const APPOINTMENT_PRESET_TABS: Array<{ key: AppointmentPreset; label: string }> = [
-    { key: 'all', label: 'Tất cả lịch hẹn' },
-    { key: 'pending', label: 'Chờ xác nhận' },
-    { key: 'confirmed', label: 'Đã xác nhận' },
-    { key: 'completed', label: 'Hoàn thành' },
-    { key: 'cancelled', label: 'Đã hủy' },
-    { key: 'today', label: 'Hôm nay' },
-  ];
-
-  const handleSelectPreset = (key: AppointmentPreset) => {
-    if (key === 'all') {
-      setStatusFilter('all');
-      setDateFrom('');
-      setDateTo('');
-    } else if (key === 'today') {
-      const today = new Date().toISOString().slice(0, 10);
-      setStatusFilter('all');
-      setDateFrom(today);
-      setDateTo(today);
-    } else {
-      setStatusFilter(key);
-      setDateFrom('');
-      setDateTo('');
-    }
-  };
-
-  const currentPreset: AppointmentPreset = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    if (dateFrom === today && dateTo === today && statusFilter === 'all') return 'today';
-    if (statusFilter === 'pending' && !dateFrom && !dateTo) return 'pending';
-    if (statusFilter === 'confirmed' && !dateFrom && !dateTo) return 'confirmed';
-    if (statusFilter === 'completed' && !dateFrom && !dateTo) return 'completed';
-    if (statusFilter === 'cancelled' && !dateFrom && !dateTo) return 'cancelled';
-    if (statusFilter === 'all' && !dateFrom && !dateTo) return 'all';
-    return 'all';
-  }, [dateFrom, dateTo, statusFilter]);
-
-  const countSource = allAppointments.length > 0 ? allAppointments : appointments;
-  const presetCounts = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    const counts: Record<AppointmentPreset, number> = {
-      all: countSource.length,
-      pending: 0,
-      confirmed: 0,
-      completed: 0,
-      cancelled: 0,
-      today: 0,
-    };
-    countSource.forEach((item) => {
-      if (item.status === 'pending') counts.pending++;
-      if (item.status === 'confirmed') counts.confirmed++;
-      if (item.status === 'completed') counts.completed++;
-      if (item.status === 'cancelled') counts.cancelled++;
-      if (item.date === today) counts.today++;
-    });
-    return counts;
-  }, [countSource]);
 
   if (selectedAppointment && isDetailModalOpen) {
     return (
@@ -600,81 +541,18 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
       {/* 1. Header & Filter Card matching Orders & Customers */}
       <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        {/* Preset pills row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {APPOINTMENT_PRESET_TABS.map((preset) => {
-            const isActive = currentPreset === preset.key;
-            const count = presetCounts[preset.key] || 0;
-            return (
-              <button
-                key={preset.key}
-                type="button"
-                onClick={() => handleSelectPreset(preset.key)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-                }`}
-              >
-                <span>{preset.label}</span>
-                {count > 0 && (
-                  <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                      isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-foreground'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
         {/* Search bar, Filter toggle, Export button & Quick Service action */}
-        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Mã lịch hẹn / tên khách / SĐT / email / bác sĩ..."
-              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-3.5 h-3.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                </svg>
-              </button>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-1.5 h-9 px-3 rounded-xl border text-xs font-semibold transition-all shrink-0 active:scale-95 ${
-              showFilters || activeFilterCount > 0
-                ? 'border-primary/50 bg-primary/10 text-primary font-bold shadow-xs'
-                : 'border-border/60 bg-background/40 text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-3.5 h-3.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 1 1-3 0m3 0a1.5 1.5 0 1 0-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m-9.75 0h9.75" />
-            </svg>
-            <span>Bộ lọc</span>
-            {activeFilterCount > 0 && (
-              <span className="flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary text-primary-foreground text-[10px] font-bold">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <GlassSearchInput
+            value={searchQuery}
+            onChange={(val) => setSearchQuery(val)}
+            onClear={() => setSearchQuery('')}
+            placeholder="Mã lịch hẹn / tên khách / SĐT / email / bác sĩ..."
+            containerClassName="flex-1 min-w-0"
+            onFilter={() => setShowFilters(!showFilters)}
+            isFilterActive={showFilters || activeFilterCount > 0}
+            filterTitle={activeFilterCount > 0 ? `Bộ lọc (${activeFilterCount} đang chọn)` : 'Bộ lọc'}
+          />
           <button
             type="button"
             onClick={handleExport}

@@ -94,8 +94,8 @@ export const viewToPath = (
         case 'adminServiceManagement': return '/admin/dich-vu';
         case 'adminImageLibrary': return '/admin/hinh-anh';
         case 'adminProductImageImporter': return '/admin/gan-anh-san-pham';
-        case 'adminPancakeManagement': return '/admin/pancake-pos';
-        case 'adminVatManagement': return '/admin/ke-toan-vat';
+        case 'adminPancakeManagement': return view.section ? `/admin/pancake-pos?section=${view.section}` : '/admin/pancake-pos';
+        case 'adminVatManagement': return view.section ? `/admin/ke-toan-vat?section=${view.section}` : '/admin/ke-toan-vat';
         case 'adminPharmacyManagement': {
             if (view.action === 'order-detail' && view.orderId) {
                 return `/admin/don-hang/${view.orderId}`;
@@ -236,8 +236,24 @@ export const pathToView = (pathname: string, search = ''): View => {
                 case 'dich-vu': return { page: 'adminServiceManagement' };
                 case 'hinh-anh': return { page: 'adminImageLibrary' };
                 case 'gan-anh-san-pham': return { page: 'adminProductImageImporter' };
-                case 'pancake-pos': return { page: 'adminPancakeManagement' };
-                case 'ke-toan-vat': return { page: 'adminVatManagement' };
+                case 'pancake-pos': {
+                    const section = searchParams.get('section') as any;
+                    return {
+                        page: 'adminPancakeManagement',
+                        section: section === 'connection' || section === 'sync_streams' || section === 'queue_webhook' || section === 'manual_sync' || section === 'deplao'
+                            ? section
+                            : undefined,
+                    };
+                }
+                case 'ke-toan-vat': {
+                    const section = searchParams.get('section') as any;
+                    return {
+                        page: 'adminVatManagement',
+                        section: section === 'overview' || section === 'sales' || section === 'purchases' || section === 'periods' || section === 'adjustments' || section === 'rules' || section === 'entity' || section === 'migration'
+                            ? section
+                            : undefined,
+                    };
+                }
                 case 'nha-thuoc': {
                     const action = searchParams.get('action');
                     const section = third || searchParams.get('section');

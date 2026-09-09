@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
 export type ProductRiskBandKey = 'score-1-2' | 'score-3-4' | 'score-5' | 'score-6' | 'score-7-10' | 'unknown';
 export type ProductRiskSummaryStatus = 'loading' | 'ready' | 'empty' | 'error';
@@ -212,48 +213,25 @@ export const ProductRiskBar: React.FC<{
 }> = ({ summary, className = '' }) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [tooltipPos, setTooltipPos] = useState({ left: 0 });
-    const [isFilled, setIsFilled] = useState(false);
+    const [isAnimated, setIsAnimated] = useState(false);
     const barRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(barRef, {
+        threshold: 0.1,
+        rootMargin: '0px 0px -4% 0px',
+        triggerOnce: true,
+    });
 
     const isReady = summary.status === 'ready' && summary.segments.length > 0;
     const isLoading = summary.status === 'loading';
 
     useEffect(() => {
-        if (!isReady) {
-            setIsFilled(false);
-            return;
-        }
-
-        let timerId: ReturnType<typeof setTimeout> | null = null;
-        let observer: IntersectionObserver | null = null;
-
-        const triggerFill = () => {
-            timerId = setTimeout(() => {
-                setIsFilled(true);
+        if (isVisible && isReady) {
+            const timer = setTimeout(() => {
+                setIsAnimated(true);
             }, 60);
-        };
-
-        if (typeof IntersectionObserver !== 'undefined' && barRef.current) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    const [entry] = entries;
-                    if (entry && entry.isIntersecting) {
-                        triggerFill();
-                        if (observer) observer.disconnect();
-                    }
-                },
-                { rootMargin: '80px', threshold: 0.05 }
-            );
-            observer.observe(barRef.current);
-        } else {
-            triggerFill();
+            return () => clearTimeout(timer);
         }
-
-        return () => {
-            if (timerId) clearTimeout(timerId);
-            if (observer) observer.disconnect();
-        };
-    }, [isReady]);
+    }, [isVisible, isReady]);
 
     const handleMouseEnter = (index: number, e: React.MouseEvent<HTMLSpanElement>) => {
         const segEl = e.currentTarget;
@@ -273,13 +251,13 @@ export const ProductRiskBar: React.FC<{
 
     return (
         <div 
-            ref={barRef}
             className={`relative mt-2.5 w-full ${className}`}
             onMouseLeave={handleMouseLeave}
             onClick={(e) => e.stopPropagation()}
         >
             <div
-                className="flex h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-[#e9eef1] dark:bg-stone-700 shadow-inner"
+                ref={barRef}
+                className="relative flex h-1.5 sm:h-2 w-full overflow-hidden rounded-full bg-[#e9eef1] dark:bg-stone-700 shadow-inner"
                 role="img"
                 aria-label={
                     isReady && summary.summary_text
@@ -290,31 +268,45 @@ export const ProductRiskBar: React.FC<{
                 }
             >
                 {isReady ? (
-                    summary.segments.map((seg, index) => {
-                        const isHovered = hoveredIndex === index;
-                        const hasHover = hoveredIndex !== null;
-                        const widthValue = isFilled ? seg.basis : '0%';
-                        return (
+                    <>
+                        {summary.segments.map((seg, index) => {
+                            const isHovered = hoveredIndex === index;
+                            const hasHover = hoveredIndex !== null;
+                            return (
+                                <span
+                                    key={`${seg.key}-${index}`}
+                                    style={{
+                                        width: isAnimated ? seg.basis : '0%',
+                                        backgroundColor: seg.color,
+                                        transitionDelay: hasHover ? '0ms' : `${index * 60}ms`,
+                                    }}
+                                    onMouseEnter={(e) => handleMouseEnter(index, e)}
+                                    className={`h-full cursor-pointer min-w-0 first:rounded-l-full last:rounded-r-full transform-gpu ${
+                                        hasHover
+                                            ? 'transition-all duration-200'
+                                            : 'transition-[width,opacity] duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none'
+                                    } ${
+                                        hasHover
+                                            ? isHovered
+                                                ? 'scale-y-125 z-10 brightness-110 shadow-xs ring-1 ring-white/50'
+                                                : 'opacity-50'
+                                            : isAnimated
+                                                ? 'opacity-100'
+                                                : 'opacity-20'
+                                    }`}
+                                />
+                            );
+                        })}
+                        {/* Shimmer Sheen sweep upon scroll reveal */}
+                        {isAnimated && (
                             <span
-                                key={`${seg.key}-${index}`}
-                                style={{
-                                    width: widthValue,
-                                    backgroundColor: seg.color,
-                                    transition: isFilled
-                                        ? `width 1.15s cubic-bezier(0.22, 1, 0.36, 1) ${index * 80}ms, transform 0.2s ease, opacity 0.2s ease, filter 0.2s ease`
-                                        : 'none',
-                                }}
-                                onMouseEnter={(e) => handleMouseEnter(index, e)}
-                                className={`h-full cursor-pointer first:rounded-l-full last:rounded-r-full transform-gpu ${
-                                    hasHover
-                                        ? isHovered
-                                            ? 'scale-y-125 z-10 brightness-110 shadow-xs ring-1 ring-white/50'
-                                            : 'opacity-50'
-                                        : 'opacity-100'
-                                }`}
-                            />
-                        );
-                    })
+                                className="pointer-events-none absolute inset-0 z-10 overflow-hidden rounded-full"
+                                aria-hidden="true"
+                            >
+                                <span className="block h-full w-2/3 -translate-x-full bg-gradient-to-r from-transparent via-white/50 to-transparent animate-ewg-shine" />
+                            </span>
+                        )}
+                    </>
                 ) : isLoading ? (
                     <span className="h-full w-full animate-pulse rounded-full bg-primary/25" />
                 ) : (

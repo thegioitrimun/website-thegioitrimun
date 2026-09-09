@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Spinner from './Spinner';
+import { GlassMenuPopover } from './GlassInputs';
 import type { Product } from '../types';
 import type { ProductEditorSection } from '../src/productEditorTypes';
 
@@ -379,125 +380,117 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                   </svg>
                 </button>
 
-                {showMobileMenu && (
-                  <>
-                    {/* Invisible Backdrop click catcher */}
-                    <div
-                      className="fixed inset-0 z-40 bg-transparent"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                <GlassMenuPopover
+                  isOpen={showMobileMenu}
+                  onClose={() => setShowMobileMenu(false)}
+                  widthClass="w-56 max-w-[calc(100vw-2rem)]"
+                  topClass="top-full mt-1.5"
+                  className="z-[60]"
+                >
+                  {/* Toggle Hiển thị web */}
+                  {onTogglePublished && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onTogglePublished();
                         setShowMobileMenu(false);
                       }}
-                    />
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
+                          alt=""
+                          className="w-4 h-4 object-contain shrink-0"
+                        />
+                        <span>{isPublished ? 'Ẩn khỏi web' : 'Hiện trên web'}</span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        isPublished ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {isPublished ? 'Đang bật' : 'Đang tắt'}
+                      </span>
+                    </button>
+                  )}
 
-                    {/* Dropdown Popover */}
-                    <div className="absolute right-0 top-full mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-[60] p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
-                      {/* Toggle Hiển thị web */}
-                      {onTogglePublished && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onTogglePublished();
-                            setShowMobileMenu(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <img
-                              src={isPublished ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-visible.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-invisible.webp'}
-                              alt=""
-                              className="w-4 h-4 object-contain shrink-0"
-                            />
-                            <span>{isPublished ? 'Ẩn khỏi web' : 'Hiện trên web'}</span>
-                          </div>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                            isPublished ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {isPublished ? 'Đang bật' : 'Đang tắt'}
-                          </span>
-                        </button>
-                      )}
+                  {/* Toggle Đánh dấu nổi bật */}
+                  {onToggleFeatured && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onToggleFeatured();
+                        setShowMobileMenu(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <img
+                          src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp'}
+                          alt=""
+                          className="w-4 h-4 object-contain shrink-0"
+                        />
+                        <span>{isFeatured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật'}</span>
+                      </div>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
+                        isFeatured ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {isFeatured ? 'Đang bật' : 'Đang tắt'}
+                      </span>
+                    </button>
+                  )}
 
-                      {/* Toggle Đánh dấu nổi bật */}
-                      {onToggleFeatured && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onToggleFeatured();
-                            setShowMobileMenu(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <img
-                              src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp'}
-                              alt=""
-                              className="w-4 h-4 object-contain shrink-0"
-                            />
-                            <span>{isFeatured ? 'Bỏ nổi bật' : 'Đánh dấu nổi bật'}</span>
-                          </div>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${
-                            isFeatured ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {isFeatured ? 'Đang bật' : 'Đang tắt'}
-                          </span>
-                        </button>
-                      )}
+                  {/* Đồng bộ POS Pancake */}
+                  {onSyncPancake && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSyncPancake();
+                        setShowMobileMenu(false);
+                      }}
+                      disabled={isSyncingPancake || disabledActions}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left disabled:opacity-50"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        {isSyncingPancake ? (
+                          <Spinner className="w-4 h-4 text-primary shrink-0" />
+                        ) : (
+                          <img
+                            src={PANCAKE_ICON}
+                            alt=""
+                            className="w-4 h-4 object-contain shrink-0"
+                          />
+                        )}
+                        <span>Đồng bộ POS Pancake</span>
+                      </div>
+                      {isSyncingPancake ? (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary animate-pulse">
+                          Đang gửi...
+                        </span>
+                      ) : null}
+                    </button>
+                  )}
 
-                      {/* Đồng bộ POS Pancake */}
-                      {onSyncPancake && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onSyncPancake();
-                            setShowMobileMenu(false);
-                          }}
-                          disabled={isSyncingPancake || disabledActions}
-                          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left disabled:opacity-50"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            {isSyncingPancake ? (
-                              <Spinner className="w-4 h-4 text-primary shrink-0" />
-                            ) : (
-                              <img
-                                src={PANCAKE_ICON}
-                                alt=""
-                                className="w-4 h-4 object-contain shrink-0"
-                              />
-                            )}
-                            <span>Đồng bộ POS Pancake</span>
-                          </div>
-                          {isSyncingPancake ? (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary animate-pulse">
-                              Đang gửi...
-                            </span>
-                          ) : null}
-                        </button>
-                      )}
-
-                      {onCreateNew && (
-                        <>
-                          <div className="my-1 border-t border-border/50" />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              onCreateNew();
-                              setShowMobileMenu(false);
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-muted/60 transition-colors text-left"
-                          >
-                            <img
-                              src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp"
-                              alt=""
-                              className="w-4 h-4 object-contain shrink-0"
-                            />
-                            <span>Tạo sản phẩm mới</span>
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
+                  {onCreateNew && (
+                    <>
+                      <div className="my-1 border-t border-border/50" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onCreateNew();
+                          setShowMobileMenu(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-foreground hover:bg-primary/10 hover:text-primary transition-colors text-left"
+                      >
+                        <img
+                          src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-themmoi.webp"
+                          alt=""
+                          className="w-4 h-4 object-contain shrink-0"
+                        />
+                        <span>Tạo sản phẩm mới</span>
+                      </button>
+                    </>
+                  )}
+                </GlassMenuPopover>
               </div>
             </div>
           </div>

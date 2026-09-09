@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import useIntersectionObserver from '../hooks/useIntersectionObserver';
 import { useTranslation } from 'react-i18next';
 import type { Product, ProductCategory, ProductReview, UserData, ProductContentBlock, BlogPost, Service, ProductBrand } from '../types';
 import { getFallbackBlogImage } from '../types';
@@ -18,7 +19,6 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Thumbs, FreeMode } from 'swiper/modules';
 import type { Swiper as SwiperCore } from 'swiper/types';
 import AnimatedSection from './AnimatedSection';
-import { AnimatedConicScoreGauge } from './AnimatedCounter';
 import MarkdownRenderer from './MarkdownRenderer';
 import { IngredientAnalysisResults, IngredientQuickNotes, getAnalyzerLanguage, type AnalyzerResponse } from './IngredientAnalyzerPage';
 import { sanitizeDetailFaqItems } from '../src/detailFaq';
@@ -117,6 +117,48 @@ type CompactIngredientSummaryProps = {
     analyzerLang: ReturnType<typeof getAnalyzerLanguage>;
 };
 
+const ProductSafetyScoreRing: React.FC<{ score: number; label: string }> = ({ score, label }) => {
+    const ringRef = useRef<HTMLDivElement>(null);
+    const isVisible = useIntersectionObserver(ringRef, { threshold: 0.1, triggerOnce: true });
+    const [animatedScore, setAnimatedScore] = useState(0);
+
+    useEffect(() => {
+        if (!isVisible) return;
+        let startTime: number | null = null;
+        let animId: number;
+        const target = Math.max(0, Math.min(score, 100));
+        const duration = 1100;
+        const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
+
+        const step = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            setAnimatedScore(Math.round(target * easeOutQuart(progress)));
+            if (progress < 1) {
+                animId = requestAnimationFrame(step);
+            } else {
+                setAnimatedScore(target);
+            }
+        };
+
+        animId = requestAnimationFrame(step);
+        return () => cancelAnimationFrame(animId);
+    }, [isVisible, score]);
+
+    return (
+        <div
+            ref={ringRef}
+            className="grid h-[88px] w-[88px] shrink-0 place-items-center rounded-full transition-transform duration-300 hover:scale-105 shadow-sm"
+            style={{ background: `conic-gradient(#299582 ${animatedScore}%, #dfe8ec 0)` }}
+            aria-label={`${label}: ${score}%`}
+        >
+            <div className="grid h-[68px] w-[68px] place-items-center rounded-full bg-white text-center shadow-inner dark:bg-card">
+                <span className="text-xl font-black tracking-[-0.04em] text-foreground">{animatedScore}%</span>
+            </div>
+        </div>
+    );
+};
+
 const CompactIngredientSummary: React.FC<CompactIngredientSummaryProps> = ({
     analysis,
     isLoading,
@@ -150,15 +192,7 @@ const CompactIngredientSummary: React.FC<CompactIngredientSummaryProps> = ({
             {normalizedIngredients && !isLoading && analysis ? (
                 <>
                     <div className="mt-5 flex items-center justify-center gap-4">
-                        <AnimatedConicScoreGauge
-                            score={analysis.safety_score}
-                            label={copy.safetyScore}
-                            size={88}
-                            innerSize={68}
-                            color="#299582"
-                            bgColor="#dfe8ec"
-                            textSize="text-xl"
-                        />
+                        <ProductSafetyScoreRing score={analysis.safety_score} label={copy.safetyScore} />
                         <div className="min-w-0 text-center">
                             <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">{copy.safetyScore}</p>
                             <p className="mt-1 text-lg font-black leading-tight text-foreground">{analysis.verdict}</p>
@@ -555,12 +589,12 @@ const ProductImageGallery: React.FC<{ product: Product; productName: string }> =
     const hasImages = product.images && product.images.length > 0;
     if (!hasImages) {
         return (
-            <div className="flex aspect-square w-full items-center justify-center rounded-[30px] border border-border bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.12),transparent_58%),linear-gradient(180deg,hsl(var(--card)),hsl(var(--accent)/0.34))] shadow-[0_28px_70px_-42px_rgba(41,33,21,0.42)]">
+            <div className="product-hero-transition-image flex aspect-square w-full items-center justify-center rounded-[30px] border border-border bg-[radial-gradient(circle_at_top,hsl(var(--primary)/0.12),transparent_58%),linear-gradient(180deg,hsl(var(--card)),hsl(var(--accent)/0.34))] shadow-[0_28px_70px_-42px_rgba(41,33,21,0.42)]">
                 <div className="flex h-28 w-28 items-center justify-center rounded-full border border-border/80 bg-white/90 text-primary shadow-sm dark:border-white/10 dark:bg-card">
                     <ShoppingBagIcon className="h-12 w-12" />
                 </div>
             </div>
-        )
+        );
     }
 
     return (
@@ -585,7 +619,7 @@ const ProductImageGallery: React.FC<{ product: Product; productName: string }> =
                                 })}
                                 loading={index === 0 ? 'eager' : 'lazy'}
                                 sizes="(max-width: 767px) 100vw, (max-width: 1023px) 58vw, 720px"
-                                className="h-full w-full cursor-crosshair object-cover transition-opacity duration-500 [filter:drop-shadow(0_18px_30px_rgba(36,46,57,0.2))_drop-shadow(0_-18px_30px_rgba(36,46,57,0.12))]"
+                                className={`h-full w-full cursor-crosshair object-cover transition-opacity duration-500 [filter:drop-shadow(0_18px_30px_rgba(36,46,57,0.2))_drop-shadow(0_-18px_30px_rgba(36,46,57,0.12))] ${index === 0 ? 'product-hero-transition-image' : ''}`}
                             />
                         </SwiperSlide>
                     ))}
@@ -819,13 +853,11 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     const [canReview, setCanReview] = useState<boolean | null>(null);
     const [isCheckingReviewEligibility, setIsCheckingReviewEligibility] = useState(false);
     const [isMobileDescriptionExpanded, setIsMobileDescriptionExpanded] = useState(false);
-    const [hasInitialLoadDeadlineElapsed, setHasInitialLoadDeadlineElapsed] = useState(false);
 
     const localizedIngredientsRaw = getLocalizedValue(product, 'ingredients', i18n.language);
     const ingredientSourceVersion = product.updated_at || product.source_updated_at || '';
     const { analysis: ingredientAnalysis, isLoading: isLoadingIngredientAnalysis, hasSettled: hasIngredientAnalysisSettled, error: ingredientAnalysisError, copy: ingredientAnalysisCopy, normalizedIngredients, analyzerLang } = useProductIngredientAnalysis(product.slug || product.id, localizedIngredientsRaw, ingredientSourceVersion);
     const primaryImageUrl = product.images?.find((image) => image.is_primary)?.image_url || product.images?.[0]?.image_url || '';
-    const [isPrimaryImageReady, setIsPrimaryImageReady] = useState(() => !primaryImageUrl);
 
     const { addToCart } = useCart();
     const { addToast } = useToast();
@@ -1278,40 +1310,10 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         void refreshReviewState();
         setQuantity(1);
         setIsMobileDescriptionExpanded(false);
-        setHasInitialLoadDeadlineElapsed(false);
         if (typeof window === 'undefined' || !['#reviews', '#reviews-section'].includes(window.location.hash)) {
             setActiveTab('usage');
         }
     }, [product.id, currentUser?.profile.id]);
-
-    useEffect(() => {
-        const timer = window.setTimeout(() => setHasInitialLoadDeadlineElapsed(true), 5000);
-        return () => window.clearTimeout(timer);
-    }, [product.id]);
-
-    useEffect(() => {
-        if (!primaryImageUrl) {
-            setIsPrimaryImageReady(true);
-            return undefined;
-        }
-
-        let isMounted = true;
-        setIsPrimaryImageReady(false);
-        const image = new Image();
-        const markReady = () => {
-            if (isMounted) setIsPrimaryImageReady(true);
-        };
-        image.onload = markReady;
-        image.onerror = markReady;
-        image.src = primaryImageUrl;
-        if (image.complete) markReady();
-
-        return () => {
-            isMounted = false;
-            image.onload = null;
-            image.onerror = null;
-        };
-    }, [primaryImageUrl, product.id]);
 
     useEffect(() => {
         // --- SEO: JSON-LD Product Schema ---
@@ -1593,13 +1595,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         }
     };
 
-    const isInitialProductContentLoading = !hasInitialLoadDeadlineElapsed && (
-        isLoadingReviews
-        || !hasIngredientAnalysisSettled
-        || !isPrimaryImageReady
-    );
-
-    if (isInitialProductContentLoading) {
+    if (!product) {
         return <ProductDetailLoadingShell />;
     }
 

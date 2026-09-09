@@ -15,7 +15,7 @@ test('shared navbar and metadata use the tropical dermatology brand', async () =
     readFile(manifestPath, 'utf8'),
     readFile(seoPath, 'utf8'),
   ]);
-  const headerStart = app.indexOf('<header className=');
+  const headerStart = app.indexOf('<header');
   const headerEnd = app.indexOf('</header>', headerStart);
   const headerSource = app.slice(headerStart, headerEnd);
 

@@ -12,6 +12,19 @@ export type VatMethod = 'deduction_01' | 'direct_04';
 export type VatPeriodStatus = 'draft' | 'in_review' | 'locked' | 'filed' | 'amended';
 export type VatInvoiceStatus = 'draft' | 'issued' | 'replaced' | 'adjusted' | 'cancelled';
 
+export type UserRole = 'customer' | 'doctor' | 'accountant' | 'admin' | 'master_admin';
+
+export type AdminPancakeSection = 'connection' | 'sync_streams' | 'queue_webhook' | 'manual_sync' | 'deplao';
+export type AdminVatSection =
+  | 'overview'
+  | 'sales'
+  | 'purchases'
+  | 'periods'
+  | 'adjustments'
+  | 'rules'
+  | 'entity'
+  | 'migration';
+
 export type AdminNavigationView =
   | { page: 'adminDashboard', section?: AdminDashboardSection }
   | { page: 'adminUserManagement', section?: AdminUserSection }
@@ -19,8 +32,8 @@ export type AdminNavigationView =
   | { page: 'adminServiceManagement' }
   | { page: 'adminImageLibrary' }
   | { page: 'adminProductImageImporter' }
-  | { page: 'adminPancakeManagement' }
-  | { page: 'adminVatManagement' }
+  | { page: 'adminPancakeManagement', section?: AdminPancakeSection }
+  | { page: 'adminVatManagement', section?: AdminVatSection }
   | {
       page: 'adminPharmacyManagement',
       section?: AdminPharmacySection,
@@ -1174,6 +1187,14 @@ export interface DiscountCode {
   description?: string | null;
   created_at?: string;
   updated_at?: string;
+}
+
+export interface ShippingFeePolicy {
+  mode: 'fixed';
+  currency: 'VND';
+  online_fee: number;
+  pos_fee: number;
+  checkout_providers: Array<'spx' | 'ghtk'>;
 }
 
 export interface CheckoutPricingQuote {

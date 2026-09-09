@@ -383,8 +383,8 @@ export async function maybeHandleSeoFeedRoute(route, deps) {
             '/ho-so-y-te',
             '/thanh-toan',
             '/dang-nhap',
-            '/dat-hang-thanh-cong',
-            '/tra-cuu-don-hang',
+            '/dat-hang-thanh-cong', // Disallow: /dat-hang-thanh-cong
+            '/tra-cuu-don-hang', // Disallow: /tra-cuu-don-hang
         ];
         const aiUserAgents = [
             'GPTBot',

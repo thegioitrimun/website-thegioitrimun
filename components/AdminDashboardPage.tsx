@@ -17,6 +17,13 @@ import Spinner from './Spinner';
 import { useTranslation } from 'react-i18next';
 import * as api from '../services/api';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
+import {
+  AdminSurface,
+  AdminButton,
+  AdminStatusBadge,
+  AdminPageHeader,
+  AdminSectionTabs,
+} from './admin';
 import type {
   AdminDashboardAlert,
   AdminDashboardKpiSnapshot,
@@ -1559,58 +1566,94 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
 
   const renderOverview = () => (
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
-      {/* 1. Header Card matching Apple Glass standard */}
-      <div
-        className={`${cardTransitionClass(0)} rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 hover:border-white/95 hover:shadow-[0_32px_75px_-36px_rgba(24,35,32,0.6)] dark:border-white/10 dark:hover:border-white/25 p-3 sm:p-4 mx-1 sm:mx-0`}
-        style={{ transitionDelay: '0ms' }}
-      >
-        {/* Preset pills row */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {(Object.keys(PRESET_LABELS) as DashboardPreset[]).map((key) => {
-            const isActive = preset === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setPreset(key)}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all duration-200 active:scale-95 ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/25 scale-[1.02]'
-                    : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted/70 hover:text-foreground hover:border-border'
-                }`}
-              >
-                <span>{PRESET_LABELS[key]}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Status / Action row */}
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-muted-foreground truncate">
-              {lastUpdated ? `Cập nhật lúc ${formatDateTime(lastUpdated)}` : 'Chưa có dữ liệu cập nhật'}
-            </p>
+      {/* 1. Dải số liệu KPI gọn gàng (TQ-01 chuẩn rule Master Plan) */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-4 mx-1 sm:mx-0">
+        {/* Card 1: Doanh thu thuần */}
+        <AdminSurface
+          variant="card"
+          className="p-3.5 sm:p-4 transition-all duration-200 hover:border-primary/40 shadow-xs"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Doanh thu thuần
+            </span>
+            <AdminStatusBadge tone="emerald" size="sm">
+              {PRESET_LABELS[preset]}
+            </AdminStatusBadge>
           </div>
-          <button
-            type="button"
-            onClick={() => void loadDashboardData()}
-            className="flex items-center gap-1.5 h-8 px-2.5 rounded-xl border border-border/60 bg-background/40 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all shrink-0 active:scale-95"
-            title="Làm mới dữ liệu"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2}
-              stroke="currentColor"
-              className={`w-3.5 h-3.5 transition-transform duration-500 ${loading ? 'animate-spin text-primary' : ''}`}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-            </svg>
-            <span className="hidden sm:inline">{loading ? 'Đang cập nhật...' : 'Làm mới'}</span>
-          </button>
-        </div>
+          <p className="mt-2 text-xl sm:text-2xl font-black font-mono tracking-tight text-foreground">
+            <AnimatedCounter value={snapshot?.net_revenue || 0} formatter={formatCurrency} />
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
+            SP: {formatCurrencyCompact(snapshot?.net_revenue || 0)} • DV: {formatCurrencyCompact(snapshot?.service_revenue || 0)}
+          </p>
+        </AdminSurface>
+
+        {/* Card 2: Đơn hàng */}
+        <AdminSurface
+          variant="card"
+          onClick={() => onNavigate({ page: 'adminPharmacyManagement', section: 'orders' })}
+          className="p-3.5 sm:p-4 transition-all duration-200 hover:border-primary/40 cursor-pointer shadow-xs active:scale-[0.99]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Đơn hàng
+            </span>
+            <span className="text-[11px] font-bold text-primary hover:underline">Xem đơn →</span>
+          </div>
+          <p className="mt-2 text-xl sm:text-2xl font-black font-mono tracking-tight text-foreground">
+            <AnimatedCounter value={snapshot?.total_orders || 0} />
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
+            {formatCompactNumber(snapshot?.pending_orders || 0)} chờ xử lý • {formatCompactNumber(snapshot?.completed_orders || 0)} hoàn tất
+          </p>
+        </AdminSurface>
+
+        {/* Card 3: Lịch hẹn */}
+        <AdminSurface
+          variant="card"
+          onClick={() => {
+            setActivePanel('appointments');
+            onNavigate({ page: 'adminDashboard', section: 'appointments' });
+          }}
+          className="p-3.5 sm:p-4 transition-all duration-200 hover:border-primary/40 cursor-pointer shadow-xs active:scale-[0.99]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Lịch hẹn
+            </span>
+            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline">Xem lịch →</span>
+          </div>
+          <p className="mt-2 text-xl sm:text-2xl font-black font-mono tracking-tight text-foreground">
+            <AnimatedCounter value={snapshot?.appointments_total || 0} />
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
+            {formatCompactNumber(snapshot?.appointments_pending || 0)} chờ duyệt • {formatCompactNumber(snapshot?.appointments_completed || 0)} xong
+          </p>
+        </AdminSurface>
+
+        {/* Card 4: Khách hàng */}
+        <AdminSurface
+          variant="card"
+          onClick={() => {
+            setActivePanel('customers');
+            onNavigate({ page: 'adminDashboard', section: 'customers' });
+          }}
+          className="p-3.5 sm:p-4 transition-all duration-200 hover:border-primary/40 cursor-pointer shadow-xs active:scale-[0.99]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Khách hàng
+            </span>
+            <span className="text-[11px] font-bold text-primary hover:underline">Xem khách →</span>
+          </div>
+          <p className="mt-2 text-xl sm:text-2xl font-black font-mono tracking-tight text-foreground">
+            <AnimatedCounter value={(snapshot?.new_customers || 0) + (snapshot?.returning_customers || 0)} />
+          </p>
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
+            {formatCompactNumber(snapshot?.new_customers || 0)} mới • {formatCompactNumber(snapshot?.returning_customers || 0)} quay lại
+          </p>
+        </AdminSurface>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2 mx-1 sm:mx-0">
@@ -1722,8 +1765,121 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
     });
   }, [activePanel, actions, dashboardTaskItems, setSidebarConfig, workspaceInsights]);
 
+  const dashboardTabs = [
+    { key: 'overview', label: 'Tổng quan' },
+    { key: 'customers', label: 'Khách hàng', count: customers.length > 0 ? customers.length : undefined },
+    { key: 'appointments', label: 'Lịch hẹn', count: snapshot?.appointments_pending ? snapshot.appointments_pending : undefined },
+    { key: 'reports', label: 'Báo cáo' },
+  ];
+
+  const getHeaderMeta = () => {
+    switch (activePanel) {
+      case 'customers':
+        return {
+          title: 'Khách hàng',
+          description: 'Phân tích phân khúc khách hàng, giá trị vòng đời (LTV) và lịch sử tương tác.',
+          actions: (
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              onClick={() => onNavigate({ page: 'adminUserManagement' })}
+              leftIcon={<UsersIcon className="h-4 w-4" />}
+            >
+              <span>Người dùng & Bác sĩ</span>
+            </AdminButton>
+          ),
+        };
+      case 'appointments':
+        return {
+          title: 'Lịch hẹn',
+          description: 'Điều phối lịch khám, dịch vụ điều trị và đối soát hóa đơn thanh toán.',
+          actions: (
+            <AdminButton
+              variant="secondary"
+              size="sm"
+              onClick={() => onNavigate({ page: 'adminServiceManagement' })}
+              leftIcon={<CalendarDaysIcon className="h-4 w-4" />}
+            >
+              <span>Quản lý dịch vụ</span>
+            </AdminButton>
+          ),
+        };
+      case 'reports':
+        return {
+          title: 'Báo cáo',
+          description: 'Tổng hợp số liệu kinh doanh định kỳ và quản lý lịch gửi báo cáo tự động.',
+          actions: undefined,
+        };
+      case 'overview':
+      default:
+        return {
+          title: 'Tổng quan',
+          description: 'Theo dõi doanh số bán hàng, dịch vụ, top sản phẩm và sức khỏe vận hành hệ thống.',
+          actions: (
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center rounded-xl bg-card/70 dark:bg-card/40 border border-border/70 p-0.5 shadow-2xs">
+                {(Object.keys(PRESET_LABELS) as DashboardPreset[]).map((key) => {
+                  const isActive = preset === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setPreset(key)}
+                      className={`rounded-lg px-2.5 py-1 text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {PRESET_LABELS[key]}
+                    </button>
+                  );
+                })}
+              </div>
+              <AdminButton
+                variant="secondary"
+                size="sm"
+                loading={loading}
+                onClick={() => void loadDashboardData()}
+                leftIcon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                    stroke="currentColor"
+                    className="w-3.5 h-3.5"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                }
+              >
+                <span>{loading ? 'Đang tải...' : 'Làm mới'}</span>
+              </AdminButton>
+            </div>
+          ),
+        };
+    }
+  };
+
+  const headerMeta = getHeaderMeta();
+
   return (
-    <>
+    <div className="space-y-4">
+      <AdminPageHeader
+        title={headerMeta.title}
+        description={headerMeta.description}
+        badge={lastUpdated ? `Cập nhật: ${formatDateTime(lastUpdated)}` : undefined}
+        actions={headerMeta.actions}
+      />
+      <AdminSectionTabs
+        tabs={dashboardTabs}
+        activeKey={activePanel}
+        onChange={(key) => {
+          setActivePanel(key as DashboardPanel);
+          onNavigate({ page: 'adminDashboard', section: key as DashboardPanel });
+        }}
+      />
       {loading && activePanel === 'overview' && !snapshot ? (
         <div className="flex min-h-[320px] items-center justify-center rounded-[1.25rem] border border-border bg-background">
           <Spinner />
@@ -1736,7 +1892,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       ) : (
         renderPanel()
       )}
-    </>
+    </div>
   );
 };
 

@@ -7,6 +7,7 @@ import type {
   DoctorProfile,
 } from '../types';
 import { PlusCircleIcon, SearchIcon, UsersIcon, XCircleIcon } from './icons';
+import { GlassSearchInput, GlassFilterButton, GlassMenuPopover } from './GlassInputs';
 import AnimatedSection from './AnimatedSection';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
 import DoctorForm from './DoctorForm';
@@ -54,9 +55,9 @@ const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (props) 
   const [userDetailError, setUserDetailError] = useState<string | null>(null);
   const [isUserDetailLoading, setIsUserDetailLoading] = useState(false);
 
-  // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const [showRoleFilterMenu, setShowRoleFilterMenu] = useState(false);
 
   const customers = useMemo(
     () => props.allPatients.filter((p) => p.role === 'customer'),
@@ -266,122 +267,47 @@ const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (props) 
   return (
     <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
       {/* Unified Filter Card (Apple Glass Standard) */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        {/* Row 1: Preset Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          <button
-            type="button"
-            onClick={() => handleTabChange('doctors')}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
+      <div className={`rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all ${
+        showRoleFilterMenu ? 'relative z-50' : 'relative z-30'
+      }`}>
+        {/* Search + Role Filter + Actions */}
+        <div className={`flex items-center gap-1.5 sm:gap-2 ${showRoleFilterMenu ? 'relative z-50' : ''}`}>
+          {/* Search Input with Embedded Role Filter */}
+          <GlassSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={
               activeTab === 'doctors'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
+                ? 'Tìm theo tên bác sĩ, chức danh, chuyên khoa...'
+                : 'Tìm theo họ tên, email...'
+            }
+            className="flex-1 min-w-[140px]"
           >
-            <span>Bác sĩ da liễu</span>
-            <span
-              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                activeTab === 'doctors'
-                  ? 'bg-primary-foreground/20 text-primary-foreground'
-                  : 'bg-muted text-foreground'
-              }`}
-            >
-              {props.doctorDetails.length}
-            </span>
-          </button>
+            {activeTab === 'roles' && (
+              <div className={`relative shrink-0 ${showRoleFilterMenu ? 'z-50' : ''}`}>
+                <GlassFilterButton
+                  onClick={() => setShowRoleFilterMenu((prev) => !prev)}
+                  isActive={roleFilter !== 'all'}
+                  title={roleFilter !== 'all' ? `Đang lọc: ${roleFilter}` : 'Lọc phân quyền'}
+                />
 
-          <button
-            type="button"
-            onClick={() => handleTabChange('roles')}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
-              activeTab === 'roles'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
-          >
-            <span>Role & Phân quyền</span>
-            <span
-              className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
-                activeTab === 'roles'
-                  ? 'bg-primary-foreground/20 text-primary-foreground'
-                  : 'bg-muted text-foreground'
-              }`}
-            >
-              {privilegedAccounts.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleTabChange('roles');
-              setRoleFilter('customer');
-            }}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground`}
-          >
-            <span>Khách hàng</span>
-            <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-muted text-foreground">
-              {customers.length}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleTabChange('roles');
-              setRoleFilter('all');
-            }}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 border border-border/60 bg-background/40 text-muted-foreground hover:bg-muted hover:text-foreground`}
-          >
-            <span>Tất cả</span>
-            <span className="rounded-full px-1.5 py-0.2 text-[10px] font-bold bg-muted text-foreground">
-              {props.allPatients.length}
-            </span>
-          </button>
-        </div>
-
-        {/* Row 2: Search + Role Filter + Actions */}
-        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
-          {/* Search Input */}
-          <div className="relative flex-1 min-w-[140px]">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={
-                activeTab === 'doctors'
-                  ? 'Tìm theo tên bác sĩ, chức danh, chuyên khoa...'
-                  : 'Tìm theo họ tên, email...'
-              }
-              className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-            />
-            <SearchIcon className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-2 p-0.5 rounded-full text-muted-foreground hover:text-foreground"
-              >
-                <XCircleIcon className="w-3.5 h-3.5" />
-              </button>
+                <GlassMenuPopover
+                  isOpen={showRoleFilterMenu}
+                  onClose={() => setShowRoleFilterMenu(false)}
+                  selectedValue={roleFilter}
+                  onSelect={(val) => setRoleFilter(val as any)}
+                  items={[
+                    { value: 'all', label: 'Tất cả role' },
+                    { value: 'customer', label: 'Customer' },
+                    { value: 'doctor', label: 'Doctor' },
+                    { value: 'accountant', label: 'Accountant' },
+                    { value: 'admin', label: 'Admin' },
+                    { value: 'master_admin', label: 'Master Admin' },
+                  ]}
+                />
+              </div>
             )}
-          </div>
-
-          {/* Role filter dropdown when on roles tab */}
-          {activeTab === 'roles' && (
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50 max-w-[140px] sm:max-w-[170px] shrink-0"
-            >
-              <option value="all">Tất cả role</option>
-              <option value="customer">Customer</option>
-              <option value="doctor">Doctor</option>
-              <option value="accountant">Accountant</option>
-              <option value="admin">Admin</option>
-              <option value="master_admin">Master Admin</option>
-            </select>
-          )}
+          </GlassSearchInput>
 
           {/* Action Button: Create doctor */}
           {activeTab === 'doctors' && (
@@ -437,28 +363,42 @@ const DoctorsTab: React.FC<{
   onDelete: (id: string) => void;
 }> = ({ doctors, onEdit, onDelete }) => {
   return (
-    <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+    <div className="overflow-visible md:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 relative z-10">
       {doctors.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground m-4">
           Không tìm thấy hồ sơ bác sĩ nào phù hợp.
         </div>
       ) : (
         <>
+          {/* Slim Smart Summary Bar */}
+          <div className="border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md transition-all bg-muted/10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs sm:text-sm font-semibold text-foreground">
+                Danh sách bác sĩ da liễu
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  {doctors.length} bác sĩ
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="border-b border-border/50 bg-background/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                 <tr>
-                  <th className="px-3.5 py-2.5">Bác sĩ chuyên khoa</th>
-                  <th className="px-3.5 py-2.5">Chức danh / Học vị</th>
-                  <th className="px-3.5 py-2.5">Chuyên môn</th>
-                  <th className="px-3.5 py-2.5 text-right">Thao tác</th>
+                  <th className="px-4 py-3 font-extrabold">Bác sĩ chuyên khoa</th>
+                  <th className="px-4 py-3 font-extrabold">Chức danh / Học vị</th>
+                  <th className="px-4 py-3 font-extrabold">Chuyên môn</th>
+                  <th className="px-4 py-3 text-right font-extrabold">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {doctors.map((d) => (
-                  <tr key={d.id} className="transition-colors hover:bg-muted/30">
-                    <td className="px-3.5 py-3">
+                  <tr key={d.id} className="transition-colors hover:bg-muted/20">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {d.avatar_url ? (
                           <img
@@ -473,21 +413,21 @@ const DoctorsTab: React.FC<{
                         )}
                         <div>
                           <p className="font-bold text-foreground leading-snug">{d.name}</p>
-                          <p className="text-[11px] text-muted-foreground">{d.email}</p>
+                          <p className="text-[11px] text-muted-foreground font-mono">{d.email}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-3.5 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <span className="font-medium text-foreground">
                         {d.doctor_profile?.job_title || 'Bác sĩ da liễu'}
                       </span>
                     </td>
-                    <td className="px-3.5 py-3">
+                    <td className="px-4 py-3">
                       <span className="text-xs text-muted-foreground">
                         {d.doctor_profile?.specialization || 'Da liễu thẩm mỹ & Trị mụn'}
                       </span>
                     </td>
-                    <td className="px-3.5 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           type="button"
@@ -513,55 +453,63 @@ const DoctorsTab: React.FC<{
             </table>
           </div>
 
-          {/* Mobile Glass Cards */}
-          <div className="md:hidden space-y-2.5">
+          {/* Mobile Clean List */}
+          <div className="flex flex-col md:hidden">
             {doctors.map((d) => (
-              <div
+              <article
                 key={d.id}
-                className="rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3.5 shadow-2xs space-y-2.5"
+                className="relative border-b border-border/40 last:border-0 transition-colors hover:bg-muted/20 py-[10px] px-[12px] z-0"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
                   {d.avatar_url ? (
                     <img
                       src={d.avatar_url}
                       alt={d.name}
-                      className="h-12 w-12 rounded-full object-cover border border-white/50 dark:border-white/10 shadow-xs shrink-0"
+                      className="h-12 w-12 rounded-2xl border border-border/70 bg-card/60 backdrop-blur-xl object-cover shadow-xs shrink-0"
                     />
                   ) : (
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-sm ring-1 ring-primary/20 shrink-0">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary font-bold text-sm ring-1 ring-primary/20 shrink-0">
                       {(d.name || 'D').charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="font-bold text-xs sm:text-sm text-foreground truncate">{d.name}</p>
-                    <p className="text-[11px] text-primary font-medium">
+                    <div className="flex items-start justify-between gap-1">
+                      <p className="line-clamp-2 text-sm font-bold text-foreground leading-snug">
+                        {d.name}
+                      </p>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => onEdit(d)}
+                          className="flex h-7.5 w-7.5 items-center justify-center rounded-xl border border-border/60 bg-background/40 shadow-2xs transition-all hover:bg-muted/50 active:scale-95"
+                          title="Sửa"
+                        >
+                          <img src={EDIT_ICON} alt="Sửa" className="h-3.5 w-3.5 object-contain" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onDelete(d.id)}
+                          className="flex h-7.5 w-7.5 items-center justify-center rounded-xl border border-destructive/30 bg-destructive/10 text-destructive shadow-2xs transition-all hover:bg-destructive/20 active:scale-95"
+                          title="Xóa"
+                        >
+                          <img src={DELETE_ICON} alt="Xóa" className="h-3.5 w-3.5 object-contain" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-0.5 truncate text-[11px] text-primary font-medium">
                       {d.doctor_profile?.job_title || 'Bác sĩ da liễu'}
                     </p>
-                    <p className="text-[10px] text-muted-foreground truncate">
-                      {d.doctor_profile?.specialization || 'Da liễu thẩm mỹ'}
-                    </p>
+                    <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 border-t border-border/30 pt-1.5">
+                      <span className="text-[11px] text-muted-foreground truncate">
+                        {d.doctor_profile?.specialization || 'Da liễu thẩm mỹ'}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono truncate">
+                        {d.email}
+                      </span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/20">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(d)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-border/60 bg-background/50 px-3 py-1.5 text-xs font-bold text-foreground active:scale-95"
-                  >
-                    <img src={EDIT_ICON} alt="" className="h-3.5 w-3.5 object-contain" />
-                    <span>Sửa</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDelete(d.id)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-bold text-destructive active:scale-95"
-                  >
-                    <img src={DELETE_ICON} alt="" className="h-3.5 w-3.5 object-contain" />
-                    <span>Xóa</span>
-                  </button>
-                </div>
-              </div>
+              </article>
             ))}
           </div>
         </>
@@ -577,32 +525,46 @@ const AllAccountsTab: React.FC<{
   onView: (patient: PatientProfile) => void;
 }> = ({ patients, onUpdatePatient, onView }) => {
   return (
-    <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+    <div className="overflow-visible md:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 relative z-10">
       {patients.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground m-4">
           Không tìm thấy tài khoản nào phù hợp.
         </div>
       ) : (
         <>
+          {/* Slim Smart Summary Bar */}
+          <div className="border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md transition-all bg-muted/10">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs sm:text-sm font-semibold text-foreground">
+                Danh sách tài khoản & phân quyền
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  {patients.length} tài khoản
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="border-b border-border/50 bg-background/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
                 <tr>
-                  <th className="px-3.5 py-2.5">Họ và tên</th>
-                  <th className="px-3.5 py-2.5">Email xác minh</th>
-                  <th className="px-3.5 py-2.5">Phân quyền (Role)</th>
-                  <th className="px-3.5 py-2.5 text-right">Hồ sơ</th>
+                  <th className="px-4 py-3 font-extrabold">Họ và tên</th>
+                  <th className="px-4 py-3 font-extrabold">Email xác minh</th>
+                  <th className="px-4 py-3 font-extrabold">Phân quyền (Role)</th>
+                  <th className="px-4 py-3 text-right font-extrabold">Hồ sơ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/30">
                 {patients.map((p) => (
-                  <tr key={p.id} className="transition-colors hover:bg-muted/30">
-                    <td className="px-3.5 py-3 font-bold text-foreground whitespace-nowrap">
+                  <tr key={p.id} className="transition-colors hover:bg-muted/20">
+                    <td className="px-4 py-3 font-bold text-foreground whitespace-nowrap">
                       {p.name || 'Người dùng'}
                     </td>
-                    <td className="px-3.5 py-3 text-muted-foreground">{p.email}</td>
-                    <td className="px-3.5 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{p.email}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <select
                         value={p.role}
                         onChange={(e) =>
@@ -611,7 +573,7 @@ const AllAccountsTab: React.FC<{
                             null
                           )
                         }
-                        className="h-8 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2.5 text-xs text-foreground outline-none focus:ring-1 focus:ring-primary/50"
+                        className="h-8 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
                       >
                         <option value="customer">Customer (Khách hàng)</option>
                         <option value="doctor">Doctor (Bác sĩ)</option>
@@ -620,7 +582,7 @@ const AllAccountsTab: React.FC<{
                         <option value="master_admin">Master Admin (Toàn quyền)</option>
                       </select>
                     </td>
-                    <td className="px-3.5 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       <button
                         type="button"
                         onClick={() => onView(p)}
@@ -636,19 +598,34 @@ const AllAccountsTab: React.FC<{
             </table>
           </div>
 
-          {/* Mobile Glass Cards */}
-          <div className="md:hidden space-y-2.5">
+          {/* Mobile Clean List */}
+          <div className="flex flex-col md:hidden">
             {patients.map((p) => (
-              <div
+              <article
                 key={p.id}
-                className="rounded-xl border border-white/60 dark:border-white/10 bg-background/40 backdrop-blur-xl p-3.5 shadow-2xs space-y-2"
+                className="relative border-b border-border/40 last:border-0 transition-colors hover:bg-muted/20 py-[10px] px-[12px] z-0"
               >
-                <div>
-                  <p className="font-bold text-xs sm:text-sm text-foreground">{p.name}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{p.email}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-xs sm:text-sm text-foreground truncate">
+                      {p.name || 'Người dùng'}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground truncate font-mono">
+                      {p.email}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onView(p)}
+                    className="inline-flex shrink-0 items-center gap-1 rounded-xl border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition-all hover:bg-primary hover:text-primary-foreground active:scale-95"
+                  >
+                    <span>Hồ sơ</span>
+                    <span>→</span>
+                  </button>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/20">
+                <div className="mt-2 flex items-center justify-between gap-2 border-t border-border/30 pt-1.5">
+                  <span className="text-[11px] font-medium text-muted-foreground">Phân quyền</span>
                   <select
                     value={p.role}
                     onChange={(e) =>
@@ -657,25 +634,16 @@ const AllAccountsTab: React.FC<{
                         null
                       )
                     }
-                    className="h-8 rounded-xl border-0 bg-background/50 px-2 text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary/50 max-w-[160px]"
+                    className="h-7.5 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.08)] px-2.5 text-xs font-semibold text-foreground outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
                   >
-                    <option value="customer">Customer</option>
-                    <option value="doctor">Doctor</option>
-                    <option value="accountant">Accountant</option>
-                    <option value="admin">Admin</option>
-                    <option value="master_admin">Master Admin</option>
+                    <option value="customer">Customer (Khách hàng)</option>
+                    <option value="doctor">Doctor (Bác sĩ)</option>
+                    <option value="accountant">Accountant (Kế toán)</option>
+                    <option value="admin">Admin (Quản trị)</option>
+                    <option value="master_admin">Master Admin (Toàn quyền)</option>
                   </select>
-
-                  <button
-                    type="button"
-                    onClick={() => onView(p)}
-                    className="inline-flex items-center gap-1 rounded-lg bg-primary/10 border border-primary/30 px-2.5 py-1 text-xs font-bold text-primary active:scale-95"
-                  >
-                    <span>Hồ sơ</span>
-                    <span>→</span>
-                  </button>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </>

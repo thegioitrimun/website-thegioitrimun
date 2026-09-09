@@ -22,6 +22,7 @@ import { recordAdminAuditAttempt } from '../adminD1/support.js';
 import { calculateVatDocument } from '../vat/calculation.js';
 import { appendPosCustomerNotificationStatements } from './customerNotifications.js';
 import { buildOrderEmailPayload, ORDER_EMAIL_PATTERN } from './notificationPayload.js';
+import { shippingFeeForNewOrder } from '../shipping/feePolicy.js';
 
 const LOCALES = new Set(['vi', 'en', 'ru', 'cn']);
 const ORDER_STATUSES = new Set(['pending', 'processing', 'shipped', 'completed', 'cancelled', 'refunded']);
@@ -275,11 +276,7 @@ async function buildAdminOrderQuote(db, body) {
     if (discountAmount > subtotal) {
         throw Object.assign(new Error('Giảm giá không được vượt quá tạm tính.'), { status: 400 });
     }
-    const rawShippingFee = Number(body.shippingFee ?? body.shipping_fee ?? 0);
-    if (!Number.isFinite(rawShippingFee) || rawShippingFee < 0) {
-        throw Object.assign(new Error('Phí giao hàng không hợp lệ.'), { status: 400 });
-    }
-    const shippingFee = channel === 'pos' ? 0 : Math.round(rawShippingFee);
+    const shippingFee = shippingFeeForNewOrder(channel);
     const quote = await calculateTaxQuote(db, {
         subtotal,
         discountAmount,
@@ -376,7 +373,7 @@ export async function createOrder(request, env) {
         const discount = discountCode ? await getDiscount(db, discountCode, subtotal, session?.user_id || null) : null;
         if (discountCode && !discount) throw Object.assign(new Error('Discount code is invalid.'), { status: 400 });
         const discountAmount = Number(discount?.preview_discount_amount || 0);
-        const shippingFee = Math.max(0, Math.round(Number(body.shippingFee ?? body.shipping_fee ?? 0)));
+        const shippingFee = shippingFeeForNewOrder('online');
         const quote = await calculateTaxQuote(db, {
             subtotal,
             discountAmount,
@@ -439,6 +436,7 @@ export async function createOrder(request, env) {
             shipping_tax_amount: quote.shipping_tax_amount,
             currency: quote.currency,
             tax_rate: quote.tax_rate,
+            tax_mode: quote.tax_mode,
             grand_total: grandTotal,
             total_price: grandTotal,
         };
@@ -734,6 +732,7 @@ export async function createAdminOrder(request, env) {
                     grand_total: quote.grand_total,
                     total_price: quote.grand_total,
                     tax_rate: quote.tax_rate,
+                    tax_mode: quote.tax_mode,
                     order_channel: channel,
                     notes,
                     created_at: now,
@@ -787,7 +786,7 @@ export async function quoteOrderTotals(request, env) {
         const quote = await calculateTaxQuote(db, {
             subtotal,
             discountAmount: body.discountAmount ?? body.discount_amount,
-            shippingFee: body.shippingFee ?? body.shipping_fee,
+            shippingFee: shippingFeeForNewOrder('online'),
             province: body.shippingProvince ?? body.shipping_province,
             district: body.shippingDistrict ?? body.shipping_district,
             lines,

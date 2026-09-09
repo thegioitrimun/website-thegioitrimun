@@ -33,6 +33,7 @@ export function buildOrderEmailPayload(order, items, extra = {}, env = {}) {
         shipping_tax_rate: order.shipping_tax_rate || 0,
         shipping_tax_amount: order.shipping_tax_amount || 0,
         tax_rate: order.tax_rate || 0,
+        tax_mode: order.tax_mode || null,
         grand_total: order.grand_total,
         total_price: order.total_price,
         shipping_provider: order.shipping_provider,

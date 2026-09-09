@@ -1,8 +1,9 @@
 import { apiError, json, readJson, requireD1 } from '../platform/http.js';
 import { randomId, sha256, timingSafeEqual } from '../platform/crypto.js';
-import { createOutboxStatement } from '../email/outbox.js';
+import { createOutboxStatement } from '../email/outboxRecord.js';
 import { getSession, requireCsrf, requireGuestCsrf, requireRole } from '../auth/session.js';
 import { paymentStateAfterFulfillment } from '../orders/paymentState.js';
+import { buildOrderEmailPayload } from '../orders/notificationPayload.js';
 import {
     calculateFee,
     cancelShipment,
@@ -55,35 +56,8 @@ async function getOrder(db, id) {
     return { ...order, items: items.results || [] };
 }
 
-function notificationPayload(order, extra = {}) {
-    return {
-        order_id: order.id,
-        order_code: order.order_code,
-        customer_name: order.customer_name,
-        customer_phone: order.customer_phone,
-        grand_total: order.grand_total,
-        subtotal_price: order.subtotal_price,
-        discount_amount: order.discount_amount,
-        taxable_amount: order.taxable_amount,
-        tax_amount: order.tax_amount,
-        tax_rate: order.tax_rate,
-        shipping_fee: order.shipping_fee,
-        shipping_tax_rate: order.shipping_tax_rate,
-        shipping_tax_amount: order.shipping_tax_amount,
-        shipping_address: [order.shipping_street, order.shipping_ward, order.shipping_district, order.shipping_province].filter(Boolean).join(', '),
-        payment_method: order.payment_method,
-        payment_status: order.payment_status || 'unpaid',
-        payment_provider: order.payment_provider || null,
-        payment_reference: order.payment_reference || null,
-        paid_at: order.paid_at || null,
-        items: order.items.map((item) => ({
-            product_id: item.product_id,
-            name: item.product_name,
-            quantity: item.quantity,
-            price_at_purchase: item.price_at_purchase,
-        })),
-        ...extra,
-    };
+function notificationPayload(order, extra = {}, env = {}) {
+    return buildOrderEmailPayload(order, order.items, extra, env);
 }
 
 export async function handleFee(request, env) {
@@ -299,7 +273,7 @@ export async function handleWebhook(request, env) {
                         items: items.results || [],
                         payment_status: paymentState.payment_status,
                         paid_at: paymentState.paid_at,
-                    }, { tracking_code: order.shipping_code, ghtk_status_text: statusText }),
+                    }, { tracking_code: order.shipping_code, ghtk_status_text: statusText }, env),
                     idempotencyKey: `customer/order.${mapped}/${order.id}`,
                 }));
             }
@@ -360,7 +334,7 @@ async function processCreate(db, env, row, order) {
         statements.push(createOutboxStatement(db, {
             eventType: 'order.processing', aggregateType: 'order', aggregateId: order.id, audience: 'customer',
             recipientEmail: order.customer_email, locale: order.locale,
-            payload: notificationPayload(order, { tracking_code: shipment.tracking_id || null }),
+            payload: notificationPayload(order, { tracking_code: shipment.tracking_id || null }, env),
             idempotencyKey: `customer/order.processing/${order.id}`,
         }));
     }
@@ -384,7 +358,7 @@ async function processCancel(db, env, order) {
         statements.push(createOutboxStatement(db, {
             eventType: 'order.cancelled', aggregateType: 'order', aggregateId: order.id, audience: 'customer',
             recipientEmail: order.customer_email, locale: order.locale,
-            payload: notificationPayload(order, { reason: 'Vận đơn GHTK đã được hủy.' }),
+            payload: notificationPayload(order, { reason: 'Vận đơn GHTK đã được hủy.' }, env),
             idempotencyKey: `customer/order.cancelled/${order.id}`,
         }));
     }

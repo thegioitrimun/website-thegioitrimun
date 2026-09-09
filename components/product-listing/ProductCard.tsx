@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Product } from '../../types';
 import { EyeIcon, HeartIcon, ShoppingBagIcon } from '../icons';
@@ -24,6 +24,7 @@ export interface ProductCardItem {
 
 interface ProductCardProps {
   item: ProductCardItem;
+  index?: number;
   formatCurrency: (amount: number) => string;
   isWishlisted: boolean;
   onViewProduct: () => void;
@@ -32,6 +33,7 @@ interface ProductCardProps {
 
 const ProductCard: React.FC<ProductCardProps> = ({
   item,
+  index = 0,
   formatCurrency,
   isWishlisted,
   onViewProduct,
@@ -42,6 +44,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const productHref = getProductDetailPath(product);
   const primaryImageUrl = buildListingImageUrl(product.images?.[0]?.image_url);
   const isOutOfStock = product.stock_quantity === 0;
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const productKey = product.slug || product.id;
   const riskSummary = useProductRiskSummary(productKey, product.ingredients, i18n.language);
@@ -56,22 +59,40 @@ const ProductCard: React.FC<ProductCardProps> = ({
     openMiniCart();
   };
 
+  const triggerViewProduct = (event?: React.MouseEvent) => {
+    if (event) {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      event.preventDefault();
+    }
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll<HTMLElement>('[data-product-card-image]').forEach((el) => {
+        el.style.viewTransitionName = '';
+      });
+      if (imgRef.current) {
+        imgRef.current.style.viewTransitionName = 'product-hero-image';
+      }
+    }
+    onViewProduct();
+  };
+
   const handleQuickView = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    onViewProduct();
+    triggerViewProduct();
   };
 
   return (
     <article
-      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] border-0 bg-white shadow-[0_10px_25px_-18px_rgba(36,46,57,0.12)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_42px_-20px_rgba(36,46,57,0.18)] dark:bg-card dark:shadow-[0_20px_40px_-28px_rgba(4,10,24,0.52)] dark:hover:shadow-[0_28px_56px_-34px_rgba(4,10,24,0.7)] sm:rounded-[20px] md:rounded-[24px]"
+      className="group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-[18px] border-0 bg-white shadow-[0_10px_25px_-18px_rgba(36,46,57,0.12)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_42px_-20px_rgba(36,46,57,0.18)] dark:bg-card dark:shadow-[0_20px_40px_-28px_rgba(4,10,24,0.52)] dark:hover:shadow-[0_28px_56px_-34px_rgba(4,10,24,0.7)] sm:rounded-[20px] md:rounded-[24px] animate-product-card-enter will-change-transform"
+      style={{
+        animationDelay: `${Math.min(index, 11) * 35}ms`,
+      }}
     >
       <a
         href={productHref}
-        onClick={(event) => {
-          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
-          event.preventDefault();
-          onViewProduct();
+        onClick={triggerViewProduct}
+        onMouseEnter={() => {
+          void import('../ProductDetailPage');
         }}
         className="absolute inset-0 z-[1]"
         aria-label={`${t('products.view_product', 'Xem sản phẩm')}: ${name}`}
@@ -124,6 +145,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
         {primaryImageUrl ? (
           <img
+            ref={imgRef}
+            data-product-card-image="true"
             loading="lazy"
             src={primaryImageUrl}
             alt={buildProductImageAlt({
@@ -134,7 +157,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
             className="aspect-[0.96/1] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
-          <div className="flex aspect-[0.96/1] w-full flex-col items-center justify-center gap-3 bg-muted/55 px-4 text-center text-muted-foreground">
+          <div
+            ref={imgRef as any}
+            data-product-card-image="true"
+            className="flex aspect-[0.96/1] w-full flex-col items-center justify-center gap-3 bg-muted/55 px-4 text-center text-muted-foreground"
+          >
             <ShoppingBagIcon className="h-8 w-8" />
             <span className="text-xs font-semibold">Chưa có ảnh sản phẩm</span>
           </div>

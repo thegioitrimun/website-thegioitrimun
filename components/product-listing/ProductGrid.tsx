@@ -11,6 +11,7 @@ type EmptySuggestion = {
 
 interface ProductGridProps {
   items: ProductCardItem[];
+  page?: number;
   formatCurrency: (amount: number) => string;
   isWishlisted: (productId: number) => boolean;
   onViewProduct: (item: ProductCardItem) => void;
@@ -22,6 +23,7 @@ interface ProductGridProps {
 
 const ProductGrid: React.FC<ProductGridProps> = ({
   items,
+  page = 1,
   formatCurrency,
   isWishlisted,
   onViewProduct,
@@ -89,25 +91,23 @@ const ProductGrid: React.FC<ProductGridProps> = ({
     );
   }
 
+  const transitionKey = `grid-page-${page}-${items[0]?.product?.id ?? 'empty'}`;
+
   return (
-    <div className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4">
+    <div
+      key={transitionKey}
+      className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-3 2xl:grid-cols-4 animate-product-grid-fade"
+    >
       {items.map((item, index) => (
-        <div
+        <ProductCard
           key={item.product.id}
-          className="animate-card-enter h-full"
-          style={{
-            animationDelay: `${Math.min(index, 11) * 45}ms`,
-            animationFillMode: 'both',
-          }}
-        >
-          <ProductCard
-            item={item}
-            formatCurrency={formatCurrency}
-            isWishlisted={isWishlisted(item.product.id)}
-            onViewProduct={() => onViewProduct(item)}
-            onToggleWishlist={(event) => onToggleWishlist(event, item)}
-          />
-        </div>
+          item={item}
+          index={index}
+          formatCurrency={formatCurrency}
+          isWishlisted={isWishlisted(item.product.id)}
+          onViewProduct={() => onViewProduct(item)}
+          onToggleWishlist={(event) => onToggleWishlist(event, item)}
+        />
       ))}
     </div>
   );

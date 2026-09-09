@@ -1,4 +1,5 @@
-import { methodNotAllowed } from '../platform/http.js';
+import { json, methodNotAllowed } from '../platform/http.js';
+import { publicShippingPolicy } from './feePolicy.js';
 import {
     enqueueShipment,
     handleFee,
@@ -11,6 +12,10 @@ import {
 export async function maybeHandleGhtkRoute(route) {
     const { request, env, path } = route;
     if (String(env.DATA_BACKEND || '').toLowerCase() !== 'd1') return null;
+    if (path === '/api/shipping/policy') {
+        if (request.method !== 'GET') return methodNotAllowed(['GET']);
+        return json(publicShippingPolicy(env), 200, { 'Cache-Control': 'public, max-age=60' });
+    }
     if (!path.startsWith('/api/shipping/ghtk/') && path !== '/api/webhooks/ghtk') return null;
     if (path === '/api/webhooks/ghtk') {
         if (request.method !== 'POST') return methodNotAllowed(['POST']);

@@ -14,6 +14,7 @@ import {
 } from '../../shipping/spxLabel.js';
 import { PancakeClient, getPancakeConfig } from './client.js';
 import { normalizePancakePhone } from './mappers.js';
+import { matchPancakeOrderItems, resolvePancakeOrderTax } from './orderTax.js';
 import { getPancakeSyncSettings, isPancakeInboundEnabled } from './settings.js';
 
 const INBOUND_TERMINAL = new Set(['completed', 'ignored', 'failed']);
@@ -251,7 +252,8 @@ function pancakeOrderChanges({
         previousItemDiscount,
     );
     addChange(changes, 'order_channel', previousChannel, channel);
-    for (const field of MONEY_CHANGE_FIELDS) addChange(changes, field, previousFinancials[field], financials[field]);
+    const previousMoney = localOrder.tax_profile_id ? localOrder : previousFinancials;
+    for (const field of MONEY_CHANGE_FIELDS) addChange(changes, field, previousMoney[field], financials[field]);
     return changes;
 }
 
@@ -449,27 +451,11 @@ function mapInboundOrderItems(items, links) {
     });
 }
 
-function findExistingOrderItem(existingItems, item) {
-    if (item.variationId) {
-        const matchedVariation = existingItems.find((existing) => (
-            String(existing.external_variation_id || '') === String(item.variationId)
-        ));
-        if (matchedVariation) return matchedVariation;
-    }
-    if (item.localProductId != null) {
-        return existingItems.find((existing) => Number(existing.product_id) === Number(item.localProductId)) || null;
-    }
-    return null;
-}
-
-function appendPancakeItemSnapshotStatements(statements, db, orderId, mappedItems, existingItems, now) {
+function appendPancakeItemSnapshotStatements(statements, db, orderId, mappedItems, now) {
     if (!mappedItems.length) return;
     statements.push(db.prepare('DELETE FROM product_order_items WHERE order_id = ?').bind(orderId));
     for (const item of mappedItems) {
-        const existing = findExistingOrderItem(existingItems, item);
-        const unchangedPriceAndQuantity = existing
-            && Number(existing.quantity) === Number(item.quantity)
-            && Number(existing.price_at_purchase) === Number(item.price);
+        const existing = item.existing;
         statements.push(db.prepare(`INSERT INTO product_order_items (
             id, order_id, product_id, product_name, product_sku, product_image_path,
             quantity, price_at_purchase, vat_rate, tax_amount,
@@ -480,8 +466,7 @@ function appendPancakeItemSnapshotStatements(statements, db, orderId, mappedItem
                 item.name || existing?.product_name || 'Sản phẩm Pancake',
                 item.sku || existing?.product_sku || null,
                 item.image || existing?.product_image_path || null,
-                item.quantity, item.price, Number(existing?.vat_rate || 0),
-                unchangedPriceAndQuantity ? Number(existing?.tax_amount || 0) : 0,
+                item.quantity, item.price, item.vatRate, item.lineTax,
                 item.productId, item.variationId,
                 existing?.source_system || 'pancake', existing?.created_at || now,
             ));
@@ -503,11 +488,11 @@ async function upsertOrder(db, env, order) {
     const remoteOrderItems = remoteItems(order);
     const remoteItemSubtotal = remoteOrderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const remoteItemDiscount = remoteOrderItems.reduce((sum, item) => sum + item.discount, 0);
-    const financials = pancakeFinancials(order, channel, remoteItemSubtotal, remoteItemDiscount);
+    let financials = pancakeFinancials(order, channel, remoteItemSubtotal, remoteItemDiscount);
     if (inbound && inbound.payload_checksum === checksum) {
         const projection = await db.prepare(`SELECT o.status, o.payment_method, o.payment_status,
                 o.order_channel, o.subtotal_price, o.discount_amount, o.tax_amount,
-                o.shipping_fee, o.grand_total,
+                o.shipping_fee, o.grand_total, o.tax_profile_id,
                 (SELECT COUNT(*) FROM product_order_items i WHERE i.order_id = o.id) AS item_count
             FROM product_orders o WHERE o.id = ? LIMIT 1`).bind(inbound.local_order_id).first();
         const projectionMatches = projection
@@ -517,9 +502,11 @@ async function upsertOrder(db, env, order) {
             && String(projection.order_channel) === channel
             && integer(projection.subtotal_price) === financials.subtotal_price
             && integer(projection.discount_amount) === financials.discount_amount
-            && integer(projection.tax_amount) === financials.tax_amount
-            && integer(projection.shipping_fee) === financials.shipping_fee
-            && integer(projection.grand_total) === financials.grand_total
+            && (projection.tax_profile_id || (
+                integer(projection.tax_amount) === financials.tax_amount
+                && integer(projection.shipping_fee) === financials.shipping_fee
+                && integer(projection.grand_total) === financials.grand_total
+            ))
             && integer(projection.item_count) === remoteOrderItems.length;
         if (projectionMatches) return { unchanged: true, orderId: inbound.local_order_id };
     }
@@ -551,6 +538,18 @@ async function upsertOrder(db, env, order) {
             'SELECT * FROM product_order_items WHERE order_id = ? ORDER BY created_at, id',
         ).bind(localOrder.id).all();
         const existingItems = existingItemsResult.results || [];
+        const matchedItems = matchPancakeOrderItems(mappedItems, existingItems);
+        const newProductIds = localOrder.tax_profile_id
+            ? [...new Set(matchedItems.filter((item) => !item.existing && item.localProductId != null)
+                .map((item) => item.localProductId))]
+            : [];
+        const newProducts = newProductIds.length
+            ? await db.prepare(`SELECT id, vat_rate FROM products WHERE id IN (${newProductIds.map(() => '?').join(',')})`)
+                .bind(...newProductIds).all()
+            : { results: [] };
+        const resolved = resolvePancakeOrderTax(localOrder, financials, matchedItems, existingItems.length,
+            new Map((newProducts.results || []).map((product) => [Number(product.id), product.vat_rate])));
+        financials = resolved.financials;
         const previousRemote = inbound ? safelyParseJson(inbound.raw_json) : null;
         const changes = pancakeOrderChanges({
             localOrder,
@@ -580,7 +579,8 @@ async function upsertOrder(db, env, order) {
                 notes = ?, status = ?, fulfillment_status = ?, payment_method = ?, payment_status = ?,
                 paid_at = CASE WHEN ? = 'paid' THEN COALESCE(paid_at, ?) ELSE paid_at END,
                 subtotal_price = ?, discount_amount = ?, taxable_amount = ?, tax_amount = ?,
-                shipping_fee = ?, shipping_net_amount = ?, currency = ?, grand_total = ?, total_price = ?,
+                shipping_fee = ?, shipping_net_amount = ?, shipping_tax_rate = ?, shipping_tax_amount = ?,
+                currency = ?, grand_total = ?, total_price = ?,
                 updated_at = ?
                 WHERE id = ?`).bind(
                 customer.name, customer.name,
@@ -592,8 +592,9 @@ async function upsertOrder(db, env, order) {
                 status, fulfillmentStatus, payment.method, payment.status,
                 payment.status, updatedAt,
                 financials.subtotal_price, financials.discount_amount,
-                Math.max(0, financials.subtotal_price - financials.discount_amount),
-                financials.tax_amount, financials.shipping_fee, financials.shipping_fee,
+                financials.taxable_amount,
+                financials.tax_amount, financials.shipping_fee, financials.shipping_net_amount,
+                financials.shipping_tax_rate, financials.shipping_tax_amount,
                 compactText(order?.order_currency, 20) || localOrder.currency || 'VND',
                 financials.grand_total, financials.grand_total, now, localOrder.id,
             ),
@@ -623,7 +624,7 @@ async function upsertOrder(db, env, order) {
                     hasUnmappedItems ? 'partial' : 'linked',
                     inbound?.first_seen_at || now, now, inbound?.created_at || now, now),
         ];
-        appendPancakeItemSnapshotStatements(statements, db, localOrder.id, mappedItems, existingItems, now);
+        appendPancakeItemSnapshotStatements(statements, db, localOrder.id, resolved.items, now);
         if (spxLabel) {
             statements.push(
                 db.prepare(`UPDATE product_orders SET shipping_provider = 'spx', shipping_code = ?, updated_at = ?
@@ -675,7 +676,10 @@ async function upsertOrder(db, env, order) {
                     total_price: financials.grand_total,
                     order_channel: channel,
                 },
-                items: remoteOrderItems,
+                items: resolved.items.map((item) => ({
+                    ...item, product_id: item.localProductId,
+                    price_at_purchase: item.price, vat_rate: item.vatRate, tax_amount: item.lineTax,
+                })),
                 now,
                 emailExtra: {
                     transaction_ref: `pancake:${remoteOrderId}`,
@@ -841,6 +845,8 @@ async function upsertOrder(db, env, order) {
                 payment_reference: `pancake:${remoteOrderId}`,
                 paid_at: payment.status === 'paid' ? updatedAt : null,
                 ...financials,
+                taxable_amount: Math.max(0, financials.subtotal_price - financials.discount_amount),
+                tax_mode: 'exclusive',
                 shipping_net_amount: financials.shipping_fee,
                 shipping_tax_rate: 0,
                 shipping_tax_amount: 0,

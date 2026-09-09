@@ -6,7 +6,7 @@ import * as api from '../services/api';
 import { useToast } from '../hooks/useToast';
 import Spinner from './Spinner';
 import SepayPaymentModal from './SepayPaymentModal';
-import { useDebounce } from '../hooks/useDebounce';
+import { ONLINE_SHIPPING_FEE_VND } from '../worker/shipping/feePolicy.js';
 import BackIconButton from './BackIconButton';
 import VietnamAddressFields from './VietnamAddressFields';
 import {
@@ -26,8 +26,6 @@ interface CheckoutPageProps {
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
-
-const SPX_FALLBACK_FEE = 30000;
 
 const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSuccess, onBack, paymentSettings }) => {
   const { t, i18n } = useTranslation();
@@ -51,21 +49,13 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
   const [isSepayConfigLoading, setIsSepayConfigLoading] = useState(true);
   const { addToast } = useToast();
 
-  const [shippingFee, setShippingFee] = useState(0);
-  const [estimatedDelivery, setEstimatedDelivery] = useState('');
-  const [isCalculatingFee, setIsCalculatingFee] = useState(false);
-  const [isGhtkAvailable, setIsGhtkAvailable] = useState(true);
-  const [hasNotifiedGhtkFallback, setHasNotifiedGhtkFallback] = useState(false);
+  const shippingFee = ONLINE_SHIPPING_FEE_VND;
+  const estimatedDelivery = t('checkout.estimated_delivery');
+  const [isGhtkAvailable, setIsGhtkAvailable] = useState(false);
   const [pricingQuote, setPricingQuote] = useState<CheckoutPricingQuote | null>(null);
   const [isCalculatingTotals, setIsCalculatingTotals] = useState(false);
   const hasTrackedBeginCheckoutRef = useRef(false);
   const checkoutIdempotencyKeyRef = useRef<string | null>(null);
-  const debouncedAddressParts = useDebounce({
-    street: shippingDetails.street,
-    ward: shippingDetails.ward,
-    district: shippingDetails.district,
-    province: shippingDetails.province
-  }, 500);
 
   const isGuestCheckout = !currentUser;
   const hasSepayBankDetails = Boolean(
@@ -125,41 +115,17 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
     return () => { cancelled = true; };
   }, []);
 
-  const calculateFee = useCallback(async () => {
-    const { street, province, district, ward } = debouncedAddressParts;
-    if (shippingMethod === 'ghtk' && province && district && ward && street && cartItems.length > 0) {
-      setIsCalculatingFee(true);
-      try {
-        const result = await api.calculateShippingFee(debouncedAddressParts, cartItems);
-        setShippingFee(result.fee);
-        setEstimatedDelivery(result.estimated_delivery_time);
-        setIsGhtkAvailable(true);
-      } catch (error) {
-        console.error(error);
-        setIsGhtkAvailable(false);
-        if (!hasNotifiedGhtkFallback) {
-          addToast(t('common.error'), { type: 'error', description: t('checkout.ghtk_fallback_notice') });
-          setHasNotifiedGhtkFallback(true);
-        }
-        setShippingMethod('spx');
-        setShippingFee(SPX_FALLBACK_FEE);
-        setEstimatedDelivery(t('checkout.estimated_delivery'));
-      } finally {
-        setIsCalculatingFee(false);
-      }
-    } else if (shippingMethod === 'spx') {
-      setShippingFee(SPX_FALLBACK_FEE);
-      setEstimatedDelivery(t('checkout.estimated_delivery'));
-      setIsCalculatingFee(false);
-    } else {
-      setShippingFee(0);
-      setEstimatedDelivery('');
-    }
-  }, [shippingMethod, debouncedAddressParts, cartItems, addToast, hasNotifiedGhtkFallback, t]);
-
   useEffect(() => {
-    calculateFee();
-  }, [calculateFee]);
+    let cancelled = false;
+    void api.getShippingFeePolicy().then((policy) => {
+      if (!cancelled) setIsGhtkAvailable(policy.checkout_providers.includes('ghtk'));
+    }).catch(() => {
+      // Keep SPX as the existing checkout preference when configuration is unavailable.
+      // Never substitute a guessed carrier quote for the shop's fixed charge.
+      if (!cancelled) setIsGhtkAvailable(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     if (cartItems.length === 0) {
@@ -463,7 +429,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
                   <input type="radio" name="shippingMethod" value="spx" checked={shippingMethod === 'spx'} onChange={(e) => setShippingMethod(e.target.value)} className="h-4 w-4 text-primary border-muted-foreground focus:ring-primary" />
                   <div className="ml-3">
                     <span className="font-medium">SPX Express</span>
-                    <p className="text-sm text-muted-foreground">{t('checkout.spx_desc')}</p>
+                    <p className="text-sm text-muted-foreground">{t('checkout.spx_desc')} · {formatCurrency(shippingFee)}</p>
                   </div>
                 </label>
                 <label className={`flex items-center p-4 border border-input rounded-lg has-[:checked]:border-primary has-[:checked]:bg-primary/5 ${!isGhtkAvailable ? 'opacity-60 cursor-not-allowed' : ''}`}>
@@ -478,7 +444,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
                   />
                   <div className="ml-3">
                     <span className="font-medium">{t('checkout.ghtk_name')}</span>
-                    <p className="text-sm text-muted-foreground">{t('checkout.ghtk_desc')}</p>
+                    <p className="text-sm text-muted-foreground">{t('checkout.spx_desc')} · {formatCurrency(shippingFee)}</p>
                     {!isGhtkAvailable && <p className="text-xs text-amber-600">{t('checkout.ghtk_unavailable')}</p>}
                   </div>
                 </label>
@@ -543,7 +509,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">{t('cart.shipping')}</span>
-                    {isCalculatingFee ? <Spinner className="w-4 h-4" /> : <span className="font-semibold">{formatCurrency(pricingQuote?.shipping_fee ?? shippingFee)}</span>}
+                    <span className="font-semibold">{formatCurrency(pricingQuote?.shipping_fee ?? shippingFee)}</span>
                   </div>
                   {pricingQuote?.tax_mode === 'inclusive' && (
                     <p className="text-xs text-muted-foreground text-right -mt-2">{t('checkout.tax_included')}</p>
@@ -554,7 +520,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ currentUser, onCheckoutSucc
                   <span>{t('cart.total')}</span>
                   <span className="text-primary">{formatCurrency(finalTotal)}</span>
                 </div>
-                <button type="submit" disabled={isLoading || isCalculatingFee || isCalculatingTotals} className="mt-6 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-full transition-all-smooth text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 btn-press disabled:bg-muted">
+                <button type="submit" disabled={isLoading || isCalculatingTotals} className="mt-6 w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-8 rounded-full transition-all-smooth text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 btn-press disabled:bg-muted">
                   {isLoading ? <Spinner /> : t('checkout.place_order')}
                 </button>
               </div>

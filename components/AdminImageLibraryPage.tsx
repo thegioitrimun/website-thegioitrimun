@@ -10,9 +10,9 @@ import {
   CameraIcon,
   DocumentDuplicateIcon,
   LoadingIcon,
-  SearchIcon,
   TrashIcon,
 } from './icons';
+import { GlassSearchInput } from './GlassInputs';
 
 type AdminImageLibraryPageProps = {
   onNavigate: (page: AdminNavigationView) => void;
@@ -305,18 +305,15 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
                 </div>
               </div>
 
-              <label className="space-y-2">
+              <div className="space-y-2">
                 <span className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">Tìm nhanh trong danh sách</span>
-                <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3">
-                  <SearchIcon className="h-5 w-5 text-muted-foreground" />
-                  <input
-                    value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
-                    placeholder="Tên file, thư mục hoặc URL"
-                    className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-                  />
-                </div>
-              </label>
+                <GlassSearchInput
+                  value={searchQuery}
+                  onChange={(val) => setSearchQuery(val)}
+                  onClear={() => setSearchQuery('')}
+                  placeholder="Tên file, thư mục hoặc URL..."
+                />
+              </div>
             </div>
 
             <div className="min-h-[220px]">
