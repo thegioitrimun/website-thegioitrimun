@@ -53,7 +53,7 @@
     --ring: 174 56% 53%;
   }
 
-  .theme-vinmec {
+  html.theme-vinmec, .theme-vinmec {
     --primary: 170 58% 35%;
     --primary-foreground: 0 0% 100%;
     --secondary: 14 93% 68%;
@@ -63,7 +63,7 @@
     --ring: 170 58% 35%;
   }
 
-  .dark .theme-vinmec {
+  html.dark.theme-vinmec, .dark.theme-vinmec, .dark .theme-vinmec {
     --primary: 171 52% 56%;
     --primary-foreground: 205 32% 12%;
     --secondary: 14 88% 61%;
@@ -73,7 +73,7 @@
     --ring: 171 52% 56%;
   }
 
-  .theme-teal {
+  html.theme-teal, .theme-teal {
     --primary: 190 60% 43%;
     --primary-foreground: 210 40% 98%;
     --secondary: 201 82% 26%;
@@ -83,7 +83,7 @@
     --ring: 190 60% 43%;
   }
 
-  .dark .theme-teal {
+  html.dark.theme-teal, .dark.theme-teal, .dark .theme-teal {
     --primary: 190 55% 53%;
     --primary-foreground: 210 40% 98%;
     --secondary: 201 82% 16%;
@@ -93,7 +93,7 @@
     --ring: 190 55% 53%;
   }
 
-  .theme-violet {
+  html.theme-violet, .theme-violet {
     --primary: 231 70% 65%;
     --primary-foreground: 210 40% 98%;
     --secondary: 283 76% 50%;
@@ -103,7 +103,7 @@
     --ring: 231 70% 65%;
   }
 
-  .dark .theme-violet {
+  html.dark.theme-violet, .dark.theme-violet, .dark .theme-violet {
     --primary: 231 70% 70%;
     --primary-foreground: 210 40% 98%;
     --secondary: 283 76% 25%;
@@ -113,7 +113,7 @@
     --ring: 231 70% 70%;
   }
 
-  .theme-mint {
+  html.theme-mint, .theme-mint {
     --primary: 155 15% 42%;
     --primary-foreground: 0 0% 100%;
     --secondary: 116 21% 70%;
@@ -123,7 +123,7 @@
     --ring: 155 15% 42%;
   }
 
-  .dark .theme-mint {
+  html.dark.theme-mint, .dark.theme-mint, .dark .theme-mint {
     --primary: 155 20% 52%;
     --primary-foreground: 0 0% 100%;
     --secondary: 116 21% 20%;
@@ -133,7 +133,7 @@
     --ring: 155 20% 52%;
   }
 
-  .theme-amber {
+  html.theme-amber, .theme-amber {
     --primary: 27 86% 49%;
     --primary-foreground: 0 0% 100%;
     --secondary: 4 38% 53%;
@@ -143,7 +143,7 @@
     --ring: 27 86% 49%;
   }
 
-  .dark .theme-amber {
+  html.dark.theme-amber, .dark.theme-amber, .dark .theme-amber {
     --primary: 27 90% 55%;
     --primary-foreground: 0 0% 100%;
     --secondary: 4 38% 23%;
@@ -153,7 +153,7 @@
     --ring: 27 90% 55%;
   }
 
-  .theme-gold {
+  html.theme-gold, .theme-gold {
     --primary: 30 41% 59%;
     --primary-foreground: 30 50% 10%;
     --secondary: 10 4% 44%;
@@ -163,7 +163,7 @@
     --ring: 30 41% 59%;
   }
 
-  .dark .theme-gold {
+  html.dark.theme-gold, .dark.theme-gold, .dark .theme-gold {
     --primary: 30 41% 65%;
     --primary-foreground: 30 50% 10%;
     --secondary: 10 4% 24%;
@@ -173,7 +173,7 @@
     --ring: 30 41% 65%;
   }
 
-  .theme-fuchsia {
+  html.theme-fuchsia, .theme-fuchsia {
     --primary: 336 71% 57%;
     --primary-foreground: 336 100% 98%;
     --secondary: 253 69% 36%;
@@ -183,7 +183,7 @@
     --ring: 336 71% 57%;
   }
 
-  .dark .theme-fuchsia {
+  html.dark.theme-fuchsia, .dark.theme-fuchsia, .dark .theme-fuchsia {
     --primary: 336 71% 67%;
     --primary-foreground: 336 100% 98%;
     --secondary: 253 69% 26%;
@@ -193,7 +193,7 @@
     --ring: 336 71% 67%;
   }
 
-  .theme-purple {
+  html.theme-purple, .theme-purple {
     --primary: 289 44% 46%;
     --primary-foreground: 289 100% 98%;
     --secondary: 256 63% 41%;
@@ -203,7 +203,7 @@
     --ring: 289 44% 46%;
   }
 
-  .dark .theme-purple {
+  html.dark.theme-purple, .dark.theme-purple, .dark .theme-purple {
     --primary: 289 44% 56%;
     --primary-foreground: 289 100% 98%;
     --secondary: 256 63% 21%;
@@ -213,7 +213,7 @@
     --ring: 289 44% 56%;
   }
 
-  .theme-pastel {
+  html.theme-pastel, .theme-pastel {
     --primary: 309 39% 79%;
     --primary-foreground: 309 40% 15%;
     --secondary: 261 52% 82%;
@@ -223,7 +223,7 @@
     --ring: 309 39% 79%;
   }
 
-  .dark .theme-pastel {
+  html.dark.theme-pastel, .dark.theme-pastel, .dark .theme-pastel {
     --primary: 309 39% 59%;
     --primary-foreground: 309 40% 98%;
     --secondary: 261 52% 22%;
@@ -233,7 +233,7 @@
     --ring: 309 39% 59%;
   }
 
-  .theme-rose {
+  html.theme-rose, .theme-rose {
     --primary: 350 61% 68%;
     --primary-foreground: 350 100% 98%;
     --secondary: 226 34% 66%;
@@ -243,7 +243,7 @@
     --ring: 350 61% 68%;
   }
 
-  .dark .theme-rose {
+  html.dark.theme-rose, .dark.theme-rose, .dark .theme-rose {
     --primary: 350 61% 72%;
     --primary-foreground: 350 100% 98%;
     --secondary: 226 34% 26%;
@@ -253,7 +253,7 @@
     --ring: 350 61% 72%;
   }
 
-  .theme-crimson {
+  html.theme-crimson, .theme-crimson {
     --primary: 334 66% 61%;
     --primary-foreground: 334 100% 98%;
     --secondary: 322 70% 23%;
@@ -263,7 +263,7 @@
     --ring: 334 66% 61%;
   }
 
-  .dark .theme-crimson {
+  html.dark.theme-crimson, .dark.theme-crimson, .dark .theme-crimson {
     --primary: 334 66% 68%;
     --primary-foreground: 334 100% 98%;
     --secondary: 322 70% 13%;
@@ -273,7 +273,7 @@
     --ring: 334 66% 68%;
   }
 
-  .theme-green {
+  html.theme-green, .theme-green {
     --primary: 119 33% 37%;
     --primary-foreground: 119 100% 98%;
     --secondary: 83 41% 50%;
@@ -283,7 +283,7 @@
     --ring: 119 33% 37%;
   }
 
-  .dark .theme-green {
+  html.dark.theme-green, .dark.theme-green, .dark .theme-green {
     --primary: 119 33% 47%;
     --primary-foreground: 119 100% 98%;
     --secondary: 83 41% 20%;
@@ -293,7 +293,7 @@
     --ring: 119 33% 47%;
   }
 
-  .theme-sky {
+  html.theme-sky, .theme-sky {
     --primary: 223 97% 70%;
     --primary-foreground: 223 97% 10%;
     --secondary: 340 100% 86%;
@@ -303,7 +303,7 @@
     --ring: 223 97% 70%;
   }
 
-  .dark .theme-sky {
+  html.dark.theme-sky, .dark.theme-sky, .dark .theme-sky {
     --primary: 223 97% 75%;
     --primary-foreground: 223 97% 10%;
     --secondary: 340 100% 40%;
@@ -313,7 +313,7 @@
     --ring: 223 97% 75%;
   }
 
-  .theme-sunrise {
+  html.theme-sunrise, .theme-sunrise {
     --primary: 261 52% 82%;
     --primary-foreground: 261 52% 15%;
     --secondary: 40 100% 73%;
@@ -323,7 +323,7 @@
     --ring: 261 52% 82%;
   }
 
-  .dark .theme-sunrise {
+  html.dark.theme-sunrise, .dark.theme-sunrise, .dark .theme-sunrise {
     --primary: 261 52% 72%;
     --primary-foreground: 261 52% 98%;
     --secondary: 40 100% 33%;
@@ -333,7 +333,7 @@
     --ring: 261 52% 72%;
   }
 
-  .theme-stone {
+  html.theme-stone, .theme-stone {
     --primary: 231 48% 58%;
     --primary-foreground: 231 48% 98%;
     --secondary: 350 59% 65%;
@@ -343,7 +343,7 @@
     --ring: 231 48% 58%;
   }
 
-  .dark .theme-stone {
+  html.dark.theme-stone, .dark.theme-stone, .dark .theme-stone {
     --primary: 231 48% 68%;
     --primary-foreground: 231 48% 98%;
     --secondary: 350 59% 25%;
@@ -353,7 +353,7 @@
     --ring: 231 48% 68%;
   }
 
-  .theme-coral {
+  html.theme-coral, .theme-coral {
     --primary: 5 84% 64%;
     --primary-foreground: 5 100% 98%;
     --secondary: 194 94% 19%;
@@ -363,7 +363,7 @@
     --ring: 5 84% 64%;
   }
 
-  .dark .theme-coral {
+  html.dark.theme-coral, .dark.theme-coral, .dark .theme-coral {
     --primary: 5 84% 70%;
     --primary-foreground: 5 100% 98%;
     --secondary: 194 94% 12%;
