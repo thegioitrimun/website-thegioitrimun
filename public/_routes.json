@@ -4,7 +4,6 @@
         "/*"
     ],
     "exclude": [
-        "/assets/*",
         "/icons/*",
         "/vite.svg"
     ]

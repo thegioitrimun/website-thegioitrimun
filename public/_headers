@@ -8,7 +8,10 @@
   Cross-Origin-Opener-Policy: same-origin-allow-popups
   X-XSS-Protection: 0
 
-/assets/*
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.css
   Cache-Control: public, max-age=31536000, immutable
 
 /hero/*
