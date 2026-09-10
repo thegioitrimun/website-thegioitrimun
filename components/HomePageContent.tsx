@@ -1557,9 +1557,9 @@ const HomepageIngredientAnalyzerSection: React.FC<{
             )}
 
             {faqItems.length > 0 && (
-                <section className="px-4 py-10 md:px-6 md:py-14">
+                <section className="px-2 py-10 md:px-6 md:py-14">
                         <div className="container mx-auto">
-                            <AnimatedSection className="homepage-section-shell grid gap-8 p-6 md:p-10 lg:grid-cols-[0.88fr_1.12fr] lg:p-14">
+                            <AnimatedSection className="homepage-section-shell grid gap-8 px-2 py-6 md:p-10 lg:grid-cols-[0.88fr_1.12fr] lg:p-14">
                                 <div className="text-center lg:text-left">
                                     <p className="section-kicker">{copy.faqKicker}</p>
                                     <h2 className="section-title mt-4">{copy.faqTitle}</h2>
