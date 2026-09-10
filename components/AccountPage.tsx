@@ -173,11 +173,15 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, onNavigate, onLogout })
                     type="button"
                     key={themeInfo.name}
                     onClick={() => setColorTheme(themeInfo.name)}
-                    className="w-full aspect-square rounded-full flex items-center justify-center transition-all-smooth btn-press focus:outline-none ring-offset-2 ring-primary focus:ring-2"
+                    className={`w-full aspect-square rounded-full flex items-center justify-center transition-all-smooth btn-press focus:outline-none ring-offset-2 ring-primary focus:ring-2 ${
+                      colorTheme === themeInfo.name
+                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-sm'
+                        : 'opacity-85 hover:opacity-100 hover:scale-105'
+                    }`}
                     style={{ backgroundColor: themeInfo.color }}
                     title={themeInfo.name.charAt(0).toUpperCase() + themeInfo.name.slice(1)}
                   >
-                    {colorTheme === themeInfo.name && <CheckIcon className="w-4 h-4 text-white mix-blend-difference" />}
+                    {colorTheme === themeInfo.name && <CheckIcon className="w-4 h-4 text-white drop-shadow-sm" />}
                   </button>
                 ))}
               </div>
