@@ -5,7 +5,6 @@ import {
   ArrowRightIcon,
   CheckCircleIcon,
   CloseIcon,
-  LaserIcon,
   SearchIcon,
   ServiceListIcon,
   ShieldCheckIcon,
@@ -265,38 +264,9 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
           <div className="pointer-events-none absolute -bottom-10 -right-10 h-44 w-44 rounded-full bg-teal-500/10 blur-2xl" />
 
           <div className="relative z-10">
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-              <div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-0.5 text-[10px] font-black uppercase tracking-[0.18em] text-primary shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-black/50">
-                  <SparklesIcon className="h-3 w-3" />
-                  <span>{labels.kicker}</span>
-                </div>
-
-                <h1 className="mt-2 text-2xl font-black leading-tight tracking-[-0.035em] text-foreground sm:text-3xl md:text-[2.2rem]">
-                  {labels.title}
-                </h1>
-
-                <p className="mt-1.5 max-w-2xl text-xs sm:text-sm leading-relaxed text-muted-foreground">
-                  {labels.subtitle}
-                </p>
-              </div>
-
-              {/* Quick Clinical Pill Badges (Compact) */}
-              <div className="flex flex-wrap gap-2 shrink-0">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-bold text-foreground backdrop-blur-xl shadow-xs dark:border-white/10 dark:bg-white/5">
-                  <StethoscopeIcon className="h-3 w-3 text-primary" />
-                  <span>{labels.badge1}</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-bold text-foreground backdrop-blur-xl shadow-xs dark:border-white/10 dark:bg-white/5">
-                  <LaserIcon className="h-3 w-3 text-primary" />
-                  <span>{labels.badge2}</span>
-                </div>
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/60 px-3 py-1 text-[11px] font-bold text-foreground backdrop-blur-xl shadow-xs dark:border-white/10 dark:bg-white/5">
-                  <ShieldCheckIcon className="h-3 w-3 text-primary" />
-                  <span>{labels.badge3}</span>
-                </div>
-              </div>
-            </div>
+            <h1 className="text-center text-2xl font-black leading-tight tracking-[-0.035em] text-foreground sm:text-3xl md:text-[2.2rem]">
+              {labels.title}
+            </h1>
 
             {/* Apple Frosted Search & Filter Controls */}
             <div className="mt-5 space-y-3 border-t border-border/40 pt-4">
