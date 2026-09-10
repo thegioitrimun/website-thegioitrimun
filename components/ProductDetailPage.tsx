@@ -1604,7 +1604,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     }
 
     return (
-        <div data-no-scroll-reveal className="product-detail-page bg-background text-foreground transition-colors duration-300">
+        <div data-no-scroll-reveal className="product-detail-page bg-white dark:bg-background text-foreground transition-colors duration-300">
             <div className="product-detail-shell container mx-auto md:px-6 md:pb-16 md:pt-8">
                 <div className="product-detail-mobile-commerce md:hidden bg-white dark:bg-background pt-5">
                     <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-[13px] text-muted-foreground overflow-hidden">
@@ -2081,7 +2081,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     </AnimatedSection>
                 )}
 
-                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/96 px-4 py-3 backdrop-blur md:hidden">
+                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/96 dark:bg-background/96 px-4 py-3 backdrop-blur md:hidden">
                     <div className="mx-auto flex max-w-3xl items-center gap-3">
                         <div className="min-w-0 flex-1">
                             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{detailCopy.stockTitle}</p>

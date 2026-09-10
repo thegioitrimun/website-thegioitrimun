@@ -6,7 +6,7 @@ const SkeletonBlock: React.FC<{ className: string }> = ({ className }) => (
 
 const ProductDetailLoadingShell: React.FC = () => (
     <div
-        className="product-detail-loading-shell min-h-[calc(100vh-6rem)] bg-background px-4 pb-20 pt-4 text-foreground md:px-6 md:pb-16 md:pt-8"
+        className="product-detail-loading-shell min-h-[calc(100vh-6rem)] bg-white dark:bg-background px-4 pb-20 pt-4 text-foreground md:px-6 md:pb-16 md:pt-8"
         role="status"
         aria-busy="true"
         aria-label="Đang tải toàn bộ thông tin sản phẩm"
