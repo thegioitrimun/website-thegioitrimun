@@ -25,37 +25,40 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
   };
 
   return (
-    <div className="relative min-h-[100svh] w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
+    <div className="relative min-h-[100svh] w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-background text-foreground transition-colors duration-300">
       {/* Ambient background glow */}
-      <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-secondary/15 blur-3xl" />
+      <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[560px] rounded-full bg-primary/15 blur-[120px] dark:bg-primary/20" />
+      <div className="pointer-events-none absolute -bottom-32 right-10 h-72 w-72 rounded-full bg-secondary/10 blur-[100px] dark:bg-teal-500/10" />
 
       <div className="relative w-full max-w-md">
         {/* Top brand icon */}
         <div className="mb-6 flex justify-center">
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-3xl border border-white/60 bg-white/80 p-3 shadow-xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/80">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-border/80 bg-card/90 p-3 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#151f30] dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
             <img
               src="/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260906"
               alt="TGTM"
               className="h-full w-full object-contain"
             />
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-white shadow-md">
+            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-2 ring-background">
               <ShieldCheckIcon className="h-3.5 w-3.5" />
             </span>
           </div>
         </div>
 
         {/* Card */}
-        <div className="overflow-hidden rounded-[32px] border border-white/60 bg-white/75 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/75">
+        <div className="relative overflow-hidden rounded-[28px] border border-border/80 bg-card/90 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#111a27]/90 dark:shadow-[0_24px_64px_-12px_rgba(0,0,0,0.7)]">
+          {/* Top subtle specular highlight line */}
+          <div className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
+
           <div className="text-center">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-primary shadow-xs">
               <SparklesIcon className="h-3.5 w-3.5" />
               <span>TGTM Workspace</span>
             </div>
             <h1 className="mt-3 font-heading text-2xl sm:text-3xl font-black tracking-tight text-foreground">
               Đăng nhập Quản trị
             </h1>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xs mx-auto">
               Phân hệ dành riêng cho Bác sĩ, Quản trị viên và Bộ phận Kế toán Thế Giới Trị Mụn.
             </p>
           </div>
@@ -71,12 +74,12 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="group relative flex w-full min-h-[52px] items-center justify-center gap-3 rounded-2xl border border-border/80 bg-background/80 px-4 py-3 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-background hover:shadow-md active:scale-98 disabled:opacity-50 btn-press"
+              className="group relative flex w-full min-h-[52px] items-center justify-center gap-3 rounded-2xl border border-border/80 bg-background/90 px-4 py-3 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-accent hover:border-primary/40 hover:shadow-md active:scale-[0.98] disabled:opacity-50 btn-press"
             >
               {isLoading ? (
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               ) : (
-                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
                   <path
                     fill="#4285F4"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -102,7 +105,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
           <div className="mt-8 border-t border-border/60 pt-6 text-center">
             <a
               href="/"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors py-1 px-3 rounded-xl hover:bg-muted/50"
             >
               <ArrowLeftIcon className="h-3.5 w-3.5" />
               <span>Quay lại website thegioitrimun.vn</span>

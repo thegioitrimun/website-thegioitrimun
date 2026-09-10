@@ -367,14 +367,6 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                       <LogoutIcon className="h-4 w-4" />
                     </button>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => setIsMobileDrawerOpen(false)}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted/60 text-foreground hover:bg-muted transition-colors ml-0.5"
-                    title="Đóng menu"
-                  >
-                    <CloseIcon className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
 
@@ -415,7 +407,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               {/* Desktop User Footer in Sidebar */}
               {currentUser ? (
                 <div className="mt-4 pt-3 border-t border-border/60">
-                  <div className="flex items-center gap-2.5 p-1 rounded-xl">
+                  <div className={`flex items-center rounded-xl transition-all duration-300 ${!isTemporarilyCollapsed ? 'justify-center group-hover/sidebar:justify-start group-hover/sidebar:gap-2.5 group-hover/sidebar:p-1' : 'justify-center'}`}>
                     <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase overflow-hidden border border-primary/30 shadow-xs">
                       {currentUser.profile?.avatar_url ? (
                         <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -423,7 +415,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                         (currentUser.profile?.name || currentUser.profile?.email || 'A').charAt(0)
                       )}
                     </div>
-                    <div className={`min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-300 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                    <div className={`min-w-0 flex-1 whitespace-nowrap overflow-hidden transition-all duration-300 ${!isTemporarilyCollapsed ? 'w-0 opacity-0 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100' : 'w-0 opacity-0'}`}>
                       <p className="text-xs font-bold text-foreground truncate leading-none">
                         {currentUser.profile?.name || 'Quản trị viên'}
                       </p>
@@ -435,7 +427,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                       <button
                         type="button"
                         onClick={onLogout}
-                        className={`shrink-0 p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-0 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}
+                        className={`shrink-0 p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors ${!isTemporarilyCollapsed ? 'w-0 opacity-0 group-hover/sidebar:w-auto group-hover/sidebar:opacity-100' : 'w-0 opacity-0'}`}
                         title="Đăng xuất"
                       >
                         <LogoutIcon className="h-4 w-4" />
@@ -443,7 +435,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                     ) : null}
                   </div>
 
-                  <div className={`mt-2 flex items-center px-1 overflow-hidden transition-all duration-300 opacity-0 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                  <div className={`mt-2 flex items-center px-1 overflow-hidden transition-all duration-300 ${!isTemporarilyCollapsed ? 'w-0 opacity-0 h-0 group-hover/sidebar:w-full group-hover/sidebar:opacity-100 group-hover/sidebar:h-auto' : 'w-0 opacity-0 h-0'}`}>
                     <a
                       href="/"
                       target="_blank"
