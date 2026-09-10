@@ -222,7 +222,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                 title={isFeatured ? 'Đang nổi bật trên homepage (Click để bỏ)' : 'Chưa nổi bật (Click để bật nổi bật)'}
               >
                 <img
-                  src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp'}
+                  src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-14.webp'}
                   alt=""
                   className="w-4 h-4 object-contain shrink-0"
                 />
@@ -430,7 +430,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                         >
                           <div className="flex items-center gap-2.5">
                             <img
-                              src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp'}
+                              src={isFeatured ? 'https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp' : 'https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-14.webp'}
                               alt=""
                               className="w-4 h-4 object-contain shrink-0"
                             />
@@ -635,7 +635,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
               title="Đang nổi bật (Click để bỏ)"
             >
               <img
-                src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
+                src="https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp"
                 alt=""
                 className="w-3.5 h-3.5 object-contain shrink-0"
               />
@@ -644,7 +644,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
           ) : (
             <span className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-white/80 bg-card/85 shadow-xs backdrop-blur-2xl px-3 py-1.5 text-xs font-bold text-foreground dark:border-white/10">
               <img
-                src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"
+                src="https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp"
                 alt=""
                 className="w-3.5 h-3.5 object-contain shrink-0"
               />

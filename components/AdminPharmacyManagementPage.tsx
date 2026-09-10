@@ -3649,7 +3649,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                 />
                                                                 {p.is_featured ? (
                                                                     <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 shadow-xs" title="Sản phẩm nổi bật">
-                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp" alt="Nổi bật" className="h-3 w-3 object-contain" />
+                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp" alt="Nổi bật" className="h-3 w-3 object-contain" />
                                                                     </span>
                                                                 ) : null}
                                                             </div>
@@ -3728,7 +3728,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                                         className="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
                                                                                     >
                                                                                         <img 
-                                                                                            src={p.is_featured ? "https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp" : "https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp"} 
+                                                                                            src={p.is_featured ? "https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-14.webp" : "https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp"} 
                                                                                             alt={p.is_featured ? "Bỏ nổi bật" : "Nổi bật"} 
                                                                                             className="h-4 w-4 object-contain" 
                                                                                         />
@@ -4016,7 +4016,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                                 }`}
                                                                                 title={p.is_featured ? 'Gỡ nổi bật trên Trang Chủ' : 'Đánh dấu nổi bật trên Trang Chủ'}
                                                                             >
-                                                                                {p.is_featured ? <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720152322-star.webp" alt="Nổi bật" className="h-5 w-5 object-contain inline-block" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260720160138-unstar.webp" alt="Không nổi bật" className="h-5 w-5 object-contain inline-block" />}
+                                                                                {p.is_featured ? <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-15.webp" alt="Nổi bật" className="h-5 w-5 object-contain inline-block" /> : <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1789007577343-Untitled-design-14.webp" alt="Không nổi bật" className="h-5 w-5 object-contain inline-block" />}
                                                                             </button>
                                                                         </div>
                                                                     </td>
