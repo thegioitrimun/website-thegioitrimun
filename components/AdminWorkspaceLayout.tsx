@@ -17,7 +17,6 @@ import {
   LogoutIcon,
 } from './icons';
 import BackIconButton from './BackIconButton';
-import ThemePicker from './ThemePicker';
 import { preloadAdminPage } from '../src/adminPageLoaders';
 import type { AdminNavigationView, UserData } from '../types';
 
@@ -317,73 +316,67 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                 isMobileDrawerOpen ? 'translate-x-0' : 'translate-x-full'
               }`}
             >
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center">
-                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-7 w-7 object-contain" />
-                  </div>
-                  <h2 className="text-lg font-black text-foreground">Menu</h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMobileDrawerOpen(false)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted/50 text-foreground hover:bg-muted"
-                >
-                  <CloseIcon className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* User Profile & Actions Card in Mobile Drawer */}
-              {currentUser ? (
-                <div className="mb-4 rounded-2xl border border-border/70 bg-muted/40 p-3 shadow-xs">
-                  <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border/60">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="h-9 w-9 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase overflow-hidden border border-primary/30 shadow-xs">
-                        {currentUser.profile?.avatar_url ? (
-                          <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          (currentUser.profile?.name || currentUser.profile?.email || 'A').charAt(0)
-                        )}
-                      </div>
-                      <div className="min-w-0 text-left">
-                        <p className="text-xs font-bold text-foreground leading-tight truncate">
-                          {currentUser.profile?.name || 'Quản trị viên'}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground uppercase font-semibold mt-0.5 tracking-wider">
-                          {currentRole}
-                        </p>
-                      </div>
+              {/* Compact User Header replacing Menu */}
+              <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3">
+                {currentUser ? (
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="h-8 w-8 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase overflow-hidden border border-primary/30 shadow-xs">
+                      {currentUser.profile?.avatar_url ? (
+                        <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        (currentUser.profile?.name || currentUser.profile?.email || 'A').charAt(0)
+                      )}
                     </div>
-                    {onLogout ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsMobileDrawerOpen(false);
-                          onLogout();
-                        }}
-                        className="shrink-0 p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                        title="Đăng xuất"
-                      >
-                        <LogoutIcon className="h-4 w-4" />
-                      </button>
-                    ) : null}
+                    <div className="min-w-0 text-left">
+                      <p className="text-xs font-bold text-foreground leading-tight truncate">
+                        {currentUser.profile?.name || 'Quản trị viên'}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
+                        {currentRole}
+                      </p>
+                    </div>
                   </div>
+                ) : (
+                  <div className="flex items-center gap-2.5">
+                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-7 w-7 object-contain" />
+                    <span className="font-bold text-sm text-foreground">Menu</span>
+                  </div>
+                )}
 
-                  <div className="mt-2.5 flex items-center justify-between gap-2">
-                    <a
-                      href="/"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:text-primary transition-all shadow-xs"
-                      title="Mở website khách hàng ở tab mới"
+                <div className="flex items-center gap-1 shrink-0">
+                  <a
+                    href="/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-8 items-center gap-1 rounded-xl border border-border/80 bg-background/80 px-2.5 text-xs font-semibold text-foreground hover:text-primary transition-all shadow-xs"
+                    title="Mở website khách hàng ở tab mới"
+                  >
+                    <HomeIcon className="h-3.5 w-3.5 text-primary" />
+                    <span className="hidden xs:inline">Website</span>
+                  </a>
+                  {onLogout ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMobileDrawerOpen(false);
+                        onLogout();
+                      }}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                      title="Đăng xuất"
                     >
-                      <HomeIcon className="h-3.5 w-3.5 text-primary" />
-                      <span>Xem Website</span>
-                    </a>
-                    <ThemePicker />
-                  </div>
+                      <LogoutIcon className="h-4 w-4" />
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileDrawerOpen(false)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-muted/60 text-foreground hover:bg-muted transition-colors ml-0.5"
+                    title="Đóng menu"
+                  >
+                    <CloseIcon className="h-4 w-4" />
+                  </button>
                 </div>
-              ) : null}
+              </div>
 
               <nav className="space-y-1">
                 {visibleModules.map((item) => (
@@ -450,18 +443,17 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                     ) : null}
                   </div>
 
-                  <div className={`mt-2 flex items-center justify-between gap-1 px-1 overflow-hidden transition-all duration-300 opacity-0 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                  <div className={`mt-2 flex items-center px-1 overflow-hidden transition-all duration-300 opacity-0 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
                     <a
                       href="/"
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background/60 px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-background hover:text-primary transition-all shadow-xs"
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-border/80 bg-background/60 px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-background hover:text-primary transition-all shadow-xs"
                       title="Mở website khách hàng ở tab mới"
                     >
                       <HomeIcon className="h-3.5 w-3.5 text-primary" />
                       <span className="truncate">Xem Website</span>
                     </a>
-                    <ThemePicker />
                   </div>
                 </div>
               ) : null}
