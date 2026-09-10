@@ -163,6 +163,45 @@ export const AdminApp: React.FC = () => {
 
   const [moduleLoading, setModuleLoading] = useState<Record<string, boolean>>({});
 
+  // Lazy components loader (must be declared at top-level before any early return)
+  const [LazyComponent, setLazyComponent] = useState<React.ComponentType<any> | null>(null);
+
+  useEffect(() => {
+    if (authState.status !== 'authenticated') return;
+    let isCancelled = false;
+
+    const loadComponent = async () => {
+      let moduleLoader;
+      switch (view.page) {
+        case 'adminDashboard': moduleLoader = loadAdminDashboardPage; break;
+        case 'adminPharmacyManagement': moduleLoader = loadAdminPharmacyManagementPage; break;
+        case 'adminSiteManagement': moduleLoader = loadAdminSiteManagementPage; break;
+        case 'adminUserManagement': moduleLoader = loadAdminUserManagementPage; break;
+        case 'adminBlogManagement': moduleLoader = loadAdminBlogManagementPage; break;
+        case 'adminServiceManagement': moduleLoader = loadAdminServiceManagementPage; break;
+        case 'adminImageLibrary': moduleLoader = loadAdminImageLibraryPage; break;
+        case 'adminProductImageImporter': moduleLoader = loadAdminProductImageImporterPage; break;
+        case 'adminPancakeManagement': moduleLoader = loadAdminPancakeManagementPage; break;
+        case 'adminVatManagement': moduleLoader = loadAdminVatManagementPage; break;
+        default: moduleLoader = loadAdminDashboardPage; break;
+      }
+
+      try {
+        const mod = await moduleLoader();
+        if (!isCancelled) {
+          setLazyComponent(() => mod.default);
+        }
+      } catch (err) {
+        console.error('Failed to load admin module chunk:', err);
+      }
+    };
+
+    void loadComponent();
+    return () => {
+      isCancelled = true;
+    };
+  }, [view.page, authState.status]);
+
   // --- Load Module Data On-Demand ---
   const loadModuleData = useCallback(async (page: AdminNavigationView['page']) => {
     if (moduleLoading[page]) return;
@@ -684,44 +723,6 @@ export const AdminApp: React.FC = () => {
 
   const currentUser = authState.user;
   const currentRole = currentUser.profile.role;
-
-  // Lazy components loader
-  const [LazyComponent, setLazyComponent] = useState<React.ComponentType<any> | null>(null);
-
-  useEffect(() => {
-    let isCancelled = false;
-
-    const loadComponent = async () => {
-      let moduleLoader;
-      switch (view.page) {
-        case 'adminDashboard': moduleLoader = loadAdminDashboardPage; break;
-        case 'adminPharmacyManagement': moduleLoader = loadAdminPharmacyManagementPage; break;
-        case 'adminSiteManagement': moduleLoader = loadAdminSiteManagementPage; break;
-        case 'adminUserManagement': moduleLoader = loadAdminUserManagementPage; break;
-        case 'adminBlogManagement': moduleLoader = loadAdminBlogManagementPage; break;
-        case 'adminServiceManagement': moduleLoader = loadAdminServiceManagementPage; break;
-        case 'adminImageLibrary': moduleLoader = loadAdminImageLibraryPage; break;
-        case 'adminProductImageImporter': moduleLoader = loadAdminProductImageImporterPage; break;
-        case 'adminPancakeManagement': moduleLoader = loadAdminPancakeManagementPage; break;
-        case 'adminVatManagement': moduleLoader = loadAdminVatManagementPage; break;
-        default: moduleLoader = loadAdminDashboardPage; break;
-      }
-
-      try {
-        const mod = await moduleLoader();
-        if (!isCancelled) {
-          setLazyComponent(() => mod.default);
-        }
-      } catch (err) {
-        console.error('Failed to load admin module chunk:', err);
-      }
-    };
-
-    void loadComponent();
-    return () => {
-      isCancelled = true;
-    };
-  }, [view.page]);
 
   // --- Render Active Page Content ---
   const renderActiveModule = () => {
