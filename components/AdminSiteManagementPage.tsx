@@ -764,8 +764,8 @@ const AdminSiteManagementPage: React.FC<AdminSiteManagementPageProps> = (props) 
 
                 {/* CARD 1: Header & Preset Pills Navigation (Apple Glass Standard) */}
                 <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0 transition-all relative z-20">
-                    {/* Row 1: Horizontal scrollable preset pills */}
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                    {/* Row 1: Horizontal scrollable preset pills (Desktop only, hidden on mobile) */}
+                    <div className="hidden lg:flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                         {siteTabs.map((tab) => {
                             const isActive = activeTab === tab.key;
                             let badge: string | number | null = null;
@@ -804,7 +804,7 @@ const AdminSiteManagementPage: React.FC<AdminSiteManagementPageProps> = (props) 
                     </div>
 
                     {/* Row 2: Contextual Toolbar depending on current section */}
-                    <div className="mt-2.5 pt-2.5 border-t border-border/40 flex flex-wrap items-center justify-between gap-2">
+                    <div className="lg:mt-2.5 lg:pt-2.5 lg:border-t border-border/40 flex flex-wrap items-center justify-between gap-2">
                         {activeTab === 'faq' ? (
                             <>
                                 <div className="relative flex-1 min-w-[200px] max-w-md">
