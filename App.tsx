@@ -2027,8 +2027,8 @@ const App: React.FC = () => {
 
             {!isAdminView ? (
             <footer id="footer" className="relative overflow-hidden border-t border-border/70 bg-white text-foreground transition-colors duration-300 dark:border-white/10 dark:bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)]">
-                <div className="container relative mx-auto px-6 py-16 md:py-20">
-                    <AnimatedSection className="overflow-hidden rounded-[36px] border border-border bg-white/76 p-8 shadow-[0_30px_72px_-42px_rgba(36,46,57,0.18)] backdrop-blur dark:border-white/10 dark:bg-[#111a27]/78 dark:shadow-[0_34px_76px_-42px_rgba(4,10,24,0.72)] md:p-10 lg:p-12">
+                <div className="container relative mx-auto px-2 py-16 md:px-6 md:py-20">
+                    <AnimatedSection className="overflow-hidden rounded-[36px] border border-border bg-white/76 px-2 py-8 shadow-[0_30px_72px_-42px_rgba(36,46,57,0.18)] backdrop-blur dark:border-white/10 dark:bg-[#111a27]/78 dark:shadow-[0_34px_76px_-42px_rgba(4,10,24,0.72)] md:p-10 lg:p-12">
                         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
                             <div className="text-center lg:text-left">
                                 <p className="section-kicker">Thế Giới Trị Mụn</p>
