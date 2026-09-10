@@ -60,8 +60,10 @@ const AccountPage: React.FC<AccountPageProps> = ({ user, onNavigate, onLogout })
 
   const adminMenuItem = {
     label: user?.profile.role === 'accountant' ? 'Kế toán VAT' : t('account.admin'),
-    onClick: () => onNavigate({ page: user?.profile.role === 'accountant' ? 'adminVatManagement' : 'adminDashboard' }),
-    icon: <CogIcon className="w-5 h-5" />
+    onClick: () => {
+      window.location.href = user?.profile.role === 'accountant' ? '/admin/vat' : '/admin';
+    },
+    icon: <CogIcon className="w-5 h-5" />,
   };
 
   return (

@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy } from 'react';
 import { createPortal } from 'react-dom';
 import { printProductOrder, getOrderChannelLabel } from '../src/orderReceipt';
+
+const AdminOrderCreatePage = lazy(() => import('./AdminOrderCreatePage'));
 import type {
     AdminNavigationView,
     AdminPharmacyOrderPreset,

@@ -17,9 +17,7 @@ import {
 import SettingsDropdown from './components/ThemeSwitcher';
 import UserAvatar from './components/UserAvatar';
 import MiniCart from './components/MiniCart';
-import { AdminLayoutProvider } from './components/AdminLayoutContext';
-import AdminWorkspaceLayout from './components/AdminWorkspaceLayout';
-import AdminPancakeManagementPage from './components/AdminPancakeManagementPage';
+
 import HomePageContent from './components/HomePageContent';
 import FloatingContactButtons from './components/FloatingContactButtons';
 import AccessibleSocialLink from './components/AccessibleSocialLink';
@@ -61,19 +59,6 @@ import { buildClientMetaDescription, buildClientSeoTitle, stripHtml, truncateTex
 import { normalizeBrandMatchKey } from './src/brandUtils';
 import { normalizeExternalUrl } from './src/socialLinks';
 import type { ProductDeletionResult } from './services/api';
-import {
-    loadAdminBlogManagementPage,
-    loadAdminDashboardPage,
-    loadAdminImageLibraryPage,
-    loadAdminProductImageImporterPage,
-    loadAdminPharmacyManagementPage,
-    loadAdminServiceManagementPage,
-    loadAdminSiteManagementPage,
-    loadAdminUserManagementPage,
-    loadAdminVatManagementPage,
-    preloadAdminWorkspace,
-} from './src/adminPageLoaders';
-
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
 const Sidebar = lazy(() => import('./components/Sidebar'));
 const FullScreenSearch = lazy(() => import('./components/FullScreenSearch'));
@@ -95,15 +80,6 @@ const CheckoutPage = lazy(() => import('./components/CheckoutPage'));
 const CheckoutSuccessPage = lazy(() => import('./components/CheckoutSuccessPage'));
 const OrderLookupPage = lazy(() => import('./components/OrderLookupPage'));
 const WishlistPage = lazy(() => import('./components/WishlistPage'));
-const AdminDashboardPage = lazy(loadAdminDashboardPage);
-const AdminUserManagementPage = lazy(loadAdminUserManagementPage);
-const AdminBlogManagementPage = lazy(loadAdminBlogManagementPage);
-const AdminSiteManagementPage = lazy(loadAdminSiteManagementPage);
-const AdminServiceManagementPage = lazy(loadAdminServiceManagementPage);
-const AdminImageLibraryPage = lazy(loadAdminImageLibraryPage);
-const AdminProductImageImporterPage = lazy(loadAdminProductImageImporterPage);
-const AdminPharmacyManagementPage = lazy(loadAdminPharmacyManagementPage);
-const AdminVatManagementPage = lazy(loadAdminVatManagementPage);
 const AccountPage = lazy(() => import('./components/AccountPage'));
 const OrderHistoryPage = lazy(() => import('./components/OrderHistoryPage'));
 const ProductsPage = lazy(() => import('./components/ProductsPage'));
@@ -137,13 +113,6 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
     'adminVatManagement',
 ]);
 
-// These admin pages own their API loading and error states internally. Routing
-// them through the shared bootstrap gate would leave pages with no bootstrap
-// tasks stuck in the global loading state forever.
-const SELF_MANAGED_ADMIN_PAGES = new Set<View['page']>([
-    'adminPancakeManagement',
-    'adminVatManagement',
-]);
 
 const fileToBas64 = (file: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -205,15 +174,7 @@ const App: React.FC = () => {
     const headerScrollFrame = useRef<number | null>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
 
-    useEffect(() => {
-        const role = currentUser?.profile.role;
-        if (!['admin', 'master_admin', 'accountant'].includes(String(role))) return;
-        const timerId = window.setTimeout(() => {
-            if (role === 'accountant') void loadAdminVatManagementPage();
-            else preloadAdminWorkspace();
-        }, 50);
-        return () => window.clearTimeout(timerId);
-    }, [currentUser?.profile.role]);
+
 
     // Data from Supabase
     const [services, setServices] = useState<Service[]>([]);
@@ -1538,153 +1499,15 @@ const App: React.FC = () => {
             }
 
             if (view.page.startsWith('admin')) {
-                const renderAdminView = () => {
-                    switch (view.page) {
-                        case 'adminDashboard':
-                    if (isAdmin) return <AdminDashboardPage initialPanel={view.section} onNavigate={(page) => setView(page)} onBack={() => setView(isMobile ? { page: 'account' } : { page: 'main' })} productOrders={allProductOrders} services={services} doctors={doctorDetails} />;
-                    setView({ page: 'main' }); return null;
-                case 'adminUserManagement':
-                    if (isAdmin) return <AdminUserManagementPage allPatients={allPatients} doctorDetails={doctorDetails} initialSection={view.section} onUpdatePatient={handleUpdatePatient} onSaveDoctorProfile={handleSaveDoctorProfile} onDeleteDoctorProfile={handleDeleteDoctorProfile} onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
-                    setView({ page: 'main' }); return null;
-                case 'adminBlogManagement':
-                    if (isContentCreator) {
-                        return <AdminBlogManagementPage currentUser={currentUser} posts={blogPosts} categories={blogCategories} initialSection={view.section} onSavePost={handleSavePost} onLoadPostDetail={handleLoadPostDetail} onDeletePost={handleDeletePost} onSaveCategory={handleSaveCategory} onDeleteCategory={handleDeleteCategory} onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminServiceManagement':
-                    if (isAdmin) {
-                        return <AdminServiceManagementPage services={services} onSaveService={handleSaveService} onDeleteService={handleDeleteService} onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminImageLibrary':
-                    if (isAdmin) {
-                        return <AdminImageLibraryPage onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminProductImageImporter':
-                    if (isAdmin) {
-                        return <AdminProductImageImporterPage onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminPharmacyManagement':
-                    if (isAdmin) {
-                        return <AdminPharmacyManagementPage
-                            products={allProducts}
-                            categories={productCategories}
-                            brands={brands}
-                            productOrders={allProductOrders}
-                            initialSection={view.section}
-                            initialAction={view.action}
-                            initialOrderId={view.orderId}
-                            initialOrderChannel={view.orderChannel}
-                            initialOrderPreset={view.orderPreset}
-                            initialProductFilter={view.productFilter}
-                            onUpdateOrders={setAllProductOrders}
-                            onSaveProduct={handleSaveProduct}
-                            onBulkUpdateProducts={handleBulkUpdateProducts}
-                            onDeleteProduct={handleDeleteProduct}
-                            onBulkDeleteProducts={handleBulkDeleteProducts}
-                            onSaveCategory={handleSaveProductCategory}
-                            onDeleteCategory={handleDeleteProductCategory}
-                            onSaveBrand={handleSaveBrand}
-                            onDeleteBrand={handleDeleteBrand}
-                            onNavigate={setView}
-                            onBack={() => setView({ page: 'adminDashboard' })}
-                        />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminPancakeManagement':
-                    if (isAdmin) {
-                        return <AdminPancakeManagementPage />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminVatManagement':
-                    if (isVatStaff) {
-                        return <AdminVatManagementPage currentRole={currentUser.profile.role} />;
-                    }
-                    setView({ page: 'main' }); return null;
-                case 'adminSiteManagement':
-                    if (!isAdmin) {
-                        setView({ page: 'main' }); return null;
-                    }
-                    if (!aboutData || !siteInfo || !footerContent || !authPageImages || !paymentSettings) {
-                        return renderRouteLoading();
-                    }
-                    return <AdminSiteManagementPage
-                        allServices={services}
-                        allDoctors={doctorDetails}
-                        allPosts={blogPosts}
-                        faqItems={faqItems}
-                        homepageHero={homepageHero}
-                        featuredServiceIds={featuredServiceIds}
-                        featuredDoctorIds={featuredDoctorIds}
-                        featuredPostSlugs={featuredPostSlugs}
-                        onUpdateHomepageHero={handleUpdateHomepageHero}
-                        onUpdateFeaturedServices={handleUpdateFeaturedServices}
-                        onUpdateFeaturedDoctors={handleUpdateFeaturedDoctors}
-                        onUpdateFeaturedPosts={handleUpdateFeaturedPosts}
-                        onSaveFaq={handleSaveFaq}
-                        onDeleteFaq={handleDeleteFaq}
-                        aboutData={aboutData}
-                        onUpdateAboutContent={handleUpdateAboutContent}
-                        onSaveAboutFeature={handleSaveAboutFeature}
-                        onDeleteAboutFeature={handleDeleteAboutFeature}
-                        onSaveAboutValue={handleSaveAboutValue}
-                        onDeleteAboutValue={handleDeleteAboutValue}
-                        siteInfo={siteInfo}
-                        footerContent={footerContent}
-                        onUpdateSiteInfo={handleUpdateSiteInfo}
-                        onUpdateFooterContent={handleUpdateFooterContent}
-                        authPageImages={authPageImages}
-                        onUpdateAuthPageImages={handleUpdateAuthPageImages}
-                        paymentSettings={paymentSettings}
-                        onUpdatePaymentSettings={handleUpdatePaymentSettings}
-                        initialSection={view.section}
-                        initialAction={view.action}
-                        onNavigate={setView}
-                        onBack={() => setView({ page: 'adminDashboard' })}
-                    />;
-            }
-        };
-
-        const adminModuleState = adminModuleStates[view.page] || { status: 'idle', error: null, refreshing: false };
-        const adminContent = SELF_MANAGED_ADMIN_PAGES.has(view.page)
-            ? renderAdminView()
-            : adminModuleState.status === 'idle' || adminModuleState.status === 'loading'
-                ? renderRouteLoading()
-                : adminModuleState.status === 'error'
-                    ? (
-                    <div className="mx-auto flex min-h-[52vh] w-full max-w-3xl items-center justify-center px-4 py-10">
-                        <div className="w-full rounded-[1.5rem] border border-red-200 bg-card p-6 text-center shadow-sm">
-                            <h2 className="text-xl font-bold text-foreground">Không thể tải dữ liệu quản trị</h2>
-                            <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                                {adminModuleState.error || 'Kết nối dữ liệu tạm thời không khả dụng.'}
-                            </p>
-                            <button
-                                type="button"
-                                onClick={() => { void retryAdminModule(view.page); }}
-                                className="mt-5 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-                            >
-                                Thử tải lại
-                            </button>
-                        </div>
+                const targetUrl = viewToPath(view);
+                window.location.href = targetUrl;
+                return (
+                    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
+                        <LoadingIcon className="w-8 h-8 animate-spin text-primary" />
+                        <span>Đang chuyển sang Hệ thống Quản trị...</span>
                     </div>
-                    )
-                    : renderAdminView();
-
-        return (
-            <AdminLayoutProvider>
-                <AdminWorkspaceLayout
-                    currentPage={(view.page === 'adminPharmacyManagement' && view.section === 'orders' ? 'adminDashboard' : view.page) as any}
-                    currentRole={currentUser.profile.role}
-                    onNavigate={setView}
-                    onBack={() => setView(currentUser.profile.role === 'accountant' ? { page: 'account' } : { page: 'adminDashboard' })}
-                >
-                    {adminContent}
-                </AdminWorkspaceLayout>
-            </AdminLayoutProvider>
-        );
-    }
+                );
+            }
 
         } // Close if (currentUser)
 

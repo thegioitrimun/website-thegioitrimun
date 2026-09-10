@@ -167,6 +167,16 @@ export async function maybeHandleSeoRoute(route, deps) {
         if (botRequest) {
             return generateNoindexPage(path, seoLang);
         }
+        if (/^\/admin(?:\/|$)/.test(path) && !/\.[a-zA-Z0-9]+$/.test(path)) {
+            if (path === '/admin' || path === '/admin/') {
+                const response = await fetchAssetsResponse(request, env);
+                return withRobotsHeader(response, buildRobotsContent(true));
+            }
+            const adminHtmlUrl = new URL('/admin/', request.url);
+            const adminRequest = new Request(adminHtmlUrl.toString(), request);
+            const response = await fetchAssetsResponse(adminRequest, env);
+            return withRobotsHeader(response, buildRobotsContent(true));
+        }
         const response = await fetchAssetsResponse(request, env);
         return withRobotsHeader(response, buildRobotsContent(true));
     }

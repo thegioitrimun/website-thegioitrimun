@@ -1,21 +1,55 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
 
 import { cloudflare } from "@cloudflare/vite-plugin";
 
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://127.0.0.1:8788';
 const devProxySecure = /^https:/i.test(devProxyTarget);
 
-export default defineConfig(({ command }) => {
+export default defineConfig((configEnv) => {
+  const { command } = configEnv;
+  const isSsr = Boolean(configEnv.isSsrBuild || configEnv.ssrBuild);
   const useD1Backend = String(process.env.VITE_DATA_BACKEND || '').toLowerCase() === 'd1';
   const hasProxyTarget = Boolean(process.env.VITE_DEV_PROXY_TARGET);
-  const plugins = [react()];
+  const multiPagePlugin = {
+    name: 'multi-page-client-inputs',
+    configEnvironment(name, envConfig) {
+      if (name === 'client') {
+        return {
+          build: {
+            rollupOptions: {
+              input: {
+                main: resolve(__dirname, 'index.html'),
+                admin: resolve(__dirname, 'admin/index.html'),
+              },
+            },
+          },
+        };
+      }
+    },
+  };
+
+  const plugins = [react(), multiPagePlugin];
   if (command === 'build' || !hasProxyTarget) {
     plugins.push(cloudflare());
   }
   return {
   plugins,
+  environments: {
+    client: {
+      build: {
+        rollupOptions: {
+          input: {
+            main: resolve(__dirname, 'index.html'),
+            admin: resolve(__dirname, 'admin/index.html'),
+          },
+        },
+      },
+    },
+  },
   define: useD1Backend
     ? { 'import.meta.env.VITE_SUPABASE_URL': JSON.stringify('') }
     : {},

@@ -103,17 +103,17 @@ test('media library tracks references and prevents unsafe deletion', async () =>
 });
 
 test('admin module loading is isolated and cached per resource', async () => {
-    const [bootstrap, provider, app] = await Promise.all([
+    const [bootstrap, provider, adminApp] = await Promise.all([
         source('hooks/useAppBootstrap.ts'),
         source('src/admin/AdminDataProvider.ts'),
-        source('App.tsx'),
+        source('admin/AdminApp.tsx'),
     ]);
     assert.match(bootstrap, /adminModuleStates/);
     assert.match(bootstrap, /Promise\.allSettled/);
     assert.match(bootstrap, /scheduleDeferredTask/);
     assert.match(provider, /inFlight/);
     assert.match(provider, /invalidate/);
-    assert.match(app, /AdminWorkspaceLayout/);
+    assert.match(adminApp, /AdminWorkspaceLayout/);
     assert.doesNotMatch(provider, /supabase/i);
 });
 

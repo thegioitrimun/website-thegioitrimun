@@ -3224,6 +3224,17 @@ export default {
             }
         }
 
+        if (/^\/admin(?:\/|$)/.test(path) && !/\.[a-zA-Z0-9]+$/.test(path)) {
+            if (path === '/admin' || path === '/admin/') {
+                const response = await env.ASSETS.fetch(request);
+                return withSecurityHeaders(withRobotsHeader(response, 'noindex, nofollow, noarchive'));
+            }
+            const adminHtmlUrl = new URL('/admin/', request.url);
+            const adminRequest = new Request(adminHtmlUrl.toString(), request);
+            const response = await env.ASSETS.fetch(adminRequest);
+            return withSecurityHeaders(withRobotsHeader(response, 'noindex, nofollow, noarchive'));
+        }
+
         return withSecurityHeaders(await env.ASSETS.fetch(request));
     },
 

@@ -1,0 +1,25 @@
+{
+  "name": "Thế Giới Trị Mụn — Admin Workspace",
+  "short_name": "TGTM Admin",
+  "description": "Hệ thống quản trị chuyên sâu phòng khám & nhà thuốc Thế Giới Trị Mụn",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260906",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/da-lieu-nhiet-doi-phu-quoc-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

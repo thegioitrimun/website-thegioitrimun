@@ -62,7 +62,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
   ];
 
   const adminMenuItems = [
-    { label: user?.profile.role === 'accountant' ? 'Kế toán VAT' : t('nav.admin_dashboard'), action: () => handleNavigation(user?.profile.role === 'accountant' ? 'adminVatManagement' : 'adminDashboard'), icon: <CogIcon className="w-5 h-5" /> },
+    {
+      label: user?.profile.role === 'accountant' ? 'Kế toán VAT' : t('nav.admin_dashboard'),
+      action: () => {
+        closeDropdown();
+        window.location.href = user?.profile.role === 'accountant' ? '/admin/vat' : '/admin';
+      },
+      icon: <CogIcon className="w-5 h-5" />,
+    },
   ];
 
   const triggerClass = `utility-trigger h-10 w-10 shrink-0 overflow-hidden p-0 ${isOpen ? 'is-active' : ''}`;
