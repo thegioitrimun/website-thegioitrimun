@@ -488,13 +488,18 @@ const OrderRow: React.FC<OrderRowProps> = ({ order, onUpdate, isSelected, onTogg
             </td>
             <td className="px-4 py-4 align-top">
                 <div className="space-y-2">
-                    <button
-                        type="button"
-                        onClick={() => onViewDetails(order)}
-                        className="font-mono text-sm font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
-                    >
-                        #{order.order_code?.slice(-4)}
-                    </button>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => onViewDetails(order)}
+                            className="font-mono text-sm font-semibold text-primary transition-colors hover:text-primary/80 hover:underline"
+                        >
+                            #{order.order_code?.slice(-4)}
+                        </button>
+                        <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${(order.order_channel || 'online') === 'pos' ? 'border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-400' : 'border-sky-500/20 bg-sky-500/5 text-sky-600 dark:text-sky-400'}`}>
+                            {getOrderChannelLabel(order.order_channel)}
+                        </span>
+                    </div>
                     <div className="text-xs leading-5 text-muted-foreground">
                         <p>{new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date(order.created_at)).replace(',', '')}</p>
                         {order.shipping_code ? <p className="font-medium text-foreground/80">Mã vận đơn: {order.shipping_code}</p> : null}
@@ -6669,6 +6674,9 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                         <h3 className="font-mono text-lg sm:text-2xl font-black text-primary tracking-tight">
                                                             {selectedOrderDetail.order_code || `#${selectedOrderDetail.id.slice(0, 8)}`}
                                                         </h3>
+                                                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${(selectedOrderDetail.order_channel || 'online') === 'pos' ? 'border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-400' : 'border-sky-500/20 bg-sky-500/5 text-sky-600 dark:text-sky-400'}`}>
+                                                            {getOrderChannelLabel(selectedOrderDetail.order_channel)}
+                                                        </span>
                                                         <StatusChip label={getFulfillmentStatusLabel(detailFulfillmentStatus, t)} tone={getFulfillmentTone(detailFulfillmentStatus)} />
                                                         <StatusChip label={getPaymentStatusLabel(detailPaymentStatus, t)} tone={getPaymentTone(detailPaymentStatus)} />
                                                     </div>

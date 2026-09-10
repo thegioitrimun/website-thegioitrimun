@@ -971,8 +971,8 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
                           </div>
                           <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
                             <span>{formatDateTime(order.created_at)}</span>
-                            <span className="rounded-md border border-border/50 bg-card/60 px-1.5 py-0.2 text-[10px] font-semibold text-foreground">
-                              {order.order_channel || 'online'}
+                            <span className={`inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium ${(order.order_channel || 'online') === 'pos' ? 'border-violet-500/25 bg-violet-500/10 text-violet-700 dark:text-violet-400' : 'border-sky-500/20 bg-sky-500/5 text-sky-600 dark:text-sky-400'}`}>
+                              {(order.order_channel || 'online') === 'pos' ? 'POS / Tại quầy' : 'Online'}
                             </span>
                           </div>
                         </div>
