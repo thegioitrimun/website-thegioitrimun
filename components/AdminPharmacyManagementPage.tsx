@@ -3473,7 +3473,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
 
                             return (
                                 <>
-                                    <div className="overflow-visible lg:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+                                    <div className="overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
                                         {/* Slim Smart Selection Bar */}
                                         <div className={`border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md transition-all ${
                                             selectedProductIds.length > 0 ? 'bg-primary/5 border-primary/20' : 'bg-muted/10'
@@ -3842,10 +3842,10 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 );
                                             })}
                                         </AdminMobileList>
-                                    </div>
 
-                                        <div className="hidden overflow-visible rounded-[1.7rem] bg-transparent backdrop-blur-xl border-0 shadow-none lg:block">
-                                                <table className="w-full table-fixed text-left text-sm">
+                                        {/* Desktop Table View */}
+                                        <div className="hidden overflow-x-auto lg:block">
+                                            <table className="w-full table-fixed text-left text-sm">
                                                     <thead className="bg-muted/50 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
                                                         <tr>
                                                             <th className="w-12 px-4 py-3">
@@ -4094,6 +4094,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                     </tbody>
                                                 </table>
                                         </div>
+                                    </div>
 
                                     <Pagination
                                         currentPage={productsCurrentPage}
