@@ -94,39 +94,76 @@ export const AdminApp: React.FC = () => {
 
   // --- Check Auth on mount ---
   useEffect(() => {
-    let isMounted = true;
+    let cancelled = false;
 
     const checkSession = async () => {
       try {
-        const session = await api.getCurrentAuthSession();
+        const timeoutPromise = new Promise<null>((resolve) => {
+          setTimeout(() => resolve(null), 4000);
+        });
+        const session = await Promise.race([api.getCurrentAuthSession(), timeoutPromise]);
+        if (cancelled) return;
+
         if (!session || !session.id) {
-          if (isMounted) setAuthState({ status: 'unauthenticated' });
+          setAuthState({ status: 'unauthenticated' });
           return;
         }
 
-        const userData = await api.getUserData(session.id);
-        if (!userData || !userData.profile) {
-          if (isMounted) setAuthState({ status: 'unauthenticated' });
-          return;
-        }
+        const roles = Array.isArray(session.roles) ? session.roles : [];
+        const role = roles.includes('master_admin')
+          ? 'master_admin'
+          : roles.includes('accountant')
+          ? 'accountant'
+          : roles.includes('admin')
+          ? 'admin'
+          : 'customer';
 
-        const role = userData.profile.role;
         const isAllowed = ['admin', 'master_admin', 'accountant'].includes(role);
 
+        const userData: UserData = {
+          profile: {
+            id: session.id,
+            name: session.name || session.email.split('@')[0],
+            email: session.email,
+            phone: session.phone || '',
+            dob: '',
+            address_street: '',
+            address_ward: '',
+            address_district: '',
+            address_province: '',
+            gender: 'other',
+            citizen_id_number: '',
+            nationality: 'Vietnam',
+            medical_history: '',
+            skin_type: '',
+            allergies: '',
+            avatar_path: session.avatarUrl || '',
+            avatar_url: session.avatarUrl || null,
+            role: role as any,
+          },
+          appointments: [],
+          medical_records: [],
+          documents: [],
+          wishlist: [],
+          product_orders: [],
+        };
+
         if (!isAllowed) {
-          if (isMounted) setAuthState({ status: 'unauthorized', user: userData });
+          setAuthState({ status: 'unauthorized', user: userData });
         } else {
-          if (isMounted) setAuthState({ status: 'authenticated', user: userData });
+          setAuthState({ status: 'authenticated', user: userData });
         }
       } catch (err) {
         console.error('Failed to verify admin auth:', err);
-        if (isMounted) setAuthState({ status: 'unauthenticated' });
+        if (!cancelled) {
+          setAuthState({ status: 'unauthenticated' });
+        }
       }
     };
 
     void checkSession();
     return () => {
-      isMounted = false;
+      cancelled = true;
     };
   }, []);
 
@@ -678,7 +715,7 @@ export const AdminApp: React.FC = () => {
   if (authState.status === 'loading') {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 bg-background text-foreground">
-        <div className="h-10 w-10 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
         <p className="mt-4 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
           Đang khởi tạo TGTM Workspace...
         </p>
