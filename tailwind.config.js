@@ -9,9 +9,12 @@ export default {
         "./App.tsx",
         "./index.tsx"
     ],
-    darkMode: 'class',
+    darkMode: ['variant', '&:where(.dark, .dark *):not(:where([data-admin-theme="light"], [data-admin-theme="light"] *))'],
     theme: {
         extend: {
+            spacing: { '4.5': '1.125rem', '8.5': '2.125rem' },
+            opacity: { 8: '.08', 12: '.12', 15: '.15', 55: '.55', 75: '.75', 85: '.85', 92: '.92', 98: '.98' },
+            boxShadow: { xs: '0 1px 2px rgb(0 0 0 / .05)', '2xs': '0 1px 2px rgb(0 0 0 / .03)' },
             colors: {
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',

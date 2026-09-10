@@ -1,3 +1,4 @@
+import { useAdminNavigationGuard } from '../src/admin/adminNavigationGuard';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Product,
@@ -120,6 +121,7 @@ const ProductEditorForm: React.FC<ProductEditorFormProps> = ({
   const [keyBenefitsText, setKeyBenefitsText] = useState('');
   const [skinTypesText, setSkinTypesText] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  useAdminNavigationGuard(hasUnsavedChanges);
   const [contentReviewRecord, setContentReviewRecord] = useState<ProductContentReviewRecord | null>(null);
   const [contentReviewNotes, setContentReviewNotes] = useState('');
   const [isLoadingContentReview, setIsLoadingContentReview] = useState(false);

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import React from 'react';
 import type { ToastMessage, ToastType } from '../contexts/ToastContext';
 import { CheckCircleIcon, XCircleIcon, InformationCircleIcon, CloseIcon } from './icons';
@@ -61,7 +62,7 @@ interface ToastContainerProps {
 }
 
 const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) => {
-  return (
+  const content = (
     <div
       aria-live="assertive"
       className="fixed inset-0 flex items-start px-4 py-6 pointer-events-none sm:p-6 sm:items-end z-[9999]"
@@ -73,6 +74,8 @@ const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onDismiss }) =>
       </div>
     </div>
   );
+  const portal = typeof document !== 'undefined' && document.querySelector('[data-admin-workspace]') ? document.getElementById('admin-portal-root') : null;
+  return portal ? createPortal(content, portal) : content;
 };
 
 export default ToastContainer;

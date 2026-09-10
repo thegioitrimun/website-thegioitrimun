@@ -243,7 +243,7 @@ export const AdminProductTaxSettings: React.FC<AdminProductTaxSettingsProps> = (
     return (
         <div className="space-y-4">
             {/* Top Toolbar card */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2">
                         <button
@@ -287,7 +287,7 @@ export const AdminProductTaxSettings: React.FC<AdminProductTaxSettingsProps> = (
             {subTab === 'profiles' && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     {/* Form Card */}
-                    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5">
+                    <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-5">
                         <div className="flex items-center justify-between pb-3 border-b border-border/40 mb-4">
                             <h3 className="text-base font-bold text-foreground">
                                 {editingTaxProfileId ? 'Cập nhật hồ sơ thuế' : 'Tạo hồ sơ thuế mới'}
@@ -414,7 +414,7 @@ export const AdminProductTaxSettings: React.FC<AdminProductTaxSettingsProps> = (
             {subTab === 'rates' && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                     {/* Rate Form Card */}
-                    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-5">
+                    <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-5">
                         <div className="flex items-center justify-between pb-3 border-b border-border/40 mb-4">
                             <h3 className="text-base font-bold text-foreground">
                                 {editingTaxRateId ? 'Cập nhật mức ghi đè' : 'Thêm mức ghi đè địa bàn'}

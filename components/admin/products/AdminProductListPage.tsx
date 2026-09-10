@@ -1,3 +1,4 @@
+import { AdminDesktopOnly } from '../AdminResponsive';
 import React, { useState } from 'react';
 import type { Product, ProductCategory, ProductBrand, ProductImage } from '../../../types';
 import Spinner from '../../Spinner';
@@ -22,8 +23,8 @@ const PRODUCT_INVENTORY_FILTER_TABS: Array<{ key: string; label: string }> = [
     { key: 'out_of_stock', label: 'Hết hàng' },
     { key: 'featured', label: 'Nổi bật' },
     { key: 'hidden', label: 'Đang ẩn' },
-    { key: 'expiring_soon', label: 'Cận hạn' },
-    { key: 'missing_sku', label: 'Thiếu SKU' },
+    { key: 'near_expiry', label: 'Cận hạn' },
+    { key: 'no_sku', label: 'Thiếu SKU' },
 ];
 
 const formatCurrency = (amount: number) =>
@@ -659,7 +660,7 @@ export const AdminProductListPage: React.FC<AdminProductListPageProps> = ({
             </AdminFilterPanel>
 
             {/* 3. AdminDataTable (Desktop >= 1024px) */}
-            <div className="hidden lg:block">
+            <AdminDesktopOnly className="hidden lg:block">
                 <AdminDataTable
                     columns={columns}
                     data={currentProducts}
@@ -672,7 +673,7 @@ export const AdminProductListPage: React.FC<AdminProductListPageProps> = ({
                     emptyMessage="Không có sản phẩm nào khớp bộ lọc hiện tại."
                     onRowClick={(p) => handleEditProduct(p)}
                 />
-            </div>
+            </AdminDesktopOnly>
 
             {/* 4. AdminMobileList (Mobile < 1024px) */}
             <div className="block lg:hidden">

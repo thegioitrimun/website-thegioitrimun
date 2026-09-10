@@ -1,4 +1,8 @@
-export const allowE2EMutation = process.env.E2E_ALLOW_MUTATION === '1';
+const target = new URL(process.env.PLAYWRIGHT_BASE_URL || 'https://thegioitrimun.vn');
+const productionHosts = new Set(['thegioitrimun.vn', 'www.thegioitrimun.vn']);
+export const allowE2EMutation = process.env.E2E_ALLOW_MUTATION === '1'
+  && Boolean(process.env.PLAYWRIGHT_BASE_URL)
+  && !productionHosts.has(target.hostname.toLowerCase());
 
 export function createE2ELabel(prefix: string) {
   const timestamp = Date.now();

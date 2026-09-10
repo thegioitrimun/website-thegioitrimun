@@ -135,13 +135,13 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h1 className="text-lg lg:text-xl font-black text-foreground tracking-tight truncate max-w-[280px] lg:max-w-[420px] 2xl:max-w-none">
+                <h2 className="text-lg lg:text-xl font-black text-foreground tracking-tight truncate max-w-[280px] lg:max-w-[420px] 2xl:max-w-none">
                   {productName || title}
-                </h1>
+                </h2>
 
                 {formattedDraftTime ? (
                   <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300 shrink-0">
-                    Autosave {formattedDraftTime}
+                    Bản nháp {formattedDraftTime}
                   </span>
                 ) : null}
               </div>
@@ -323,9 +323,9 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
             ) : null}
 
             <div className="min-w-0 flex-1">
-              <h1 className="text-sm font-bold text-foreground truncate">
+              <h2 className="text-sm font-bold text-foreground truncate">
                 {productName || title}
-              </h1>
+              </h2>
               {positionLabel ? (
                 <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                   {positionLabel}

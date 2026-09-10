@@ -1,3 +1,4 @@
+import { AdminDesktopOnly } from '../AdminResponsive';
 import React, { useState } from 'react';
 import type { ProductCategory } from '../../../types';
 import {
@@ -172,7 +173,7 @@ export const AdminProductCategoryList: React.FC<AdminProductCategoryListProps> =
     return (
         <div className="space-y-4">
             {isFormOpen ? (
-                <div className="w-full rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+                <div className="admin-surface w-full rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6">
                     <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
                         <div className="flex items-center gap-2.5 sm:gap-3">
                             <button
@@ -380,7 +381,7 @@ export const AdminProductCategoryList: React.FC<AdminProductCategoryListProps> =
                     />
 
                     {/* Desktop Table View */}
-                    <div className="hidden lg:block">
+                    <AdminDesktopOnly className="hidden lg:block">
                         <AdminDataTable
                             columns={columns}
                             data={paginatedCategories}
@@ -388,7 +389,7 @@ export const AdminProductCategoryList: React.FC<AdminProductCategoryListProps> =
                             emptyMessage="Không tìm thấy chuyên mục nào phù hợp."
                             onRowClick={(c) => handleStartEditCategory(c)}
                         />
-                    </div>
+                    </AdminDesktopOnly>
 
                     {/* Mobile List View */}
                     <div className="block lg:hidden">

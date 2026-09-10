@@ -1,3 +1,4 @@
+import { AdminDesktopOnly } from '../AdminResponsive';
 import React, { useState } from 'react';
 import type { ProductBrand } from '../../../types';
 import Spinner from '../../Spinner';
@@ -181,7 +182,7 @@ export const AdminProductBrandList: React.FC<AdminProductBrandListProps> = ({
     return (
         <div className="space-y-4">
             {isFormOpen ? (
-                <div className="w-full rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+                <div className="admin-surface w-full rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6">
                     <div className="flex items-center justify-between pb-4 border-b border-border/40 mb-5">
                         <div className="flex items-center gap-2.5 sm:gap-3">
                             <button
@@ -217,7 +218,7 @@ export const AdminProductBrandList: React.FC<AdminProductBrandListProps> = ({
 
                     {/* Logo Preview area */}
                     <div className="flex min-h-[180px] flex-col items-center justify-center rounded-[1.45rem] border border-dashed p-4 sm:p-6 text-center border-primary/25 bg-gradient-to-br from-primary/[0.07] via-card/70 to-sky-100/50 dark:to-slate-900/50 mb-5">
-                        <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-[1.25rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 overflow-hidden flex items-center justify-center p-3">
+                        <div className="admin-surface w-28 h-28 sm:w-32 sm:h-32 rounded-[1.25rem] border overflow-hidden flex items-center justify-center p-3">
                             {editingBrandId ? (
                                 editBrandPreviewUrl ? (
                                     <img src={editBrandPreviewUrl} alt="Preview logo thương hiệu" className="w-full h-full object-contain" />
@@ -374,7 +375,7 @@ export const AdminProductBrandList: React.FC<AdminProductBrandListProps> = ({
                     />
 
                     {/* Desktop Table */}
-                    <div className="hidden lg:block">
+                    <AdminDesktopOnly className="hidden lg:block">
                         <AdminDataTable
                             columns={columns}
                             data={paginatedBrands}
@@ -382,7 +383,7 @@ export const AdminProductBrandList: React.FC<AdminProductBrandListProps> = ({
                             emptyMessage="Không tìm thấy thương hiệu nào phù hợp."
                             onRowClick={(b) => handleStartEditBrand(b)}
                         />
-                    </div>
+                    </AdminDesktopOnly>
 
                     {/* Mobile List */}
                     <div className="block lg:hidden">

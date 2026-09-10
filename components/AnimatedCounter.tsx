@@ -1,3 +1,4 @@
+import { useIsAdminWorkspace } from './AdminLayoutContext';
 import React, { useEffect, useRef, useState } from 'react';
 
 interface AnimatedCounterProps {
@@ -7,7 +8,7 @@ interface AnimatedCounterProps {
   className?: string;
 }
 
-export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
+const PublicAnimatedCounter: React.FC<AnimatedCounterProps> = ({
   value,
   formatter = (val) => val.toLocaleString('vi-VN'),
   duration = 500,
@@ -67,4 +68,8 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
   );
 };
 
+export const AnimatedCounter: React.FC<AnimatedCounterProps> = props => {
+  const isAdmin = useIsAdminWorkspace();
+  return isAdmin ? <span className={`tabular-nums ${props.className || ''}`}>{props.formatter ? props.formatter(props.value) : props.value.toLocaleString('vi-VN')}</span> : <PublicAnimatedCounter {...props} />;
+};
 export default AnimatedCounter;

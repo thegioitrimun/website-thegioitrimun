@@ -3,7 +3,7 @@ import { SearchIcon, CloseIcon } from './icons';
 
 export interface GlassSearchInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'onChange'> {
   value: string;
-  onChange?: ((value: string, event?: React.ChangeEvent<HTMLInputElement>) => void) | React.ChangeEventHandler<HTMLInputElement>;
+  onValueChange?: (value: string) => void;
   onClear?: () => void;
   size?: 'md' | 'sm';
   leftIcon?: React.ReactNode;
@@ -71,7 +71,7 @@ GlassFilterButton.displayName = 'GlassFilterButton';
  */
 export const GlassSearchInput = forwardRef<HTMLInputElement, GlassSearchInputProps>(({
   value,
-  onChange,
+  onValueChange,
   onClear,
   size = 'md',
   leftIcon,
@@ -95,26 +95,12 @@ export const GlassSearchInput = forwardRef<HTMLInputElement, GlassSearchInputPro
   const heightClass = isSm ? 'h-9 rounded-xl px-2.5 gap-1.5' : 'h-10 sm:h-11 rounded-2xl px-3 gap-1.5';
   const textClass = isSm ? 'text-xs' : 'text-xs sm:text-sm';
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!onChange) return;
-    try {
-      (onChange as any)(e.target.value, e);
-    } catch {
-      (onChange as any)(e);
-    }
-  };
-
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => onValueChange?.(e.target.value);
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onClear) {
-      onClear();
-    } else if (onChange) {
-      try {
-        (onChange as any)('');
-      } catch {
-        // Fallback for synthetics
-      }
-    }
+    if (onClear) onClear();
+    else onValueChange?.('');
+    e.currentTarget.parentElement?.querySelector('input')?.focus();
   };
 
   return (
@@ -134,6 +120,7 @@ export const GlassSearchInput = forwardRef<HTMLInputElement, GlassSearchInputPro
         type="text"
         value={value}
         onChange={handleChange}
+        aria-label={props['aria-label'] || placeholder}
         placeholder={placeholder}
         disabled={disabled}
         className={`flex-1 min-w-0 bg-transparent ${textClass} text-foreground placeholder:text-muted-foreground/70 outline-none border-0 p-0 focus:ring-0 ${inputClassName}`}

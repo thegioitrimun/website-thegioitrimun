@@ -247,7 +247,7 @@ const TrendBoard: React.FC<{
   const avgOrders = points.length > 0 ? points.reduce((sum, point) => sum + point.totalOrders, 0) / points.length : 0;
 
   return (
-    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+    <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
       <div className="mb-5 flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Executive trend</p>
@@ -352,7 +352,7 @@ const RankedBarChart: React.FC<{
   }[accent];
 
   return (
-    <section className="group/card rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25">
+    <section className="admin-surface group/card rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:hover:border-white/25">
       <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">{eyebrow}</p>
       <h2 className="mt-2 text-xl font-bold text-foreground md:text-2xl">{title}</h2>
       {rows.length === 0 ? (
@@ -402,7 +402,7 @@ const RevenueComparisonChart: React.FC<{
   const totalRevenue = productRevenue + serviceRevenue;
 
   return (
-    <section className="group/card rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25">
+    <section className="admin-surface group/card rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-7 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:hover:border-white/25">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Doanh số</p>
@@ -459,7 +459,7 @@ const WeeklyRevenueTrendChart: React.FC<{ points: TrendBucket[] }> = ({ points }
   }, [points, values]);
 
   return (
-    <section className="group/card relative rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-7 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25">
+    <section className="admin-surface group/card relative rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-7 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:hover:border-white/25">
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-primary">Nhịp bán hàng</p>
@@ -591,7 +591,7 @@ const OperationsDigest: React.FC<{
   ];
 
   return (
-    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+    <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Operations digest</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Điều hành ngắn gọn</h2>
       <div className="mt-5 space-y-3">
@@ -618,7 +618,7 @@ const AlertFeed: React.FC<{
   alerts: AdminDashboardAlert[];
   onTakeAction: (alert: AdminDashboardAlert) => void;
 }> = ({ alerts, onTakeAction }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+  <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
     <div className="mb-4 flex items-center justify-between gap-4">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Alerts</p>
@@ -664,7 +664,7 @@ const MiniLeaderboard: React.FC<{
   kicker: string;
   rows: Array<{ label: string; value: string; meta?: string }>;
 }> = ({ title, kicker, rows }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+  <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
     <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">{kicker}</p>
     <h2 className="mt-2 text-2xl font-bold text-foreground">{title}</h2>
     <div className="mt-5 space-y-3">
@@ -704,7 +704,7 @@ const QuickActionGrid: React.FC<{
   }>;
   onNavigate: (page: AdminNavigationView) => void;
 }> = ({ adminLinks, onNavigate }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+  <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
     <div className="mb-5">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Workspace map</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Khu vực quản trị</h2>
@@ -757,7 +757,7 @@ const PriorityActionsCard: React.FC<{
   onOpenAppointments,
   onOpenAlerts,
 }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+  <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
     <div className="mb-5">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Priority actions</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Tác vụ ưu tiên</h2>
@@ -830,7 +830,7 @@ const TodayWorkBoard: React.FC<{
     sla?: string;
   }>;
 }> = ({ items }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+  <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
     <div className="mb-5">
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Today queue</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Việc cần xử lý hôm nay</h2>
@@ -871,7 +871,7 @@ const OperationsInbox: React.FC<{
     onClick: () => void;
   }>;
 }> = ({ items }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+  <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Operations inbox</p>
       <h2 className="mt-2 text-2xl font-bold text-foreground">Việc mở theo mức ưu tiên</h2>
@@ -926,7 +926,7 @@ const RuntimeHealthCard: React.FC<{
   const latestEntry = logs[0] || null;
 
   return (
-    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+    <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">Runtime health</p>
@@ -1018,7 +1018,7 @@ const SystemOperationsCard: React.FC<{
     { label: 'Lịch báo cáo', value: data?.reportSchedules.length ?? 0, tone: 'text-emerald-700' },
   ];
   return (
-    <div className="group/card rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:border-white/10 dark:hover:border-white/25 xl:col-span-2">
+    <div className="admin-surface group/card rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6 transition-all duration-300 ease-out hover:-translate-y-0.5 hover:border-white/95 hover:shadow-[0_36px_85px_-36px_rgba(24,35,32,0.65)] dark:hover:border-white/25 xl:col-span-2">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">System operations</p>
@@ -1099,19 +1099,6 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
   const [systemOperationsError, setSystemOperationsError] = useState<string | null>(null);
   const [appointmentSeed, setAppointmentSeed] = useState<AppointmentPanelSeed | null>(null);
   const [appointmentSeedKey, setAppointmentSeedKey] = useState(0);
-  const [isOverviewMounted, setIsOverviewMounted] = useState(false);
-
-  useEffect(() => {
-    if (activePanel === 'overview') {
-      const timer = setTimeout(() => {
-        setIsOverviewMounted(true);
-      }, 30);
-      return () => clearTimeout(timer);
-    } else {
-      setIsOverviewMounted(false);
-    }
-  }, [activePanel]);
-
   const panelButtons = useMemo(
     () => [
       { key: 'overview' as const, label: 'Tổng quan', icon: <CogIcon className="h-4 w-4" /> },
@@ -1559,10 +1546,7 @@ const AdminDashboardPage: React.FC<AdminDashboardPageProps> = ({
       }));
   }, [preset, productOrders]);
 
-  const cardTransitionClass = (delayMs: number) =>
-    `transform-gpu transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:transition-none ${
-      isOverviewMounted ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-4 opacity-0 scale-[0.99]'
-    }`;
+  const cardTransitionClass = (_delayMs: number) => '';
 
   const renderOverview = () => (
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">

@@ -1,7 +1,9 @@
+import { confirmAdminNavigation } from './src/admin/adminNavigationGuard';
+import { adminDataProvider } from './src/admin/AdminDataProvider';
 
 
 
-import React, { Suspense, lazy, useState, useEffect, useCallback, useRef } from 'react';
+import React, { Suspense, lazy, useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './components/LanguageSwitcher';
@@ -19,8 +21,8 @@ import SettingsDropdown from './components/ThemeSwitcher';
 import UserAvatar from './components/UserAvatar';
 import MiniCart from './components/MiniCart';
 import { AdminLayoutProvider } from './components/AdminLayoutContext';
-import AdminWorkspaceLayout from './components/AdminWorkspaceLayout';
-import AdminPancakeManagementPage from './components/AdminPancakeManagementPage';
+const AdminWorkspaceLayout = lazy(() => import('./components/AdminWorkspaceLayout')); 
+import { AdminAsyncState } from './components/admin/AdminAsyncState';
 import HomePageContent from './components/HomePageContent';
 import FloatingContactButtons from './components/FloatingContactButtons';
 import AccessibleSocialLink from './components/AccessibleSocialLink';
@@ -72,7 +74,7 @@ import {
     loadAdminSiteManagementPage,
     loadAdminUserManagementPage,
     loadAdminVatManagementPage,
-    preloadAdminWorkspace,
+    loadAdminPancakeManagementPage,
 } from './src/adminPageLoaders';
 
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
@@ -104,6 +106,7 @@ const AdminServiceManagementPage = lazy(loadAdminServiceManagementPage);
 const AdminImageLibraryPage = lazy(loadAdminImageLibraryPage);
 const AdminProductImageImporterPage = lazy(loadAdminProductImageImporterPage);
 const AdminPharmacyManagementPage = lazy(loadAdminPharmacyManagementPage);
+const AdminPancakeManagementPage = lazy(loadAdminPancakeManagementPage);
 const AdminVatManagementPage = lazy(loadAdminVatManagementPage);
 const AccountPage = lazy(() => import('./components/AccountPage'));
 const OrderHistoryPage = lazy(() => import('./components/OrderHistoryPage'));
@@ -195,11 +198,14 @@ const App: React.FC = () => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [view, setViewRaw] = useState<View>(getInitialView);
 
+    const historyIndex = useRef<number>(window.history.state?.adminHistoryIndex || 0);
+    const restoringHistory = useRef(false);
     const setView = useCallback((nextViewAction: React.SetStateAction<View>) => {
+        if (!confirmAdminNavigation()) return;
         const update = () => {
             setViewRaw(nextViewAction);
         };
-        if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+        if (typeof document !== 'undefined' && !window.location.pathname.startsWith('/admin') && 'startViewTransition' in document) {
             (document as any).startViewTransition(() => {
                 flushSync(() => {
                     update();
@@ -210,6 +216,7 @@ const App: React.FC = () => {
         }
     }, []);
     const [currentUser, setCurrentUser] = useState<UserData | null>(null);
+    useLayoutEffect(() => { adminDataProvider.setScope(currentUser?.profile.id || null); }, [currentUser?.profile.id]);
     const [openFaqId, setOpenFaqId] = useState<number | null>(null);
     const [summarizingDocId, setSummarizingDocId] = useState<string | null>(null);
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -220,16 +227,6 @@ const App: React.FC = () => {
     const headerScrollDelta = useRef(0);
     const headerScrollFrame = useRef<number | null>(null);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-    useEffect(() => {
-        const role = currentUser?.profile.role;
-        if (!['admin', 'master_admin', 'accountant'].includes(String(role))) return;
-        const timerId = window.setTimeout(() => {
-            if (role === 'accountant') void loadAdminVatManagementPage();
-            else preloadAdminWorkspace();
-        }, 50);
-        return () => window.clearTimeout(timerId);
-    }, [currentUser?.profile.role]);
 
     // Data from Supabase
     const [services, setServices] = useState<Service[]>([]);
@@ -306,7 +303,7 @@ const App: React.FC = () => {
                     ...(options?.focusReview ? { focusReview: true } : {}),
                 });
             };
-            if (typeof document !== 'undefined' && 'startViewTransition' in document) {
+            if (typeof document !== 'undefined' && !window.location.pathname.startsWith('/admin') && 'startViewTransition' in document) {
                 const transition = (document as any).startViewTransition(() => {
                     flushSync(() => {
                         updateView();
@@ -514,13 +511,17 @@ const App: React.FC = () => {
 
         if (currentPathWithSearch !== targetPathWithSearch) {
             const nextUrl = `${targetPath}${targetSearch}`;
-            if (window.location.pathname !== targetPath) {
-                window.history.pushState({ view }, '', nextUrl);
+            if (window.location.pathname !== targetPath || targetPath.startsWith('/admin')) {
+                historyIndex.current += 1;
+                window.history.pushState({ view, adminHistoryIndex: historyIndex.current }, '', nextUrl);
             } else {
-                window.history.replaceState({ view }, '', nextUrl);
+                window.history.replaceState({ view, adminHistoryIndex: historyIndex.current }, '', nextUrl);
             }
         }
 
+        if (window.history.state?.adminHistoryIndex === undefined) {
+            window.history.replaceState({ ...window.history.state, view, adminHistoryIndex: historyIndex.current }, '');
+        }
         const localizedSeoBase = {
             vi: {
                 siteName: 'Thế Giới Trị Mụn',
@@ -942,12 +943,22 @@ const App: React.FC = () => {
     // Handle browser Back/Forward buttons
     useEffect(() => {
         const handlePopState = () => {
+            if (restoringHistory.current) { restoringHistory.current = false; return; }
+            const nextIndex = window.history.state?.adminHistoryIndex;
+            if (!confirmAdminNavigation()) {
+                if (typeof nextIndex === 'number' && nextIndex !== historyIndex.current) {
+                    restoringHistory.current = true;
+                    window.history.go(historyIndex.current - nextIndex);
+                }
+                return;
+            }
+            if (typeof nextIndex === 'number') historyIndex.current = nextIndex;
             const newView = pathToView(window.location.pathname, window.location.search);
             const langParam = new URLSearchParams(window.location.search).get('lang');
             if (langParam && ['vi', 'en', 'ru', 'cn'].includes(langParam) && i18n.language !== langParam) {
                 i18n.changeLanguage(langParam);
             }
-            setView(newView);
+            setViewRaw(newView);
         };
         window.addEventListener('popstate', handlePopState);
         return () => window.removeEventListener('popstate', handlePopState);
@@ -1349,6 +1360,7 @@ const App: React.FC = () => {
     const handleLogout = async () => {
         try {
             await api.logout();
+            adminDataProvider.setScope(null);
             setCurrentUser(null);
             setAllPatients([]);
             setDoctorDetails([]);
@@ -1641,7 +1653,7 @@ const App: React.FC = () => {
                     setView({ page: 'main' }); return null;
                 case 'adminVatManagement':
                     if (isVatStaff) {
-                        return <AdminVatManagementPage currentRole={currentUser.profile.role} />;
+                        return <AdminVatManagementPage currentRole={currentUser.profile.role} initialSection={view.section} onNavigate={setView} />;
                     }
                     setView({ page: 'main' }); return null;
                 case 'adminSiteManagement':
@@ -1716,13 +1728,12 @@ const App: React.FC = () => {
         return (
             <AdminLayoutProvider>
                 <AdminWorkspaceLayout
-                    currentView={view as any}
-                    currentPage={view.page as any}
+                    currentView={view}
                     currentRole={currentUser.profile.role}
                     onNavigate={setView}
                     onBack={() => setView(currentUser.profile.role === 'accountant' ? { page: 'account' } : { page: 'adminDashboard' })}
                 >
-                    {adminContent}
+                    <Suspense fallback={<AdminAsyncState status="loading" />}>{adminContent}</Suspense>
                 </AdminWorkspaceLayout>
             </AdminLayoutProvider>
         );

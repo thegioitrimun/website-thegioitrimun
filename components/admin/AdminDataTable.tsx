@@ -96,7 +96,7 @@ export function AdminDataTable<T, K extends string | number = string | number>({
   return (
     <AdminSurface
       variant="table"
-      className={`overflow-hidden transition-all ${className}`}
+      className={`overflow-hidden ${className}`}
     >
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm border-collapse">
@@ -127,10 +127,11 @@ export function AdminDataTable<T, K extends string | number = string | number>({
                 return (
                   <th
                     key={col.key || col.id || String(colIndex)}
+                    aria-sort={col.sortable ? (col.sortDirection === 'asc' ? 'ascending' : col.sortDirection === 'desc' ? 'descending' : 'none') : undefined}
                     style={col.width ? { width: col.width } : undefined}
                     className={`px-3.5 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground ${alignClass} ${col.headerClassName || ''}`}
                   >
-                    {col.title !== undefined ? col.title : col.label}
+                    {col.sortable && col.onSort ? <button type="button" onClick={col.onSort} className="inline-flex items-center gap-1 text-inherit">{col.title ?? col.label}<span aria-hidden="true">{col.sortDirection === 'asc' ? '↑' : col.sortDirection === 'desc' ? '↓' : '↕'}</span></button> : (col.title ?? col.label)}
                   </th>
                 );
               })}
@@ -139,7 +140,7 @@ export function AdminDataTable<T, K extends string | number = string | number>({
 
           {/* Nội dung Bảng */}
           <tbody className="divide-y divide-border/40 font-medium">
-            {isLoading ? (
+            {isLoading && data.length === 0 ? (
               // Skeleton loading states (Zero layout shift)
               Array.from({ length: skeletonRowCount }).map((_, rIdx) => (
                 <tr key={`skeleton-${rIdx}`} className="animate-pulse">
@@ -190,7 +191,7 @@ export function AdminDataTable<T, K extends string | number = string | number>({
               // Real data rows
               data.map((item, idx) => {
                 const key = rowKey(item, idx);
-                const isSelected = selectedKeys?.includes(key);
+                const isSelected = Boolean(selectedKeys?.includes(key));
 
                 return (
                   <tr

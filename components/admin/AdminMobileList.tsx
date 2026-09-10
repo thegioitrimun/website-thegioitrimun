@@ -1,3 +1,4 @@
+import { useMediaQuery } from '../../hooks/useMediaQuery';
 import React from 'react';
 import AdminSurface from './AdminSurface';
 
@@ -64,6 +65,8 @@ export function AdminMobileList<T = any, K extends string | number = string | nu
   children,
   className = '',
 }: AdminMobileListProps<T, K>) {
+  const mobile = useMediaQuery('(max-width:1023px)');
+  if (!mobile) return null;
   if (children) {
     return <div className={`space-y-3 ${className}`}>{children}</div>;
   }

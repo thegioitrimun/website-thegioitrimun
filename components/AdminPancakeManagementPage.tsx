@@ -178,7 +178,7 @@ const DeplaoAutomationPanel: React.FC = () => {
   return (
     <div className="space-y-3 sm:space-y-4">
       {/* 1. Glass Header Card */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
             <span className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ${
@@ -225,7 +225,7 @@ const DeplaoAutomationPanel: React.FC = () => {
       ) : null}
 
       {/* 2. Main Content Card */}
-      <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3.5 sm:p-5 md:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-3.5 sm:p-5 md:p-6 mx-1 sm:mx-0">
         <div>
           <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">ĐƠN HÀNG → TELEGRAM → ZALO</p>
           <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Deplao Order Automation</h2>
@@ -390,9 +390,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
   useEffect(() => {
-    if (initialSection) {
-      setActiveTab(initialSection);
-    }
+    setActiveTab(initialSection || 'connection');
   }, [initialSection]);
 
   const handleTabChange = (tab: PancakeTab) => {
@@ -684,17 +682,13 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
           </div>
         }
       />
-      <AdminSectionTabs
-        tabs={pancakeSectionTabs}
-        activeKey={activeTab}
-        onChange={(tab) => handleTabChange(tab as PancakeTab)}
-      />
+
 
       {/* ===================== TAB 1: KẾT NỐI & KÊNH POS ===================== */}
       {activeTab === 'connection' && (
         <div className="space-y-3 sm:space-y-4">
           {/* Glass Toolbar Card */}
-          <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
                 <span className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ${
@@ -732,7 +726,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
           </div>
 
           {/* Glass Content Card */}
-          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0">
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">TRẠNG THÁI KẾT NỐI & HẠ TẦNG</p>
               <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Kênh đồng bộ Pancake POS</h2>
@@ -782,7 +776,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
       {activeTab === 'sync_streams' && (
         <div className="space-y-3 sm:space-y-4">
           {/* Glass Toolbar Card */}
-          <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
                 <span className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold ${
@@ -821,7 +815,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
           </div>
 
           {/* Glass Content Card */}
-          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0">
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">LUỒNG ĐẨY DỮ LIỆU (WEBSITE D1 → PANCAKE POS)</p>
               <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Cấu hình luồng thực thể</h2>
@@ -893,7 +887,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
       {activeTab === 'queue_webhook' && (
         <div className="space-y-3 sm:space-y-4">
           {/* Glass Toolbar Card */}
-          <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
             <div className="flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
                 <span className="inline-flex items-center gap-1.5 rounded-xl border border-border/60 bg-background/40 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-md">
@@ -932,7 +926,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
           </div>
 
           {/* Webhook & Reverse Sync */}
-          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 flex flex-col justify-between">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0 flex flex-col justify-between">
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">WEBHOOK & REVERSE SYNC</p>
               <h2 className="mt-1 text-base sm:text-lg font-bold text-foreground">Pancake POS → Website D1</h2>
@@ -999,7 +993,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
       {activeTab === 'manual_sync' && (
         <div className="space-y-3 sm:space-y-4">
           {/* Glass Toolbar Card */}
-          <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
             <div className="flex items-center justify-between gap-3">
               <span className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary">
                 <span>Quét & Backfill dữ liệu thủ công</span>
@@ -1009,7 +1003,7 @@ const AdminPancakeManagementPage: React.FC<AdminPancakeManagementPageProps> = ({
           </div>
 
           {/* Glass Content Card */}
-          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0">
             <div>
               <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">TÁC VỤ THỦ CÔNG</p>
               <h2 className="mt-1 text-lg sm:text-xl font-bold text-foreground">Bảo trì & Đẩy lại dữ liệu D1</h2>

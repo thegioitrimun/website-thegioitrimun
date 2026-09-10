@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef, lazy } from 'react';
+import { AdminDesktopOnly } from './admin/AdminResponsive';
+import React, { useState, useEffect, useMemo, useDeferredValue, useRef, lazy } from 'react';
 import { createPortal } from 'react-dom';
 import { printProductOrder, getOrderChannelLabel } from '../src/orderReceipt';
 import type {
@@ -745,6 +746,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
     const [isLoadingProductContentReviews, setIsLoadingProductContentReviews] = useState(false);
     const [ordersCurrentPage, setOrdersCurrentPage] = useState(1);
     const [orderSearchQuery, setOrderSearchQuery] = useState('');
+    const deferredOrderSearchQuery = useDeferredValue(orderSearchQuery);
     const [orderOpsPreset, setOrderOpsPreset] = useState<AdminPharmacyOrderPreset>(initialOrderPreset || 'all');
     const [orderStatusFilter, setOrderStatusFilter] = useState<OrderStatusFilter>('all');
     const [orderPaymentFilter, setOrderPaymentFilter] = useState<OrderPaymentFilter>('all');
@@ -1240,8 +1242,8 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
             });
         }
 
-        if (orderSearchQuery.trim()) {
-            const query = orderSearchQuery.trim().toLowerCase();
+        if (deferredOrderSearchQuery.trim()) {
+            const query = deferredOrderSearchQuery.trim().toLowerCase();
             result = result.filter(order =>
                 (order.order_code || '').toLowerCase().includes(query) ||
                 (order.customer_name || '').toLowerCase().includes(query) ||
@@ -1285,7 +1287,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
         }
 
         return result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-    }, [productOrders, orderOpsPreset, orderSearchQuery, orderStatusFilter, orderPaymentFilter, orderShippingFilter, orderDateFrom, orderDateTo]);
+    }, [productOrders, orderOpsPreset, deferredOrderSearchQuery, orderStatusFilter, orderPaymentFilter, orderShippingFilter, orderDateFrom, orderDateTo]);
 
     const orderWorkspaceQueues = useMemo(() => {
         const priorityQueue = productOrders
@@ -2467,6 +2469,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
 
     useEffect(() => {
         setProductsCurrentPage(1);
+        setSelectedProductIds([]);
     }, [inventoryFilter, searchQuery, selectedCategoryId, selectedBrand]);
 
     useEffect(() => {
@@ -2487,7 +2490,8 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
 
     useEffect(() => {
         setOrdersCurrentPage(1);
-    }, [orderSearchQuery, orderStatusFilter, orderPaymentFilter, orderShippingFilter, orderDateFrom, orderDateTo]);
+        setSelectedOrderIds([]);
+    }, [orderSearchQuery, orderOpsPreset, orderStatusFilter, orderPaymentFilter, orderShippingFilter, orderDateFrom, orderDateTo]);
 
     useEffect(() => {
         setSelectedOrderIds(prev => prev.filter(id => productOrders.some(order => order.id === id)));
@@ -3607,7 +3611,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                     return (
                         <div className="space-y-3 sm:space-y-5 bg-transparent border-0 shadow-none p-0 sm:p-2 md:p-5 -mx-3 sm:mx-0">
                             {/* Header & Filter Card */}
-                            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+                            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
                                 {/* Preset pills row */}
                                 <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                                     {ORDER_PRESET_TABS.map((preset) => {
@@ -3787,7 +3791,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                 </div>
                             </div>
 
-                            <div className="overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+                            <div className="admin-surface overflow-hidden rounded-2xl sm:rounded-[1.7rem] border mx-1 sm:mx-0">
                                 {/* Slim Smart Selection Bar */}
                                 <div className="border-b border-border/50 px-3 py-2.5 sm:px-5 sm:py-3 bg-muted/10 backdrop-blur-md">
                                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -4137,7 +4141,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                     })}
                                 </AdminMobileList>
 
-<div className="hidden overflow-x-auto lg:block">
+<AdminDesktopOnly className="hidden overflow-x-auto lg:block">
                                     <table className="w-full min-w-[1100px] text-sm text-left">
                                         <thead className="bg-muted/40 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                                             <tr>
@@ -4179,7 +4183,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             ))}
                                         </tbody>
                                     </table>
-                                </div>
+                                </AdminDesktopOnly>
                             </div>
 
                             <Pagination
@@ -4288,7 +4292,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                             return (
                                 <>
                                     {/* 1. Glass Header Banner */}
-                                    <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+                                    <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-3.5 sm:p-5 mx-1 sm:mx-0">
                                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                                             {/* Left: Navigation back button + Order Code + Metadata */}
                                             <div className="flex items-start gap-2.5 sm:gap-3">
@@ -4597,16 +4601,12 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-background/40 p-2.5">
                                                     <span className="text-xs font-semibold text-muted-foreground">Đổi trạng thái:</span>
                                                     <select
-                                                        value={selectedOrderDetail.status}
+                                                        value={detailFulfillmentStatus}
                                                         onChange={(e) => void handleUpdateOrderStatus(selectedOrderDetail.id, e.target.value as OrderFulfillmentStatus)}
                                                         disabled={isUpdatingOrderStatus}
                                                         className="h-8 rounded-lg border border-border/70 bg-card px-2 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                                                     >
-                                                        <option value="pending">{t('admin.order_status_pending')}</option>
-                                                        <option value="processing">{t('admin.order_status_processing')}</option>
-                                                        <option value="shipped">{t('admin.order_status_shipped')}</option>
-                                                        <option value="completed">{t('admin.order_status_completed')}</option>
-                                                        <option value="cancelled">{t('admin.order_status_cancelled')}</option>
+                                                        {getAllowedTransitionTargets(detailFulfillmentStatus).map(status => <option key={status} value={status}>{t(`admin.order_status_${status}`)}</option>)}
                                                     </select>
                                                     {isUpdatingOrderStatus && <Spinner className="w-3.5 h-3.5 text-primary" />}
                                                 </div>

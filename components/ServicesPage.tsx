@@ -332,7 +332,7 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
           {/* Search Row with Filter Button & View Mode Switcher Inside */}
           <GlassSearchInput
             value={query}
-            onChange={setQuery}
+            onValueChange={setQuery}
             placeholder={labels.searchPlaceholder}
             className="mt-0 sm:mt-3"
           >

@@ -113,7 +113,7 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
   return (
     <div className="space-y-4 -mx-3 sm:mx-0">
       {/* Unified Filter & Action Card (Apple Glass Standard) */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
         {/* Row 1: Preset Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <button
@@ -131,7 +131,7 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
         <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
           <GlassSearchInput
             value={searchQuery}
-            onChange={setSearchQuery}
+            onValueChange={setSearchQuery}
             placeholder="Tìm theo tên dịch vụ, mô tả, slug..."
             className="flex-1 min-w-0"
           />
@@ -149,7 +149,7 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 overflow-hidden">
+      <div className="admin-surface hidden md:block rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-5 mx-1 sm:mx-0 overflow-hidden">
         {filteredServices.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground">
             Không tìm thấy dịch vụ nào phù hợp.

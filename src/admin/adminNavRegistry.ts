@@ -51,11 +51,11 @@ export const ADMIN_NAV_REGISTRY: AdminNavModule[] = [
     isActive: (view) => view.page === 'adminDashboard',
     getPageTitle: (view) => {
       if (view.page === 'adminDashboard') {
-        const sec = (view as any).section;
-        if (sec === 'customers') return 'Quản lý Khách hàng';
-        if (sec === 'appointments') return 'Quản lý Lịch hẹn';
-        if (sec === 'reports') return 'Báo cáo Hoạt động';
-        return 'Tổng quan Dashboard';
+        const sec = view.section;
+        if (sec === 'customers') return 'Khách hàng';
+        if (sec === 'appointments') return 'Lịch hẹn';
+        if (sec === 'reports') return 'Báo cáo';
+        return 'Tổng quan';
       }
       return 'Tổng quan';
     },
@@ -82,14 +82,14 @@ export const ADMIN_NAV_REGISTRY: AdminNavModule[] = [
       },
     ],
     isActive: (view) =>
-      view.page === 'adminPharmacyManagement' && (view as any).section === 'orders',
+      view.page === 'adminPharmacyManagement' && view.section === 'orders',
     getPageTitle: (view) => {
-      if (view.page === 'adminPharmacyManagement' && (view as any).section === 'orders') {
-        if ((view as any).action === 'order-detail') {
-          return `Chi tiết Đơn hàng #${(view as any).orderId || ''}`.trim();
+      if (view.page === 'adminPharmacyManagement' && view.section === 'orders') {
+        if (view.action === 'order-detail') {
+          return `Chi tiết Đơn hàng #${view.orderId || ''}`.trim();
         }
-        if ((view as any).action === 'new-order') {
-          return (view as any).orderChannel === 'pos' ? 'Tạo đơn hàng POS' : 'Tạo đơn hàng Online';
+        if (view.action === 'new-order') {
+          return view.orderChannel === 'pos' ? 'Tạo đơn hàng POS' : 'Tạo đơn hàng Online';
         }
         return 'Quản lý Đơn hàng';
       }
@@ -114,12 +114,12 @@ export const ADMIN_NAV_REGISTRY: AdminNavModule[] = [
       { key: 'image_importer', label: 'Gắn ảnh hàng loạt', view: { page: 'adminProductImageImporter' } },
     ],
     isActive: (view) =>
-      (view.page === 'adminPharmacyManagement' && (view as any).section !== 'orders') ||
+      (view.page === 'adminPharmacyManagement' && view.section !== 'orders') ||
       view.page === 'adminProductImageImporter',
     getPageTitle: (view) => {
       if (view.page === 'adminProductImageImporter') return 'Gắn ảnh sản phẩm hàng loạt';
       if (view.page === 'adminPharmacyManagement') {
-        const sec = (view as any).section;
+        const sec = view.section;
         if (sec === 'categories') return 'Chuyên mục Sản phẩm';
         if (sec === 'brands') return 'Thương hiệu Sản phẩm';
         if (sec === 'discounts') return 'Mã giảm giá & Khuyến mãi';
@@ -140,7 +140,7 @@ export const ADMIN_NAV_REGISTRY: AdminNavModule[] = [
     allowedRoles: ['master_admin', 'admin'],
     subItems: [
       { key: 'connection', label: 'Kết nối', view: { page: 'adminPancakeManagement', section: 'connection' } },
-      { key: 'sync_streams', label: 'Công tắc luồng', view: { page: 'adminPancakeManagement', section: 'sync_streams' } },
+      { key: 'sync_streams', label: 'Luồng đồng bộ', view: { page: 'adminPancakeManagement', section: 'sync_streams' } },
       { key: 'queue_webhook', label: 'Hàng đợi & Webhook', view: { page: 'adminPancakeManagement', section: 'queue_webhook' } },
       { key: 'manual_sync', label: 'Đồng bộ thủ công', view: { page: 'adminPancakeManagement', section: 'manual_sync' } },
       { key: 'deplao', label: 'Deplao Zalo', view: { page: 'adminPancakeManagement', section: 'deplao' } },
@@ -267,9 +267,22 @@ export function resolveAdminPageTitle(
   view: AdminNavigationView | View,
   overrideTitle?: string
 ): string {
-  if (overrideTitle && overrideTitle.trim().length > 0) {
-    return overrideTitle.trim();
-  }
   const mod = resolveActiveAdminModule(view);
-  return mod.getPageTitle(view);
+  if (mod.id === 'orders' && (!('action' in view) || !view.action)) return 'Đơn hàng';
+  if ('action' in view && view.action) return mod.getPageTitle(view);
+  const sub = mod.subItems.find(item => isAdminSubItemActive(view, item.view));
+  return sub?.label || mod.label;
+}
+
+export function isAdminSubItemActive(view: View, target: AdminNavigationView): boolean {
+  if (view.page !== target.page) return false;
+  const module = ADMIN_NAV_REGISTRY.find(item => item.isActive(view));
+  const section = 'section' in view ? view.section : undefined;
+  const targetSection = 'section' in target ? target.section : undefined;
+  const defaultSection = module && 'section' in module.defaultView ? module.defaultView.section : undefined;
+  if ((section || defaultSection || module?.subItems[0]?.key) !== (targetSection || defaultSection || module?.subItems[0]?.key)) return false;
+  const action = 'action' in view ? view.action : undefined;
+  const targetAction = 'action' in target ? target.action : undefined;
+  if (targetAction === 'new-order') return action === targetAction && 'orderChannel' in view && 'orderChannel' in target && (view.orderChannel || 'online') === target.orderChannel;
+  return !targetAction && action !== 'new-order';
 }

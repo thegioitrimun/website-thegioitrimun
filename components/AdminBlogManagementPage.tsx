@@ -718,7 +718,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
         {/* 2-Column Responsive Categories Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {/* Column 1: Category List (7 cols) */}
-          <div className="lg:col-span-7 rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 space-y-3">
+          <div className="admin-surface lg:col-span-7 rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0 space-y-3">
             <div className="flex items-center justify-between border-b border-border/20 pb-3">
               <h3 className="text-sm sm:text-base font-bold text-foreground">
                 Danh sách chuyên mục hiện có
@@ -790,7 +790,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
           </div>
 
           {/* Column 2: Category Form (5 cols) */}
-          <div className="lg:col-span-5 rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+          <div className="admin-surface lg:col-span-5 rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0">
             <div className="flex items-center justify-between border-b border-border/20 pb-3 mb-4">
               <h3 className="text-sm sm:text-base font-bold text-foreground">
                 {editingCategorySlug ? 'Chỉnh sửa chuyên mục' : 'Thêm chuyên mục mới'}
@@ -937,7 +937,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
           {/* Search Input with Embedded Category Filter */}
           <GlassSearchInput
             value={searchQuery}
-            onChange={setSearchQuery}
+            onValueChange={setSearchQuery}
             placeholder="Tìm theo tiêu đề, slug, tóm tắt..."
             className="flex-1 min-w-0"
           >
@@ -1042,7 +1042,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 overflow-hidden">
+      <div className="admin-surface hidden md:block rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-5 mx-1 sm:mx-0 overflow-hidden">
         {currentPosts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground">
             Không tìm thấy bài viết nào phù hợp với điều kiện tìm kiếm.

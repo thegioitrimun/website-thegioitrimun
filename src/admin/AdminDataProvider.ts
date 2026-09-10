@@ -16,16 +16,27 @@ export class AdminDataProvider {
     private readonly cache = new Map<string, CachedAdminResource<unknown>>();
     private readonly pending = new Map<string, Promise<unknown>>();
 
+    private scope: string | null = null;
+
+    setScope(accountId: string | null): void {
+        if (this.scope === accountId) return;
+        this.scope = accountId;
+        this.invalidate();
+    }
+
     async read<T>(key: string, loader: () => Promise<T>, options: ReadOptions = {}): Promise<T> {
         const maxAgeMs = Math.max(0, options.maxAgeMs ?? 30_000);
         const cached = this.cache.get(key) as CachedAdminResource<T> | undefined;
         if (!options.force && cached && cached.expiresAt > Date.now()) return cached.value;
 
         const inFlight = this.pending.get(key) as Promise<T> | undefined;
-        if (!options.force && inFlight) return inFlight;
+        if (inFlight) return inFlight;
 
-        const request = loader()
+        const request = Promise.resolve().then(loader)
             .then((value) => {
+                if (this.pending.get(key) !== request) {
+                    throw new DOMException('Yêu cầu đã hết hiệu lực.', 'AbortError');
+                }
                 this.cache.set(key, { value, expiresAt: Date.now() + maxAgeMs });
                 return value;
             })
@@ -42,16 +53,18 @@ export class AdminDataProvider {
     }
 
     set<T>(key: string, value: T, maxAgeMs = 30_000): void {
+        this.pending.delete(key);
         this.cache.set(key, { value, expiresAt: Date.now() + Math.max(0, maxAgeMs) });
     }
 
     invalidate(prefix?: string): void {
         if (!prefix) {
             this.cache.clear();
+            this.pending.clear();
             return;
         }
-        for (const key of this.cache.keys()) {
-            if (key === prefix || key.startsWith(`${prefix}:`)) this.cache.delete(key);
+        for (const key of new Set([...this.cache.keys(), ...this.pending.keys()])) {
+            if (key === prefix || key.startsWith(`${prefix}:`)) { this.cache.delete(key); this.pending.delete(key); }
         }
     }
 

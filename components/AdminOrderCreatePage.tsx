@@ -333,7 +333,7 @@ const AdminOrderCreatePage: React.FC<AdminOrderCreatePageProps> = ({
                         </div>
                         <GlassSearchInput
                             value={searchQuery}
-                            onChange={(val) => setSearchQuery(val)}
+                            onValueChange={(val) => setSearchQuery(val)}
                             onClear={() => setSearchQuery('')}
                             placeholder="Tìm theo tên hoặc SKU…"
                             containerClassName="mt-5"

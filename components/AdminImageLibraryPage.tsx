@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
 import AnimatedSection from './AnimatedSection';
 import { ImageDropzone } from './ImageDropzone';
@@ -90,11 +90,16 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
   const [folder, setFolder] = useState('admin-icons');
   const [searchQuery, setSearchQuery] = useState('');
   const [assets, setAssets] = useState<PublicImageAssetRecord[]>([]);
+  const [imagePage, setImagePage] = useState(1);
+  useEffect(() => { setImagePage(1); }, [bucket, folder, searchQuery]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const requestSequence = useRef(0);
+  const assetsSource = useRef('');
+  const [loadError, setLoadError] = useState('');
   const [deletingPath, setDeletingPath] = useState<string | null>(null);
 
   const selectedBucket = useMemo(
@@ -111,8 +116,14 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
     );
   }, [assets, searchQuery]);
 
+  useEffect(() => { setImagePage(page => Math.min(page, Math.max(1, Math.ceil(filteredAssets.length / 60)))); }, [filteredAssets.length]);
+
   const loadAssets = useCallback(async (nextCursor?: string | null) => {
     const append = Boolean(nextCursor);
+    const requestId = ++requestSequence.current;
+    const source = `${bucket}:${folder}`;
+    if (assetsSource.current !== source) { setAssets([]); setCursor(null); setHasMore(false); assetsSource.current = source; }
+    setLoadError('');
 
     if (append) {
       setIsLoadingMore(true);
@@ -127,27 +138,21 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
         limit: 60,
       });
 
+      if (requestId !== requestSequence.current) return;
       setAssets((current) => (append ? [...current, ...result.items] : result.items));
       setCursor(result.cursor);
       setHasMore(Boolean(result.truncated && result.cursor));
     } catch (error: any) {
-      addToast('Không thể tải thư viện ảnh', {
-        type: 'error',
-        description: error?.message || 'Lỗi không xác định',
-      });
-      if (!append) {
-        setAssets([]);
-        setCursor(null);
-        setHasMore(false);
-      }
+      if (requestId !== requestSequence.current) return;
+      setLoadError(error?.message || 'Không thể tải thư viện ảnh.');
     } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
+      if (requestId === requestSequence.current) { setIsLoading(false); setIsLoadingMore(false); }
     }
   }, [addToast, bucket, folder]);
 
   useEffect(() => {
     void loadAssets();
+    return () => { requestSequence.current += 1; };
   }, [loadAssets]);
 
   const handleApplyFolder = useCallback(() => {
@@ -259,7 +264,7 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
   return (
     <AnimatedSection stagger={100}>
       <div className="space-y-5">
-        <AnimatedSection className="overflow-hidden rounded-[1.7rem] border border-white/70 bg-card/75 p-4 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl md:p-5 dark:border-white/10">
+        <AnimatedSection className="admin-surface overflow-hidden rounded-[1.7rem] border p-4 md:p-5">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
             <div className="space-y-4">
               <div className="grid gap-4 md:grid-cols-[220px_minmax(0,1fr)]">
@@ -309,7 +314,7 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
                 <span className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">Tìm nhanh trong danh sách</span>
                 <GlassSearchInput
                   value={searchQuery}
-                  onChange={(val) => setSearchQuery(val)}
+                  onValueChange={(val) => setSearchQuery(val)}
                   onClear={() => setSearchQuery('')}
                   placeholder="Tên file, thư mục hoặc URL..."
                 />
@@ -330,8 +335,10 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
           </div>
         </AnimatedSection>
 
-        <AnimatedSection className="overflow-hidden rounded-[1.7rem] border border-white/70 bg-card/75 p-4 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl md:p-5 dark:border-white/10">
-          {isLoading ? (
+        <AnimatedSection className="admin-surface overflow-hidden rounded-[1.7rem] border p-4 md:p-5">
+          {loadError && <div role="alert" className="mb-3 rounded-xl border border-destructive/30 p-3 text-sm">{loadError} <button type="button" className="font-semibold text-primary underline" onClick={() => void loadAssets()}>Thử lại</button></div>}
+          {isLoading && assets.length > 0 && <p role="status" className="mb-3 text-xs text-muted-foreground">Đang cập nhật…</p>}
+          {isLoading && assets.length === 0 ? (
             <div className="flex min-h-[280px] items-center justify-center">
               <LoadingIcon className="h-8 w-8 animate-spin text-primary" />
             </div>
@@ -348,10 +355,10 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
           ) : (
             <>
               <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-                {filteredAssets.map((item) => (
+                {filteredAssets.slice((imagePage - 1) * 60, imagePage * 60).map((item) => (
                   <article key={item.key} className="overflow-hidden rounded-[1.35rem] border border-border bg-card shadow-sm">
                     <div className="aspect-[4/3] overflow-hidden bg-muted/20">
-                      <img src={item.public_url} alt={item.path} className="h-full w-full object-cover" />
+                      <img src={item.public_url} alt={item.path} loading="lazy" decoding="async" width={320} height={240} className="h-full w-full object-cover" />
                     </div>
                     <div className="space-y-3 p-4">
                       <div>
@@ -387,16 +394,16 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
                           onClick={() => void handleCopy(item.public_url, 'URL ảnh')}
                           className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-xs font-bold text-foreground transition-all hover:border-primary/30 hover:text-primary"
                         >
-                          <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp" alt="Copy URL" className="h-4 w-4 object-contain" />
-                          Copy URL
+                          <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1786688261441-dongbocanva.webp" alt="Sao chép URL" className="h-4 w-4 object-contain" />
+                          Sao chép URL
                         </button>
                         <button
                           type="button"
                           onClick={() => void handleCopy(item.path, 'đường dẫn ảnh')}
                           className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-xs font-bold text-foreground transition-all hover:border-primary/30 hover:text-primary"
                         >
-                          <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-hinhanh.webp" alt="Copy path" className="h-4 w-4 object-contain" />
-                          Copy path
+                          <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-hinhanh.webp" alt="Sao chép đường dẫn" className="h-4 w-4 object-contain" />
+                          Sao chép đường dẫn
                         </button>
                         <button
                           type="button"
@@ -418,6 +425,7 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
                 ))}
               </div>
 
+              {filteredAssets.length > 60 && <div className="mt-4 flex items-center justify-between gap-3"><span className="text-xs text-muted-foreground">Trang {imagePage} / {Math.ceil(filteredAssets.length / 60)} · {filteredAssets.length} ảnh đã tải</span><div className="flex gap-2"><button type="button" className="rounded-xl border border-border px-3 py-2" disabled={imagePage === 1} onClick={() => setImagePage(value => value - 1)}>Trước</button><button type="button" className="rounded-xl border border-border px-3 py-2" disabled={imagePage * 60 >= filteredAssets.length} onClick={() => setImagePage(value => value + 1)}>Sau</button></div></div>}
               {hasMore ? (
                 <div className="mt-5 flex justify-center">
                   <button

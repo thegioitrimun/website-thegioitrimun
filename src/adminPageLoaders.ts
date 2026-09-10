@@ -1,6 +1,5 @@
 import type { AdminNavigationView } from '../types';
 import type { ComponentType } from 'react';
-import AdminPancakeManagementPage from '../components/AdminPancakeManagementPage';
 
 type AdminWorkspacePage = AdminNavigationView['page'];
 type AdminPageModule = { default: ComponentType<any> };
@@ -32,9 +31,7 @@ export const loadAdminImageLibraryPage = once(() => import('../components/AdminI
 export const loadAdminProductImageImporterPage = once(() => import('../components/AdminProductImageImporterPage'));
 export const loadAdminPharmacyManagementPage = once(() => import('../components/AdminPharmacyManagementPage'));
 export const loadAdminVatManagementPage = once(() => import('../components/AdminVatManagementPage'));
-export const loadAdminPancakeManagementPage: AdminPageLoader = () => Promise.resolve({
-  default: AdminPancakeManagementPage,
-});
+export const loadAdminPancakeManagementPage = once(() => import('../components/AdminPancakeManagementPage'));
 
 const adminPageLoaders: Record<AdminWorkspacePage, AdminPageLoader> = {
   adminDashboard: loadAdminDashboardPage,
@@ -51,8 +48,3 @@ const adminPageLoaders: Record<AdminWorkspacePage, AdminPageLoader> = {
 
 export const preloadAdminPage = (page: AdminWorkspacePage) => adminPageLoaders[page]();
 
-export const preloadAdminWorkspace = () => {
-  Object.values(adminPageLoaders).forEach((loader) => {
-    void loader().catch(() => undefined);
-  });
-};

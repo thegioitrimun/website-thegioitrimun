@@ -1,3 +1,4 @@
+import { useMediaQuery } from '../hooks/useMediaQuery';
 import React from 'react';
 
 const joinClasses = (...parts: Array<string | false | null | undefined>) => parts.filter(Boolean).join(' ');
@@ -7,11 +8,14 @@ interface AdminMobileListProps {
   className?: string;
 }
 
-export const AdminMobileList: React.FC<AdminMobileListProps> = ({ children, className }) => (
+export const AdminMobileList: React.FC<AdminMobileListProps> = ({ children, className }) => {
+  const mobile = useMediaQuery('(max-width:1023px)');
+  return mobile ? (
   <div className={joinClasses('flex flex-col lg:hidden', className)}>
     {children}
   </div>
-);
+) : null;
+};
 
 interface AdminMobileCardProps {
   children: React.ReactNode;

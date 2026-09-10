@@ -1,3 +1,4 @@
+import { allowE2EMutation } from './shared/mutation';
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { adminEmail, isAdminAuthConfigured, loginToAdmin } from './shared/auth';
 
@@ -91,6 +92,7 @@ test.describe.serial('Admin dashboard', () => {
   });
 
   test('creates and deletes a scheduled report', async () => {
+    test.skip(!allowE2EMutation, 'Mutation requires an explicit local/staging URL and E2E_ALLOW_MUTATION=1.');
     const scheduleName = `E2E Admin Report ${Date.now()}`;
 
     await expect(sharedPage.getByRole('button', { name: 'Báo cáo', exact: true })).toBeVisible({ timeout: 30000 });

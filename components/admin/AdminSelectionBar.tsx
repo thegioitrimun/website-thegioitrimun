@@ -33,13 +33,13 @@ export const AdminSelectionBar: React.FC<AdminSelectionBarProps> = ({
 
   return (
     <div
-      className={`fixed bottom-4 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-2rem)] max-w-xl transition-all duration-180 animate-in fade-in slide-in-from-bottom-3 ${className}`}
+      className={`relative w-full ${className}`}
       role="region"
       aria-label="Thao tác hàng loạt trên các mục đã chọn"
     >
       <AdminSurface
         variant="overlay"
-        className="flex flex-wrap items-center justify-between gap-3 p-3 sm:px-4 sm:py-3 shadow-2xl rounded-2xl md:rounded-[22px]"
+        className="flex flex-wrap items-center justify-between gap-3 p-3 sm:px-4 sm:py-3 rounded-2xl"
       >
         {/* Số lượng đang chọn và nút bỏ chọn */}
         <div className="flex items-center gap-2.5">
@@ -64,7 +64,7 @@ export const AdminSelectionBar: React.FC<AdminSelectionBarProps> = ({
 
         {/* Các hành động hàng loạt (Actions slot) */}
         {finalActions && (
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2">
             {finalActions}
           </div>
         )}

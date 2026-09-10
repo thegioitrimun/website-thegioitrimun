@@ -271,7 +271,7 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
       <AnimatedSection stagger={100}>
         <div className="space-y-3.5 sm:space-y-4 -mx-3 sm:mx-0 p-0 sm:p-2 md:p-5">
           {/* 1. Header Banner */}
-          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+          <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-3.5 sm:p-5 mx-1 sm:mx-0">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               {/* Left: Back button + Appointment Code + Status Badge + Info */}
               <div className="flex items-start gap-2.5 sm:gap-3">
@@ -372,7 +372,7 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
             {/* CỘT 1: Thông tin bệnh nhân & Khám điều trị */}
             <div className="space-y-3 sm:space-y-4">
               {/* Thẻ 1: Thông tin bệnh nhân */}
-              <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 space-y-3">
+              <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-5 space-y-3">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-3">
                   <UserIcon className="h-5 w-5 text-primary" />
                   <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Thông tin bệnh nhân</h4>
@@ -421,7 +421,7 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
               </div>
 
               {/* Thẻ 2: Khám & Điều trị */}
-              <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 space-y-3">
+              <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-5 space-y-3">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-3">
                   <CalendarDaysIcon className="h-5 w-5 text-primary" />
                   <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Khám & Điều trị</h4>
@@ -444,7 +444,7 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
             {/* CỘT 2: Hóa đơn & Chi phí + Cập nhật trạng thái */}
             <div className="space-y-3 sm:space-y-4">
               {/* Thẻ 3: Hóa đơn & Chi phí */}
-              <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 space-y-3">
+              <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-5 space-y-3">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-3">
                   <ReceiptIcon className="h-5 w-5 text-primary" />
                   <h4 className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Hóa đơn & Chi phí</h4>
@@ -484,7 +484,7 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
               </div>
 
               {/* Thẻ 4: Cập nhật trạng thái lịch hẹn */}
-              <div className="rounded-2xl sm:rounded-[1.75rem] border border-primary/40 bg-card/85 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 space-y-3">
+              <div className="admin-surface rounded-2xl sm:rounded-[1.75rem] border border-primary/40 p-4 sm:p-5 space-y-3">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-3">
                   <CheckCircleIcon className="h-5 w-5 text-primary" />
                   <div>
@@ -540,12 +540,12 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
   return (
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
       {/* 1. Header & Filter Card matching Orders & Customers */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
         {/* Search bar, Filter toggle, Export button & Quick Service action */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <GlassSearchInput
             value={searchQuery}
-            onChange={(val) => setSearchQuery(val)}
+            onValueChange={(val) => setSearchQuery(val)}
             onClear={() => setSearchQuery('')}
             placeholder="Mã lịch hẹn / tên khách / SĐT / email / bác sĩ..."
             containerClassName="flex-1 min-w-0"
@@ -740,7 +740,7 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
           </div>
 
           {/* Desktop Table (≥ md) */}
-          <div className="hidden md:block overflow-hidden rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+          <div className="admin-surface hidden md:block overflow-hidden rounded-[1.7rem] border mx-1 sm:mx-0">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[850px] table-auto text-left text-sm">
                 <thead className="border-b border-border/50 bg-card/30 text-[10.5px] font-bold uppercase tracking-[0.16em] text-muted-foreground">

@@ -16,16 +16,11 @@ export const ADMIN_THEME_TOKENS = {
 
   // Lớp bề mặt kính (Glass Surface)
   surface: {
-    toolbar:
-      'bg-white/75 dark:bg-[rgba(15,23,34,0.95)] backdrop-blur-xl border border-white/70 dark:border-white/10 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] dark:shadow-[0_28px_70px_-48px_rgba(0,0,0,0.7)]',
-    content:
-      'bg-white/85 dark:bg-[rgba(15,23,34,0.95)] backdrop-blur-xl border border-white/70 dark:border-white/10 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] dark:shadow-[0_28px_70px_-48px_rgba(0,0,0,0.7)]',
-    table:
-      'bg-white/80 dark:bg-[rgba(15,23,34,0.92)] backdrop-blur-md border border-white/70 dark:border-white/10 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] dark:shadow-[0_28px_70px_-48px_rgba(0,0,0,0.7)]',
-    overlay:
-      'bg-white/98 dark:bg-[rgba(15,23,34,0.98)] backdrop-blur-2xl border border-white/80 dark:border-white/15 shadow-2xl',
-    tableHead:
-      'bg-[hsl(42_82%_95%/0.45)] dark:bg-[hsl(215_22%_16%)] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/70 dark:border-white/10',
+    toolbar: 'admin-surface admin-surface-toolbar',
+    content: 'admin-surface',
+    table: 'admin-surface',
+    overlay: 'admin-surface admin-surface-overlay',
+    tableHead: 'admin-table-head text-[11px] font-semibold text-muted-foreground border-b border-border/70',
   },
 
   // Bóng đổ chuẩn hóa

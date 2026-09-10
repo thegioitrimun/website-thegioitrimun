@@ -172,7 +172,7 @@ const AutocompletePostSelector: React.FC<{
             {/* Input field */}
             <GlassSearchInput
                 value={inputValue}
-                onChange={(val) => setInputValue(val)}
+                onValueChange={(val) => setInputValue(val)}
                 onClear={() => setInputValue('')}
                 onFocus={() => { if (inputValue.trim().length > 0) setIsDropdownOpen(true); }}
                 placeholder={t('admin.search_select_post', 'Tìm kiếm và chọn bài viết...')}

@@ -20,7 +20,9 @@ export const AdminField: React.FC<AdminFieldProps> = ({
   children,
 }) => {
   const generatedId = useId();
-  const fieldId = explicitId || generatedId;
+  const childId = React.isValidElement<{id?: string}>(children) ? children.props.id : undefined;
+  const fieldId = explicitId || childId || generatedId;
+  const messageId = `${fieldId}-message`;
 
   return (
     <div className={`flex flex-col w-full ${className}`}>
@@ -39,14 +41,18 @@ export const AdminField: React.FC<AdminFieldProps> = ({
       )}
 
       {React.isValidElement(children)
-        ? React.cloneElement(children as React.ReactElement<{ id?: string; hasError?: boolean }>, {
+        ? React.cloneElement(children as React.ReactElement<{ id?: string; hasError?: boolean; required?: boolean; 'aria-invalid'?: boolean; 'aria-describedby'?: string }>, {
             id: fieldId,
-            hasError: Boolean(error),
+            ...(typeof children.type === 'string' ? {} : { hasError: Boolean(error) }),
+            required,
+            'aria-invalid': Boolean(error),
+            'aria-describedby': error || description ? messageId : undefined,
           })
         : children}
 
       {error ? (
         <p
+          id={messageId}
           role="alert"
           className="text-xs font-medium text-rose-600 dark:text-rose-400 mt-1.5 flex items-center gap-1"
         >
@@ -66,7 +72,7 @@ export const AdminField: React.FC<AdminFieldProps> = ({
           <span>{error}</span>
         </p>
       ) : description ? (
-        <p className="text-xs text-muted-foreground mt-1 leading-normal">{description}</p>
+        <p id={messageId} className="text-xs text-muted-foreground mt-1 leading-normal">{description}</p>
       ) : null}
     </div>
   );

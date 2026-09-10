@@ -275,7 +275,7 @@ const AdminUserManagementPage: React.FC<AdminUserManagementPageProps> = (props) 
           {/* Search Input with Embedded Role Filter */}
           <GlassSearchInput
             value={searchQuery}
-            onChange={setSearchQuery}
+            onValueChange={setSearchQuery}
             placeholder={
               activeTab === 'doctors'
                 ? 'Tìm theo tên bác sĩ, chức danh, chuyên khoa...'
@@ -363,7 +363,7 @@ const DoctorsTab: React.FC<{
   onDelete: (id: string) => void;
 }> = ({ doctors, onEdit, onDelete }) => {
   return (
-    <div className="overflow-visible md:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 relative z-10">
+    <div className="admin-surface overflow-visible md:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border mx-1 sm:mx-0 relative z-10">
       {doctors.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground m-4">
           Không tìm thấy hồ sơ bác sĩ nào phù hợp.
@@ -525,7 +525,7 @@ const AllAccountsTab: React.FC<{
   onView: (patient: PatientProfile) => void;
 }> = ({ patients, onUpdatePatient, onView }) => {
   return (
-    <div className="overflow-visible md:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 relative z-10">
+    <div className="admin-surface overflow-visible md:overflow-hidden rounded-2xl sm:rounded-[1.7rem] border mx-1 sm:mx-0 relative z-10">
       {patients.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border/60 bg-background/20 p-8 text-center text-xs sm:text-sm text-muted-foreground m-4">
           Không tìm thấy tài khoản nào phù hợp.
@@ -734,13 +734,13 @@ const UserDetailPanel: React.FC<{
   return (
     <div className="space-y-4 -mx-3 sm:mx-0 p-3 sm:p-0">
       {/* Top Banner Card */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-6 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6 mx-1 sm:mx-0">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-primary">
               HỒ SƠ KHÁCH HÀNG D1
             </p>
-            <h1 className="mt-1 text-lg sm:text-2xl font-bold text-foreground">{user.name}</h1>
+            <h2 className="mt-1 text-lg sm:text-2xl font-bold text-foreground">{user.name}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
               {user.email} • <span className="font-semibold text-foreground">{roleLabel}</span> • ID:{' '}
               <span className="font-mono">{user.id.slice(0, 8)}</span>
@@ -755,7 +755,7 @@ const UserDetailPanel: React.FC<{
       {/* 4 Modules Grid */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {/* Module 1: Đơn hàng & Doanh số */}
-        <section className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 space-y-4">
+        <section className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0 space-y-4">
           <div className="flex items-center justify-between border-b border-border/20 pb-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
@@ -847,7 +847,7 @@ const UserDetailPanel: React.FC<{
         </section>
 
         {/* Module 2: Lịch hẹn & Dịch vụ */}
-        <section className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 space-y-4">
+        <section className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0 space-y-4">
           <div className="flex items-center justify-between border-b border-border/20 pb-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
@@ -939,7 +939,7 @@ const UserDetailPanel: React.FC<{
         </section>
 
         {/* Module 3: Hồ sơ điều trị & Bệnh án */}
-        <section className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 space-y-3">
+        <section className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0 space-y-3">
           <div className="flex items-center justify-between border-b border-border/20 pb-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
@@ -976,7 +976,7 @@ const UserDetailPanel: React.FC<{
         </section>
 
         {/* Module 4: Tài liệu private R2 */}
-        <section className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 space-y-3">
+        <section className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0 space-y-3">
           <div className="flex items-center justify-between border-b border-border/20 pb-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-primary">

@@ -1,3 +1,6 @@
+import { AdminDialog } from './admin/AdminDialog';
+import { useAdminNavigationGuard } from '../src/admin/adminNavigationGuard';
+import type { AdminNavigationView, AdminVatSection } from '../types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import * as api from '../services/api';
 import type {
@@ -81,7 +84,7 @@ const Panel: React.FC<{
   children: React.ReactNode;
   action?: React.ReactNode;
 }> = ({ title, badge, description, children, action }) => (
-  <section className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+  <section className="admin-surface rounded-2xl sm:rounded-[1.75rem] border p-4 sm:p-6 mx-1 sm:mx-0">
     <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div>
         {badge && (
@@ -167,7 +170,7 @@ const InvoiceForm: React.FC<{
   type: 'sales' | 'purchase';
   categories: VatCategory[];
   busy: boolean;
-  onSave: (payload: Record<string, unknown>) => Promise<void>;
+  onSave: (payload: Record<string, unknown>) => Promise<boolean>;
 }> = ({ type, categories, busy, onSave }) => {
   const [form, setForm] = useState<Record<string, any>>({
     invoice_date: today(),
@@ -186,7 +189,7 @@ const InvoiceForm: React.FC<{
     setForm((current) => ({ ...current, [key]: value }));
 
   const submit = async (status: 'draft' | 'issued') => {
-    await onSave({
+    const saved = await onSave({
       ...form,
       source_type: 'manual',
       status,
@@ -194,6 +197,7 @@ const InvoiceForm: React.FC<{
       lines: [line],
       idempotency_key: crypto.randomUUID(),
     });
+    if (!saved) return;
     setForm((current) => ({
       ...current,
       invoice_number: '',
@@ -544,7 +548,7 @@ const InvoiceTable: React.FC<{
         <GlassSearchInput
           size="sm"
           value={query}
-          onChange={(val) => setQuery(val)}
+          onValueChange={(val) => setQuery(val)}
           onClear={() => setQuery('')}
           placeholder="Tìm theo số HĐ, ký hiệu, đối tác..."
           containerClassName="flex-1 min-w-[200px] max-w-sm"
@@ -700,10 +704,15 @@ const InvoiceTable: React.FC<{
   );
 };
 
-const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }) => {
+const AdminVatManagementPage: React.FC<{ currentRole: Role; initialSection?: AdminVatSection; onNavigate?: (view: AdminNavigationView) => void }> = ({ currentRole, initialSection, onNavigate }) => {
   const { addToast } = useToast();
   const setLayout = useAdminLayoutDispatch();
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [invoiceDialog, setInvoiceDialog] = useState<'invoice' | 'import' | 'adjustment' | null>(null);
+  const [invoiceDirty, setInvoiceDirty] = useState(false);
+  useAdminNavigationGuard(invoiceDirty);
+  const closeInvoiceDialog = () => { if (!invoiceDirty || window.confirm('Có thay đổi chưa lưu. Đóng biểu mẫu?')) { setInvoiceDialog(null); setInvoiceDirty(false); } };
+  const [activeTab, setActiveTab] = useState<Tab>(initialSection || 'overview');
+  useEffect(() => { setActiveTab(initialSection || 'overview'); setInvoiceDialog(null); setInvoiceDirty(false); }, [initialSection]);
   const [data, setData] = useState<api.VatBootstrapResponse | null>(null);
   const [sales, setSales] = useState<SalesInvoice[]>([]);
   const [purchases, setPurchases] = useState<PurchaseInvoice[]>([]);
@@ -775,7 +784,7 @@ const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }
         key: tab.key,
         label: tab.label,
         hint: tab.hint,
-        onClick: () => setActiveTab(tab.key),
+        onClick: () => { setActiveTab(tab.key); onNavigate?.({ page: 'adminVatManagement', section: tab.key }); },
       })),
       activeTaskKey: activeTab,
     });
@@ -858,13 +867,13 @@ const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <Metric
           label="VAT đầu ra"
-          value={money(currentPeriod?.output_vat_amount || data.summary.sales.vat_amount)}
+          value={money(currentPeriod?.output_vat_amount ?? data.summary.sales.vat_amount)}
           hint={`${data.summary.sales.count} hóa đơn đã phát hành`}
         />
         <Metric
           label="VAT đầu vào khấu trừ"
           value={money(
-            currentPeriod?.deductible_input_vat_amount || data.summary.purchases.deductible_vat_amount
+            currentPeriod?.deductible_input_vat_amount ?? data.summary.purchases.deductible_vat_amount
           )}
           hint={`${data.summary.purchases.count} hóa đơn mua vào`}
         />
@@ -924,34 +933,28 @@ const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }
 
   const renderInvoices = (type: 'sales' | 'purchase') => (
     <div className="space-y-4">
-      <Panel
-        badge={type === 'sales' ? 'HÓA ĐƠN ĐẦU RA' : 'HÓA ĐƠN ĐẦU VÀO'}
-        title={type === 'sales' ? 'Thêm hóa đơn bán ra' : 'Thêm hóa đơn mua vào'}
-        description="Tiền tệ quy đổi số nguyên VND; VAT tính chi tiết theo dòng; chiết khấu phân bổ chuẩn largest remainder."
-      >
-        <InvoiceForm
-          type={type}
-          categories={data.categories}
-          busy={busy}
-          onSave={(payload) =>
-            execute(
-              () =>
-                type === 'sales'
-                  ? api.saveVatSalesInvoice(payload)
-                  : api.saveVatPurchaseInvoice(payload),
-              'Đã lưu hóa đơn VAT thành công.'
-            )
-          }
-        />
-      </Panel>
-
-      <Panel
-        badge="IMPORT DỮ LIỆU EXCEL"
-        title="Nhập hàng loạt từ Excel"
-        description="Hệ thống tự động preview lỗi trước khi commit nguyên tử. File không được chứa công thức động."
-      >
+      <div className="flex flex-wrap gap-2">
+        <button type="button" className={primaryButton} onClick={() => setInvoiceDialog('invoice')}>Thêm hóa đơn</button>
+        <button type="button" className={secondaryButton} onClick={() => setInvoiceDialog('import')}>Nhập Excel</button>
+      </div>
+      <AdminDialog open={invoiceDialog === 'invoice'} title={type === 'sales' ? 'Thêm hóa đơn bán ra' : 'Thêm hóa đơn mua vào'} busy={busy} onClose={closeInvoiceDialog}>
+        <div onChange={() => setInvoiceDirty(true)}><InvoiceForm type={type} categories={data.categories} busy={busy} onSave={async payload => {
+          setBusy(true);
+          try {
+            if (type === 'sales') await api.saveVatSalesInvoice(payload);
+            else await api.saveVatPurchaseInvoice(payload);
+            setInvoiceDirty(false); setInvoiceDialog(null);
+            addToast('Đã lưu hóa đơn VAT thành công.', { type: 'success' });
+            await load(true); return true;
+          } catch (error) {
+            addToast(error instanceof Error ? error.message : 'Không thể lưu hóa đơn.', { type: 'error' }); return false;
+          } finally { setBusy(false); }
+        }} /></div>
+      </AdminDialog>
+      <AdminDialog open={invoiceDialog === 'import'} title="Nhập hóa đơn từ Excel" busy={busy} onClose={closeInvoiceDialog}>
+        <p className="mb-4 text-sm text-muted-foreground">Chọn file, kiểm tra từng dòng và xác nhận trước khi nhập.</p>
         <ImportBox type={type} busy={busy} onDone={() => load(true)} />
-      </Panel>
+      </AdminDialog>
 
       <Panel
         badge="BẢNG KÊ CHI TIẾT"
@@ -1179,12 +1182,17 @@ const AdminVatManagementPage: React.FC<{ currentRole: Role }> = ({ currentRole }
       title="Điều chỉnh số liệu kỳ thuế"
       description="Chỉ cho phép thêm điều chỉnh vào các kỳ chưa khóa. Master Admin có thẩm quyền duyệt áp dụng ngay vào sổ đối soát."
     >
+      <button type="button" className={primaryButton} onClick={() => setInvoiceDialog('adjustment')}>Thêm điều chỉnh</button>
+      <AdminDialog open={invoiceDialog === 'adjustment'} title="Thêm điều chỉnh" busy={busy} onClose={closeInvoiceDialog}>
+        <div onChange={() => setInvoiceDirty(true)}>
       <AdjustmentForm
         periods={data.periods.filter((period) => ['draft', 'in_review'].includes(period.status))}
         isMaster={isMaster}
         busy={busy}
         onSave={(payload) => execute(() => api.saveVatAdjustment(payload as any), 'Đã lưu điều chỉnh.')}
       />
+        </div>
+      </AdminDialog>
       <div className="mt-5 space-y-2">
         {adjustments.length ? (
           adjustments.map((item) => (

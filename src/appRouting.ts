@@ -94,8 +94,8 @@ export const viewToPath = (
         case 'adminServiceManagement': return '/admin/dich-vu';
         case 'adminImageLibrary': return '/admin/hinh-anh';
         case 'adminProductImageImporter': return '/admin/gan-anh-san-pham';
-        case 'adminPancakeManagement': return view.section ? `/admin/pancake-pos?section=${view.section}` : '/admin/pancake-pos';
-        case 'adminVatManagement': return view.section ? `/admin/ke-toan-vat?section=${view.section}` : '/admin/ke-toan-vat';
+        case 'adminPancakeManagement': return '/admin/pancake-pos';
+        case 'adminVatManagement': return '/admin/ke-toan-vat';
         case 'adminPharmacyManagement': {
             if (view.action === 'order-detail' && view.orderId) {
                 return `/admin/don-hang/${view.orderId}`;
@@ -131,6 +131,10 @@ export const buildViewSearch = (view: View, lang: string): string => {
 
     if (view.page === 'adminPharmacyManagement' && view.action === 'new-order' && view.orderChannel) {
         searchParams.set('channel', view.orderChannel);
+    }
+
+    if ((view.page === 'adminPancakeManagement' || view.page === 'adminVatManagement') && view.section) {
+        searchParams.set('section', view.section);
     }
 
     if (view.page === 'adminDashboard' && view.section && view.section !== 'overview') {

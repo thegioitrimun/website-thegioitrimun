@@ -56,41 +56,16 @@ export const AdminButton = React.forwardRef<HTMLButtonElement, AdminButtonProps>
         type={type}
         disabled={isDisabled}
         aria-busy={loading}
-        className={`inline-flex items-center justify-center font-sans select-none outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-55 disabled:cursor-not-allowed disabled:active:scale-100 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
+        className={`relative inline-flex items-center justify-center font-sans select-none outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-55 disabled:cursor-not-allowed disabled:active:scale-100 ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${className}`}
         {...props}
       >
-        {loading ? (
-          <>
-            <svg
-              className="animate-spin -ml-0.5 h-4 w-4 shrink-0 text-current opacity-80"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-              />
-            </svg>
-            <span className="truncate">{children}</span>
-          </>
-        ) : (
-          <>
-            {effectiveLeftIcon && <span className="shrink-0 flex items-center">{effectiveLeftIcon}</span>}
-            {children && <span className="truncate">{children}</span>}
-            {rightIcon && <span className="shrink-0 flex items-center">{rightIcon}</span>}
-          </>
-        )}
+        <span className={`inline-flex items-center justify-center gap-2 ${loading ? 'invisible' : ''}`}>
+          {effectiveLeftIcon && <span aria-hidden="true">{effectiveLeftIcon}</span>}
+          {children}
+          {rightIcon && <span aria-hidden="true">{rightIcon}</span>}
+        </span>
+        {loading && <span aria-hidden="true" className="absolute inset-0 flex items-center justify-center"><span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" /></span>}
+
       </button>
     );
   }

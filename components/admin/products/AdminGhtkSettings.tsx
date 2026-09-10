@@ -53,7 +53,7 @@ export const AdminGhtkSettings: React.FC<AdminGhtkSettingsProps> = ({
     return (
         <div className="space-y-4">
             {/* 1. Header & Status Card */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-xs font-bold text-foreground">Giao Hàng Tiết Kiệm (GHTK)</span>
@@ -73,7 +73,7 @@ export const AdminGhtkSettings: React.FC<AdminGhtkSettingsProps> = ({
             </div>
 
             {/* 2. Webhook Configuration Card */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-6">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
                 <div className="pb-3 border-b border-border/40 mb-4">
                     <h3 className="text-base font-bold text-foreground">Webhook URL Cập nhật vận đơn tự động</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
@@ -111,7 +111,7 @@ export const AdminGhtkSettings: React.FC<AdminGhtkSettingsProps> = ({
             </div>
 
             {/* 3. Pick Addresses Card */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-6">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6">
                 <div className="pb-3 border-b border-border/40 mb-4">
                     <h3 className="text-base font-bold text-foreground">Kho & Địa chỉ lấy hàng ({pickAddresses.length})</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">Danh sách các bưu cục / kho hàng đã liên kết trên hệ thống GHTK.</p>

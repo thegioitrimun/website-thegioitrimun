@@ -596,7 +596,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
           onChange={(event) => handleInputFiles(event.target.files)}
         />
 
-        <section className="overflow-hidden rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+        <section className="admin-surface overflow-hidden rounded-[1.7rem] border">
           <div className="grid gap-0 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
             <div className="p-4 sm:p-6">
               <div
@@ -728,7 +728,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
         </section>
 
         {(isScanning || plan) ? (
-          <section className="rounded-[1.7rem] border border-white/70 bg-card/75 p-4 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl sm:p-5 dark:border-white/10">
+          <section className="admin-surface rounded-[1.7rem] border p-4 sm:p-5">
             <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
               {[
                 ['File ảnh', plan?.totals.files ?? sourceFiles.length],
@@ -758,7 +758,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
         ) : null}
 
         {isImporting || report ? (
-          <section className="overflow-hidden rounded-[1.7rem] border border-white/70 bg-card/75 p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+          <section className="admin-surface overflow-hidden rounded-[1.7rem] border p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Tiến trình import</p>
@@ -786,7 +786,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
 
         {plan ? (
           <div className="grid gap-5 2xl:grid-cols-[minmax(0,1.45fr)_minmax(340px,0.55fr)]">
-            <section className="min-w-0 overflow-hidden rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+            <section className="admin-surface min-w-0 overflow-hidden rounded-[1.7rem] border">
               <div className="flex flex-col gap-4 border-b border-border/70 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Preview</p>
@@ -794,7 +794,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
                 </div>
                 <GlassSearchInput
                   value={searchQuery}
-                  onChange={(val) => setSearchQuery(val)}
+                  onValueChange={(val) => setSearchQuery(val)}
                   onClear={() => setSearchQuery('')}
                   placeholder="Tìm sản phẩm hoặc file..."
                   containerClassName="sm:w-72"
@@ -829,7 +829,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
             </section>
 
             <aside className="space-y-5">
-              <section className="rounded-[1.7rem] border border-white/70 bg-card/75 p-4 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl sm:p-5 dark:border-white/10">
+              <section className="admin-surface rounded-[1.7rem] border p-4 sm:p-5">
                 <div className="flex items-center gap-3">
                   <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><XCircleIcon className="h-5 w-5" /></span>
                   <div>
@@ -856,7 +856,7 @@ const AdminProductImageImporterPage: React.FC<AdminProductImageImporterPageProps
                 </div>
               </section>
 
-              <section className="rounded-[1.7rem] border border-white/70 bg-card/75 p-4 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl sm:p-5 dark:border-white/10">
+              <section className="admin-surface rounded-[1.7rem] border p-4 sm:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Log</p>

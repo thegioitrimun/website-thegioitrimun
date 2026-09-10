@@ -1,3 +1,4 @@
+import { useAdminNavigationGuard } from '../src/admin/adminNavigationGuard';
 import React, { useEffect } from 'react';
 import { CheckCircleIcon } from './icons';
 
@@ -52,6 +53,7 @@ const AdminEditorShell: React.FC<AdminEditorShellProps> = ({
   draftState,
   children,
 }) => {
+  useAdminNavigationGuard(isDirty);
   const formattedDraftTime = draftState?.lastSavedAt
     ? new Intl.DateTimeFormat('vi-VN', {
         day: '2-digit',
@@ -76,16 +78,16 @@ const AdminEditorShell: React.FC<AdminEditorShellProps> = ({
   return (
     <div data-testid={testId} className="space-y-5 md:space-y-7">
       {/* Top Hero Banner Card */}
-      <div className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl px-5 py-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] md:px-7">
+      <div className="rounded-[1.7rem] admin-surface px-4 py-4 md:px-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="max-w-3xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-primary">{eyebrow}</p>
-            <h1 className="mt-2 text-2xl font-bold text-foreground md:text-3xl">{title}</h1>
+            <h2 className="mt-1 text-base font-bold text-foreground">{title}</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground md:text-base">{description}</p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${isDirty ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'}`}>
                 <CheckCircleIcon className="h-3.5 w-3.5" />
-                {isDirty ? 'Có thay đổi chưa lưu' : 'Đã đồng bộ với form hiện tại'}
+                {isDirty ? 'Có thay đổi chưa lưu' : 'Không có thay đổi chưa lưu'}
               </span>
               {isSaving ? (
                 <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
@@ -98,7 +100,7 @@ const AdminEditorShell: React.FC<AdminEditorShellProps> = ({
                     ? 'border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300'
                     : 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300'
                 }`}>
-                  {(draftState?.label || 'Autosave local')} {formattedDraftTime}
+                  {(draftState?.label || 'Bản nháp đã lưu trên máy')} {formattedDraftTime}
                 </span>
               ) : null}
               {positionLabel ? (
@@ -117,7 +119,7 @@ const AdminEditorShell: React.FC<AdminEditorShellProps> = ({
         <div className="rounded-[1.7rem] border border-sky-500/30 bg-sky-500/10 backdrop-blur-xl p-5 shadow-sm">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-bold text-sky-900 dark:text-sky-200">Có bản nháp local chưa áp vào form hiện tại.</p>
+              <p className="text-sm font-bold text-sky-900 dark:text-sky-200">Có bản nháp trên máy chưa áp dụng vào biểu mẫu.</p>
               <p className="mt-1 text-xs text-sky-800 dark:text-sky-300">
                 {formattedDraftTime ? `Bản nháp được autosave lúc ${formattedDraftTime}.` : 'Đã tìm thấy bản nháp autosave trên máy này.'}
                 {draftState.note ? ` ${draftState.note}` : ''}

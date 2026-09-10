@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useImperativeHandle } from 'react';
 
 export interface AdminInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -31,7 +31,8 @@ export const AdminInput = React.forwardRef<HTMLInputElement, AdminInputProps>(
     forwardedRef
   ) => {
     const internalRef = useRef<HTMLInputElement>(null);
-    const inputRef = (forwardedRef as React.RefObject<HTMLInputElement>) || internalRef;
+    const inputRef = internalRef;
+    useImperativeHandle(forwardedRef, () => internalRef.current!);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       onChange?.(e);
@@ -39,11 +40,9 @@ export const AdminInput = React.forwardRef<HTMLInputElement, AdminInputProps>(
     };
 
     const handleClear = () => {
-      if (inputRef && 'current' in inputRef && inputRef.current) {
-        inputRef.current.value = '';
-      }
-      onClear?.();
-      onValueChange?.('');
+      if (onClear) onClear();
+      else onValueChange?.('');
+      inputRef.current?.focus();
     };
 
     const hasValue = value !== undefined && value !== null && String(value).length > 0;
@@ -63,7 +62,7 @@ export const AdminInput = React.forwardRef<HTMLInputElement, AdminInputProps>(
           defaultValue={defaultValue}
           disabled={disabled}
           onChange={handleChange}
-          className={`w-full h-10 md:h-10 text-base md:text-sm font-medium transition-all outline-none rounded-xl md:rounded-2xl border ${
+          className={`w-full h-11 lg:h-10 text-base md:text-sm font-medium transition-all outline-none rounded-xl md:rounded-2xl border ${
             hasError
               ? 'border-rose-500/80 bg-rose-500/5 text-rose-900 dark:text-rose-100 focus:ring-2 focus:ring-rose-500/25'
               : 'border-border/80 bg-white/80 dark:bg-[#0b1320] text-foreground placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 shadow-2xs'
@@ -77,7 +76,6 @@ export const AdminInput = React.forwardRef<HTMLInputElement, AdminInputProps>(
           <button
             type="button"
             onClick={handleClear}
-            tabIndex={-1}
             aria-label="Xóa nội dung"
             className="absolute right-3 flex items-center justify-center h-5 w-5 rounded-full text-muted-foreground/70 hover:text-foreground hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           >

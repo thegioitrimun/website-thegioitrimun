@@ -164,8 +164,14 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
     });
   }, [atRiskOnly, customers, returningOnly, searchQuery, segmentFilter]);
 
+  useEffect(() => {
+    if (selectedCustomerId && !filteredCustomers.some(customer => customer.patient_id === selectedCustomerId)) {
+      setSelectedCustomerId(null); setMobileViewMode('list');
+    }
+  }, [filteredCustomers, selectedCustomerId]);
+
   const selectedCustomer = useMemo(
-    () => filteredCustomers.find((customer) => customer.patient_id === selectedCustomerId) || customers.find((customer) => customer.patient_id === selectedCustomerId) || null,
+    () => filteredCustomers.find((customer) => customer.patient_id === selectedCustomerId) || null,
     [customers, filteredCustomers, selectedCustomerId],
   );
 
@@ -253,13 +259,14 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
 
   return (
     <div className="space-y-3 sm:space-y-4 -mx-3 sm:mx-0">
+      <p className="mb-3 text-xs text-muted-foreground">Phân tích tối đa 300 khách hàng được tải trong kỳ. Bộ lọc và tổng kết áp dụng trong phạm vi này.</p>
       {/* 1. Header & Filter Card (Chuẩn kiểu Đơn hàng - Hình số 2) */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
         {/* Search bar, Filter toggle & Icon-only Export button */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <GlassSearchInput
             value={searchQuery}
-            onChange={(val) => setSearchQuery(val)}
+            onValueChange={(val) => setSearchQuery(val)}
             onClear={() => setSearchQuery('')}
             placeholder="Tìm theo tên khách, SĐT, email..."
             containerClassName="flex-1 min-w-0"

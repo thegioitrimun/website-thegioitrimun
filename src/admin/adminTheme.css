@@ -1,0 +1,62 @@
+/* Admin owns its palette and typography, including portals. Public tokens stay intact. */
+.admin-theme-root {
+  --font-sans: 'Noto Sans', sans-serif;
+  --font-heading: 'Noto Sans', sans-serif;
+  --background: 0 0% 100%; --foreground: 217 31% 15%;
+  --primary: 170 58% 35%; --primary-foreground: 0 0% 100%;
+  --card: 0 0% 100%; --card-foreground: 217 31% 15%;
+  --popover: 0 0% 100%; --popover-foreground: 217 31% 15%;
+  --muted: 214 20% 95%; --muted-foreground: 215 16% 38%;
+  --secondary: 170 20% 94%; --secondary-foreground: 217 31% 15%;
+  --accent: 170 25% 93%; --accent-foreground: 217 31% 15%;
+  --border: 214 18% 84%; --input: 214 18% 84%; --ring: 170 58% 35%;
+  --destructive: 347 77% 43%; --destructive-foreground: 0 0% 100%;
+  --admin-surface: rgb(255 255 255 / .85);
+  --admin-toolbar: rgb(255 255 255 / .75);
+  --admin-overlay: rgb(255 255 255 / .98);
+  --admin-surface-border: rgb(255 255 255 / .7);
+  --admin-table-head: hsl(42 82% 95% / .4);
+  --admin-gradient: linear-gradient(135deg,#ffecee 0%,#fff3e6 20%,#fffbea 40%,#ecfdf5 60%,#eff6ff 80%,#f5f3ff 100%);
+  font-family: var(--font-sans); color: hsl(var(--foreground)); color-scheme: light;
+  font-size: 14px; line-height: 1.4286;
+}
+.admin-theme-root[data-admin-theme='dark'] {
+  --background: 214 32% 8%; --foreground: 210 28% 94%;
+  --primary: 174 56% 53%; --primary-foreground: 214 40% 9%;
+  --card: 214 28% 12%; --card-foreground: 210 28% 94%;
+  --popover: 214 28% 12%; --popover-foreground: 210 28% 94%;
+  --muted: 215 22% 16%; --muted-foreground: 214 16% 72%;
+  --secondary: 215 22% 16%; --secondary-foreground: 210 28% 94%;
+  --accent: 214 25% 20%; --accent-foreground: 210 28% 94%;
+  --border: 214 18% 24%; --input: 214 18% 24%; --ring: 174 56% 53%;
+  --admin-surface: hsl(214 28% 12% / .95); --admin-toolbar: hsl(214 28% 12% / .95);
+  --admin-overlay: hsl(214 28% 12% / .98); --admin-surface-border: rgb(255 255 255 / .1);
+  --admin-table-head: hsl(215 22% 16%);
+  --admin-gradient: linear-gradient(135deg,#18121b,#191715,#121d19,#111c29,#17152b);
+  color-scheme: dark;
+}
+.admin-surface { background: var(--admin-surface); border: 1px solid var(--admin-surface-border); box-shadow: 0 28px 70px -48px rgba(24,35,32,.55); }
+.admin-surface-toolbar { background: var(--admin-toolbar); }
+.admin-surface-overlay { background: var(--admin-overlay); }
+.admin-table-head { background: var(--admin-table-head); }
+.admin-theme-root :where(input,select,textarea,button) { font-family: inherit; }
+.admin-theme-root :where(input,select,textarea) { font-variant-numeric: tabular-nums; }
+.admin-theme-root :where(button,a,input,select,textarea):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.admin-theme-root :where(th,td) { font-variant-numeric: tabular-nums; }
+.admin-theme-root .transition-all { transition-property: color,background-color,border-color,opacity; transition-duration: 120ms; }
+.admin-theme-root :where(tbody,tr,td) { backdrop-filter: none; }
+.admin-theme-root .admin-module-content { min-width: 0; }
+@media (max-width:1023px) {
+  .admin-theme-root :where(input:not([type='checkbox']):not([type='radio']),select,textarea) { font-size:16px; min-height:44px; }
+  .admin-theme-root :where(button) { min-height:44px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .admin-theme-root *, .admin-theme-root *::before, .admin-theme-root *::after { animation-duration:.01ms!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
+}
+/* overflow-x:hidden on the public body creates a scroll ancestor that breaks sticky admin chrome. */
+html:has([data-admin-workspace]), body:has([data-admin-workspace]) { overflow-x: clip; }
+html:has([data-admin-workspace]) { scrollbar-gutter: stable; }
+@media print {
+  [data-admin-workspace] > header, [data-admin-workspace] aside, [data-admin-workspace] nav { display: none !important; }
+  [data-admin-workspace] { background: white !important; color: black !important; }
+}

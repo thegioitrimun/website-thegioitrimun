@@ -33,9 +33,9 @@ export const AdminPageHeader: React.FC<AdminPageHeaderProps> = ({
             </p>
           )}
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl md:text-2xl font-black text-foreground font-heading tracking-tight truncate">
+            <h2 className="text-base font-bold text-foreground font-heading tracking-tight truncate">
               {title}
-            </h1>
+            </h2>
             {badge && (
               <div className="inline-flex shrink-0">
                 {typeof badge === 'string' ? (

@@ -33,15 +33,15 @@ export function AdminSectionTabs<T extends string = string>({
     if (activeBtnRef.current && containerRef.current) {
       const btn = activeBtnRef.current;
       const container = containerRef.current;
-      const btnLeft = btn.offsetLeft;
+      const btnLeft = btn.getBoundingClientRect().left - container.getBoundingClientRect().left + container.scrollLeft;
       const btnRight = btnLeft + btn.offsetWidth;
       const scrollLeft = container.scrollLeft;
       const scrollRight = scrollLeft + container.offsetWidth;
 
       if (btnLeft < scrollLeft) {
-        container.scrollTo({ left: btnLeft - 16, behavior: 'smooth' });
+        container.scrollTo({ left: btnLeft - 16, behavior: 'instant' });
       } else if (btnRight > scrollRight) {
-        container.scrollTo({ left: btnRight - container.offsetWidth + 16, behavior: 'smooth' });
+        container.scrollTo({ left: btnRight - container.offsetWidth + 16, behavior: 'instant' });
       }
     }
   }, [activeKey]);
@@ -59,6 +59,7 @@ export function AdminSectionTabs<T extends string = string>({
               key={item.key}
               ref={isActive ? activeBtnRef : undefined}
               type="button"
+              aria-current={isActive ? 'page' : undefined}
               onClick={() => onChange(item.key)}
               className={`inline-flex shrink-0 items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold border-b-2 transition-all select-none ${
                 isActive
@@ -70,7 +71,7 @@ export function AdminSectionTabs<T extends string = string>({
               <span>{item.label}</span>
               {typeof item.count === 'number' && (
                 <span
-                  className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                  className={`rounded-full px-1.5 py-0.2 text-xs font-bold ${
                     isActive ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'
                   }`}
                 >
@@ -96,6 +97,7 @@ export function AdminSectionTabs<T extends string = string>({
             key={item.key}
             ref={isActive ? activeBtnRef : undefined}
             type="button"
+              aria-current={isActive ? 'page' : undefined}
             onClick={() => onChange(item.key)}
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs sm:text-sm font-bold transition-all select-none active:scale-95 ${
               isActive
@@ -107,7 +109,7 @@ export function AdminSectionTabs<T extends string = string>({
             <span>{item.label}</span>
             {typeof item.count === 'number' && (
               <span
-                className={`rounded-full px-1.5 py-0.2 text-[10px] font-black ${
+                className={`rounded-full px-1.5 py-0.2 text-xs font-black ${
                   isActive
                     ? 'bg-primary-foreground/20 text-primary-foreground'
                     : 'bg-black/5 dark:bg-white/10 text-muted-foreground'

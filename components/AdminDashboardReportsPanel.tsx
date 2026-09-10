@@ -95,7 +95,7 @@ const MetricTile: React.FC<{ label: string; value: string; hint?: string }> = ({
   return (
     <AdminSurface
       variant="content"
-      className="p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] transition-all hover:border-primary/40 min-w-0 overflow-hidden"
+      className="admin-surface p-3.5 sm:p-5 transition-all hover:border-primary/40 min-w-0 overflow-hidden"
     >
       <p className="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.14em] sm:tracking-[0.18em] text-muted-foreground truncate">{label}</p>
       <p className={`mt-1.5 sm:mt-2 font-black text-foreground font-mono tracking-tight whitespace-nowrap flex items-baseline gap-0.5 ${
@@ -382,13 +382,13 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
       <h2 className="sr-only">Xuất báo cáo định kỳ</h2>
 
       {/* 1. Header & Filter Card matching Orders, Customers, Appointments */}
-      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
+      <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-3 sm:p-4 mx-1 sm:mx-0">
         {/* Search bar, Scheduler shortcut & Excel export button */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           <GlassSearchInput
             size="sm"
             value={searchQuery}
-            onChange={(val) => setSearchQuery(val)}
+            onValueChange={(val) => setSearchQuery(val)}
             onClear={() => setSearchQuery('')}
             placeholder="Tìm kiếm..."
             containerClassName="flex-1 min-w-0"
@@ -486,7 +486,7 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
           {/* 3-Column Breakdown: Top Products, Top Services, Alert Feed */}
           <div className="grid grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-3 mx-1 sm:mx-0">
             {/* Top Products */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-5">
               <div className="flex items-center justify-between pb-3 border-b border-border/30">
                 <div className="flex items-center gap-2">
                   <ReceiptIcon className="h-4.5 w-4.5 text-primary" />
@@ -524,7 +524,7 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
             </div>
 
             {/* Top Services */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-5">
               <div className="flex items-center justify-between pb-3 border-b border-border/30">
                 <div className="flex items-center gap-2">
                   <ReceiptIcon className="h-4.5 w-4.5 text-primary" />
@@ -562,7 +562,7 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
             </div>
 
             {/* Alert Feed */}
-            <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10">
+            <div className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-5">
               <div className="flex items-center justify-between pb-3 border-b border-border/30">
                 <div className="flex items-center gap-2">
                   <ReceiptIcon className="h-4.5 w-4.5 text-primary" />
@@ -606,7 +606,7 @@ const AdminDashboardReportsPanel: React.FC<AdminDashboardReportsPanelProps> = ({
       {/* 3. Scheduled Report Management (Lịch gửi email báo cáo thật) */}
       <div
         id="report-scheduler-card"
-        className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-6 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0"
+        className="admin-surface rounded-2xl sm:rounded-[1.7rem] border p-4 sm:p-6 mx-1 sm:mx-0"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-border/30">
           <div className="flex items-center gap-2.5">

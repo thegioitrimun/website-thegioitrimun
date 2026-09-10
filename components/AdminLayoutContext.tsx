@@ -28,6 +28,9 @@ export type SidebarConfig = {
 
 type SetSidebarConfig = (config: Partial<SidebarConfig>) => void;
 
+const AdminEnvironmentContext = createContext(false);
+export const useIsAdminWorkspace = () => useContext(AdminEnvironmentContext);
+
 const AdminLayoutConfigContext = createContext<SidebarConfig>({});
 const AdminLayoutDispatchContext = createContext<SetSidebarConfig>(() => {});
 
@@ -50,10 +53,10 @@ export const AdminLayoutProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, []);
 
   return (
-    <AdminLayoutDispatchContext.Provider value={setSidebarConfig}>
+    <AdminEnvironmentContext.Provider value={true}><AdminLayoutDispatchContext.Provider value={setSidebarConfig}>
       <AdminLayoutConfigContext.Provider value={config}>
         {children}
       </AdminLayoutConfigContext.Provider>
-    </AdminLayoutDispatchContext.Provider>
+    </AdminLayoutDispatchContext.Provider></AdminEnvironmentContext.Provider>
   );
 };

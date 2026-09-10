@@ -190,7 +190,7 @@ const BrandDirectoryPage: React.FC<BrandDirectoryPageProps> = ({
             <div className="mt-6 flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
               <GlassSearchInput
                 value={query}
-                onChange={setQuery}
+                onValueChange={setQuery}
                 placeholder={labels.searchPlaceholder}
                 className="max-w-md flex-1"
               />

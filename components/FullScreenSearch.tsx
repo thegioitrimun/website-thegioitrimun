@@ -316,7 +316,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                     <GlassSearchInput
                         ref={inputRef}
                         value={searchTerm}
-                        onChange={(val) => setSearchTerm(val)}
+                        onValueChange={(val) => setSearchTerm(val)}
                         onClear={() => setSearchTerm('')}
                         placeholder={t('common.search_placeholder')}
                         containerClassName="flex-1"

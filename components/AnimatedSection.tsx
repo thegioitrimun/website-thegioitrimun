@@ -1,8 +1,9 @@
+import { useIsAdminWorkspace } from './AdminLayoutContext';
 
 import React, { useRef } from 'react';
 import useIntersectionObserver from '../hooks/useIntersectionObserver';
 
-const AnimatedSection: React.FC<{children: React.ReactNode, className?: string, stagger?: number, threshold?: number, triggerOnce?: boolean}> = ({ children, className, stagger = 0, threshold = 0.08, triggerOnce = true }) => {
+const PublicAnimatedSection: React.FC<{children: React.ReactNode, className?: string, stagger?: number, threshold?: number, triggerOnce?: boolean}> = ({ children, className, stagger = 0, threshold = 0.08, triggerOnce = true }) => {
     const ref = useRef<HTMLDivElement>(null);
     const isVisible = useIntersectionObserver(ref, {
         threshold,
@@ -22,4 +23,8 @@ const AnimatedSection: React.FC<{children: React.ReactNode, className?: string, 
     );
 };
 
+const AnimatedSection: React.FC<React.ComponentProps<typeof PublicAnimatedSection>> = props => {
+    const isAdmin = useIsAdminWorkspace();
+    return isAdmin ? <div className={props.className}>{props.children}</div> : <PublicAnimatedSection {...props} />;
+};
 export default AnimatedSection;
