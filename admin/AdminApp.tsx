@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../hooks/useToast';
 import { AdminLayoutProvider } from '../components/AdminLayoutContext';
 import AdminWorkspaceLayout from '../components/AdminWorkspaceLayout';
 import { AdminLoginPage } from './AdminLoginPage';
-import ThemePicker from '../components/ThemePicker';
 import * as api from '../services/api';
 import { pathToView, viewToPath } from '../src/appRouting';
 import {
@@ -45,7 +44,18 @@ import type {
   AboutValue,
   View,
 } from '../types';
-import { HomeIcon, LogoutIcon } from '../components/icons';
+import { LogoutIcon } from '../components/icons';
+
+const AdminDashboardPage = lazy(loadAdminDashboardPage);
+const AdminPharmacyManagementPage = lazy(loadAdminPharmacyManagementPage);
+const AdminSiteManagementPage = lazy(loadAdminSiteManagementPage);
+const AdminUserManagementPage = lazy(loadAdminUserManagementPage);
+const AdminBlogManagementPage = lazy(loadAdminBlogManagementPage);
+const AdminServiceManagementPage = lazy(loadAdminServiceManagementPage);
+const AdminImageLibraryPage = lazy(loadAdminImageLibraryPage);
+const AdminProductImageImporterPage = lazy(loadAdminProductImageImporterPage);
+const AdminPancakeManagementPage = lazy(loadAdminPancakeManagementPage);
+const AdminVatManagementPage = lazy(loadAdminVatManagementPage);
 
 type AuthState =
   | { status: 'loading' }
@@ -198,52 +208,12 @@ export const AdminApp: React.FC = () => {
   const [featuredDoctorIds, setFeaturedDoctorIds] = useState<string[]>([]);
   const [featuredPostSlugs, setFeaturedPostSlugs] = useState<string[]>([]);
 
-  const [moduleLoading, setModuleLoading] = useState<Record<string, boolean>>({});
-
-  // Lazy components loader (must be declared at top-level before any early return)
-  const [LazyComponent, setLazyComponent] = useState<React.ComponentType<any> | null>(null);
-
-  useEffect(() => {
-    if (authState.status !== 'authenticated') return;
-    let isCancelled = false;
-
-    const loadComponent = async () => {
-      let moduleLoader;
-      switch (view.page) {
-        case 'adminDashboard': moduleLoader = loadAdminDashboardPage; break;
-        case 'adminPharmacyManagement': moduleLoader = loadAdminPharmacyManagementPage; break;
-        case 'adminSiteManagement': moduleLoader = loadAdminSiteManagementPage; break;
-        case 'adminUserManagement': moduleLoader = loadAdminUserManagementPage; break;
-        case 'adminBlogManagement': moduleLoader = loadAdminBlogManagementPage; break;
-        case 'adminServiceManagement': moduleLoader = loadAdminServiceManagementPage; break;
-        case 'adminImageLibrary': moduleLoader = loadAdminImageLibraryPage; break;
-        case 'adminProductImageImporter': moduleLoader = loadAdminProductImageImporterPage; break;
-        case 'adminPancakeManagement': moduleLoader = loadAdminPancakeManagementPage; break;
-        case 'adminVatManagement': moduleLoader = loadAdminVatManagementPage; break;
-        default: moduleLoader = loadAdminDashboardPage; break;
-      }
-
-      try {
-        const mod = await moduleLoader();
-        if (!isCancelled) {
-          setLazyComponent(() => mod.default);
-        }
-      } catch (err) {
-        console.error('Failed to load admin module chunk:', err);
-      }
-    };
-
-    void loadComponent();
-    return () => {
-      isCancelled = true;
-    };
-  }, [view.page, authState.status]);
+  const moduleRequests = useRef(new Set<AdminNavigationView['page']>());
 
   // --- Load Module Data On-Demand ---
   const loadModuleData = useCallback(async (page: AdminNavigationView['page']) => {
-    if (moduleLoading[page]) return;
-
-    setModuleLoading((prev) => ({ ...prev, [page]: true }));
+    if (moduleRequests.current.has(page)) return;
+    moduleRequests.current.add(page);
     try {
       switch (page) {
         case 'adminDashboard': {
@@ -278,6 +248,7 @@ export const AdminApp: React.FC = () => {
             api.getAdminBlogPosts({ force: false }),
           ]);
           setAboutData(snapshot.aboutData);
+          setSiteInfo(snapshot.siteInfo);
           setAuthPageImages(snapshot.authPageImages);
           setFaqItems(snapshot.faqItems);
           setFeaturedDoctorIds(snapshot.featuredDoctorIds);
@@ -329,9 +300,9 @@ export const AdminApp: React.FC = () => {
         description: error?.message,
       });
     } finally {
-      setModuleLoading((prev) => ({ ...prev, [page]: false }));
+      moduleRequests.current.delete(page);
     }
-  }, [moduleLoading, addToast]);
+  }, [addToast]);
 
   useEffect(() => {
     if (authState.status === 'authenticated') {
@@ -763,34 +734,29 @@ export const AdminApp: React.FC = () => {
 
   // --- Render Active Page Content ---
   const renderActiveModule = () => {
-    if (!LazyComponent) {
-      return (
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <span>Đang tải phân hệ...</span>
-          </div>
-        </div>
-      );
-    }
-
-    const Comp = LazyComponent;
-
     switch (view.page) {
       case 'adminDashboard':
-        return <Comp currentUser={currentUser} orders={allProductOrders} onNavigate={setView} />;
+        return (
+          <AdminDashboardPage
+            productOrders={allProductOrders}
+            services={services}
+            doctors={doctorDetails}
+            initialPanel={view.section}
+            onNavigate={setView}
+            onBack={() => { window.location.href = '/'; }}
+          />
+        );
 
       case 'adminPharmacyManagement':
         return (
-          <Comp
+          <AdminPharmacyManagementPage
             products={allProducts}
             categories={productCategories}
             brands={brands}
             productOrders={allProductOrders}
             initialSection={view.section}
-            initialAction={view.action}
+            initialAction={view.action === 'new-order' ? undefined : view.action}
             initialOrderId={view.orderId}
-            initialOrderChannel={view.orderChannel}
             initialOrderPreset={view.orderPreset}
             initialProductFilter={view.productFilter}
             onUpdateOrders={setAllProductOrders}
@@ -819,7 +785,7 @@ export const AdminApp: React.FC = () => {
           );
         }
         return (
-          <Comp
+          <AdminSiteManagementPage
             allServices={services}
             allDoctors={doctorDetails}
             allPosts={blogPosts}
@@ -857,7 +823,7 @@ export const AdminApp: React.FC = () => {
 
       case 'adminUserManagement':
         return (
-          <Comp
+          <AdminUserManagementPage
             allPatients={allPatients}
             doctorDetails={doctorDetails}
             initialSection={view.section}
@@ -871,7 +837,7 @@ export const AdminApp: React.FC = () => {
 
       case 'adminBlogManagement':
         return (
-          <Comp
+          <AdminBlogManagementPage
             currentUser={currentUser}
             posts={blogPosts}
             categories={blogCategories}
@@ -888,7 +854,7 @@ export const AdminApp: React.FC = () => {
 
       case 'adminServiceManagement':
         return (
-          <Comp
+          <AdminServiceManagementPage
             services={services}
             onSaveService={handleSaveService}
             onDeleteService={handleDeleteService}
@@ -898,16 +864,16 @@ export const AdminApp: React.FC = () => {
         );
 
       case 'adminImageLibrary':
-        return <Comp onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
+        return <AdminImageLibraryPage onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
 
       case 'adminProductImageImporter':
-        return <Comp onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
+        return <AdminProductImageImporterPage onNavigate={setView} onBack={() => setView({ page: 'adminDashboard' })} />;
 
       case 'adminPancakeManagement':
-        return <Comp />;
+        return <AdminPancakeManagementPage />;
 
       case 'adminVatManagement':
-        return <Comp currentRole={currentRole} />;
+        return <AdminVatManagementPage currentRole={currentRole} />;
 
       default:
         return null;
@@ -921,50 +887,16 @@ export const AdminApp: React.FC = () => {
         currentRole={currentRole}
         onNavigate={setView}
         onBack={() => setView({ page: 'adminDashboard' })}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       >
-        {/* Custom Header Toolbar for Admin App */}
-        <div className="mb-4 flex items-center justify-between gap-3 border-b border-border/60 pb-3">
-          <div className="flex items-center gap-2">
-            <a
-              href="/"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background/60 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-background hover:text-primary transition-all shadow-xs"
-              title="Mở website khách hàng ở tab mới"
-            >
-              <HomeIcon className="h-4 w-4 text-primary" />
-              <span>Xem Website</span>
-            </a>
+        <Suspense fallback={
+          <div className="flex min-h-[50vh] items-center justify-center" role="status">
+            <span className="text-sm text-muted-foreground">Đang tải phân hệ...</span>
           </div>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ThemePicker />
-
-            <div className="flex items-center gap-2 pl-2 border-l border-border/60">
-              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase overflow-hidden border border-primary/30">
-                {currentUser.profile.avatar_url ? (
-                  <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
-                ) : (
-                  (currentUser.profile.name || currentUser.profile.email || 'A').charAt(0)
-                )}
-              </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold text-foreground leading-none">{currentUser.profile.name || 'Quản trị viên'}</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-semibold mt-0.5">{currentRole}</p>
-              </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
-                title="Đăng xuất"
-              >
-                <LogoutIcon className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {renderActiveModule()}
+        }>
+          {renderActiveModule()}
+        </Suspense>
       </AdminWorkspaceLayout>
     </AdminLayoutProvider>
   );

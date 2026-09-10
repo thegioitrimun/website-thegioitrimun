@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAdminLayoutConfig, useAdminLayoutDispatch } from './AdminLayoutContext';
-import type { AdminNavigationView } from '../types';
 import AnimatedSection from './AnimatedSection';
 import {
   MenuIcon,
@@ -14,9 +13,13 @@ import {
   ShoppingBagIcon,
   UsersIcon,
   WrenchScrewdriverIcon,
+  HomeIcon,
+  LogoutIcon,
 } from './icons';
 import BackIconButton from './BackIconButton';
+import ThemePicker from './ThemePicker';
 import { preloadAdminPage } from '../src/adminPageLoaders';
+import type { AdminNavigationView, UserData } from '../types';
 
 type AdminWorkspacePage = AdminNavigationView['page'];
 
@@ -26,6 +29,8 @@ type AdminWorkspaceLayoutProps = {
   onBack: () => void;
   onNavigate: (page: AdminNavigationView) => void;
   children: React.ReactNode;
+  currentUser?: UserData;
+  onLogout?: () => void;
 };
 
 type AdminWorkspaceTabItem<T extends string> = {
@@ -147,6 +152,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   onBack,
   onNavigate,
   children,
+  currentUser,
+  onLogout,
 }) => {
   const config = useAdminLayoutConfig();
   const setSidebarConfig = useAdminLayoutDispatch();
@@ -310,7 +317,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                 isMobileDrawerOpen ? 'translate-x-0' : 'translate-x-full'
               }`}
             >
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 shrink-0 items-center justify-center">
                     <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-7 w-7 object-contain" />
@@ -325,6 +332,59 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                   <CloseIcon className="h-5 w-5" />
                 </button>
               </div>
+
+              {/* User Profile & Actions Card in Mobile Drawer */}
+              {currentUser ? (
+                <div className="mb-4 rounded-2xl border border-border/70 bg-muted/40 p-3 shadow-xs">
+                  <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border/60">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="h-9 w-9 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase overflow-hidden border border-primary/30 shadow-xs">
+                        {currentUser.profile?.avatar_url ? (
+                          <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          (currentUser.profile?.name || currentUser.profile?.email || 'A').charAt(0)
+                        )}
+                      </div>
+                      <div className="min-w-0 text-left">
+                        <p className="text-xs font-bold text-foreground leading-tight truncate">
+                          {currentUser.profile?.name || 'Quản trị viên'}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-semibold mt-0.5 tracking-wider">
+                          {currentRole}
+                        </p>
+                      </div>
+                    </div>
+                    {onLogout ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMobileDrawerOpen(false);
+                          onLogout();
+                        }}
+                        className="shrink-0 p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                        title="Đăng xuất"
+                      >
+                        <LogoutIcon className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-2.5 flex items-center justify-between gap-2">
+                    <a
+                      href="/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:text-primary transition-all shadow-xs"
+                      title="Mở website khách hàng ở tab mới"
+                    >
+                      <HomeIcon className="h-3.5 w-3.5 text-primary" />
+                      <span>Xem Website</span>
+                    </a>
+                    <ThemePicker />
+                  </div>
+                </div>
+              ) : null}
+
               <nav className="space-y-1">
                 {visibleModules.map((item) => (
                   <div key={item.page} onClick={() => setIsMobileDrawerOpen(false)}>
@@ -341,21 +401,70 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
           <AnimatedSection className="hidden lg:block lg:sticky lg:top-6 lg:self-start group/sidebar z-40">
             <aside 
               onMouseLeave={() => setIsTemporarilyCollapsed(false)}
-              className={`w-[76px] overflow-hidden bg-white/95 dark:bg-black/90 transition-[width] duration-300 ease-in-out rounded-[1.5rem] backdrop-blur-2xl p-2 shadow-lg ${!isTemporarilyCollapsed ? 'group-hover/sidebar:w-[248px] xl:group-hover/sidebar:w-[268px]' : ''}`}
+              className={`w-[76px] overflow-hidden bg-white/95 dark:bg-black/90 transition-[width] duration-300 ease-in-out rounded-[1.5rem] backdrop-blur-2xl p-2 shadow-lg flex flex-col justify-between min-h-[calc(100vh-3rem)] ${!isTemporarilyCollapsed ? 'group-hover/sidebar:w-[248px] xl:group-hover/sidebar:w-[268px]' : ''}`}
             >
-              <div className="mb-3 flex items-center gap-3 rounded-[1.15rem] p-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center">
-                  <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-8 w-8 object-contain" />
+              <div>
+                <div className="mb-3 flex items-center gap-3 rounded-[1.15rem] p-2">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center">
+                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-8 w-8 object-contain" />
+                  </div>
+                  <div className={`min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-300 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Admin</p>
+                    <h2 className="mt-1 truncate text-lg font-black text-foreground">Điều hướng</h2>
+                  </div>
                 </div>
-                <div className={`min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-300 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Admin</p>
-                  <h2 className="mt-1 truncate text-lg font-black text-foreground">Điều hướng</h2>
-                </div>
+
+                <nav className="space-y-1">
+                  {visibleModules.map((item) => renderModuleButton(item))}
+                </nav>
               </div>
 
-              <nav className="space-y-1">
-                {visibleModules.map((item) => renderModuleButton(item))}
-              </nav>
+              {/* Desktop User Footer in Sidebar */}
+              {currentUser ? (
+                <div className="mt-4 pt-3 border-t border-border/60">
+                  <div className="flex items-center gap-2.5 p-1 rounded-xl">
+                    <div className="h-10 w-10 shrink-0 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase overflow-hidden border border-primary/30 shadow-xs">
+                      {currentUser.profile?.avatar_url ? (
+                        <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        (currentUser.profile?.name || currentUser.profile?.email || 'A').charAt(0)
+                      )}
+                    </div>
+                    <div className={`min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-300 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                      <p className="text-xs font-bold text-foreground truncate leading-none">
+                        {currentUser.profile?.name || 'Quản trị viên'}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground uppercase font-semibold mt-1">
+                        {currentRole}
+                      </p>
+                    </div>
+                    {onLogout ? (
+                      <button
+                        type="button"
+                        onClick={onLogout}
+                        className={`shrink-0 p-1.5 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors opacity-0 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}
+                        title="Đăng xuất"
+                      >
+                        <LogoutIcon className="h-4 w-4" />
+                      </button>
+                    ) : null}
+                  </div>
+
+                  <div className={`mt-2 flex items-center justify-between gap-1 px-1 overflow-hidden transition-all duration-300 opacity-0 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                    <a
+                      href="/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background/60 px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-background hover:text-primary transition-all shadow-xs"
+                      title="Mở website khách hàng ở tab mới"
+                    >
+                      <HomeIcon className="h-3.5 w-3.5 text-primary" />
+                      <span className="truncate">Xem Website</span>
+                    </a>
+                    <ThemePicker />
+                  </div>
+                </div>
+              ) : null}
 
             </aside>
           </AnimatedSection>

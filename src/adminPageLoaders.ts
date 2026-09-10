@@ -6,11 +6,11 @@ type AdminWorkspacePage = AdminNavigationView['page'];
 type AdminPageModule = { default: ComponentType<any> };
 type AdminPageLoader = () => Promise<AdminPageModule>;
 
-const once = (loader: AdminPageLoader): AdminPageLoader => {
+const once = <T extends AdminPageModule>(loader: () => Promise<T>): (() => Promise<T>) => {
   if (import.meta.env.DEV) {
     return loader;
   }
-  let request: Promise<AdminPageModule> | null = null;
+  let request: Promise<T> | null = null;
   return () => {
     if (!request) {
       request = loader().catch((error) => {
