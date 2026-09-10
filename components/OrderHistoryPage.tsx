@@ -56,30 +56,30 @@ const getOrderPaymentMethod = (order: ProductOrder): OrderPaymentMethod => {
 const getFulfillmentStatusStyles = (status: OrderFulfillmentStatus) => {
   switch (status) {
     case 'completed':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+      return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20';
     case 'shipped':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300';
+      return 'bg-sky-500/15 text-sky-700 dark:text-sky-400 border border-sky-500/20';
     case 'cancelled':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+      return 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/20';
     case 'processing':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300';
+      return 'bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20';
     case 'pending':
     default:
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300';
+      return 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/20';
   }
 };
 
 const getPaymentStatusStyles = (status: OrderPaymentStatus) => {
   switch (status) {
     case 'paid':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300';
+      return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20';
     case 'failed':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300';
+      return 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/20';
     case 'refunded':
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300';
+      return 'bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-500/20';
     case 'unpaid':
     default:
-      return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200';
+      return 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border border-zinc-500/20';
   }
 };
 
@@ -257,49 +257,62 @@ const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ orders, onNavigate,
     const trackingUrl = getTrackingUrl(order);
 
     return (
-      <div className="bg-card text-card-foreground rounded-xl shadow-lg border border-border transition-all-smooth overflow-hidden">
-        <div className="p-6 bg-muted/30 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-          <div>
-            <p className="text-sm text-muted-foreground">{t('orders.order_code')}</p>
-            <p className="font-bold text-lg font-mono text-primary">{order.order_code}</p>
+      <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 overflow-hidden transition-all">
+        {/* Card Header */}
+        <div className="p-3.5 sm:p-5 bg-muted/25 border-b border-border/40 flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-muted-foreground">{t('orders.order_code')}:</span>
+              <span className="font-mono font-bold text-sm sm:text-base text-primary tracking-wide">#{order.order_code}</span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {new Date(order.created_at).toLocaleDateString(getDateLocale(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">{t('orders.order_date')}</p>
-            <p className="font-semibold">{new Date(order.created_at).toLocaleDateString(getDateLocale())}</p>
-          </div>
-          <div>
-            <p className="text-sm text-muted-foreground">{t('cart.total')}</p>
-            <p className="font-bold text-lg">{formatCurrency(totalAmount)}</p>
-            {taxAmount > 0 && <p className="text-xs text-muted-foreground">{t('orders.tax', 'Thuế')}: {formatCurrency(taxAmount)}</p>}
-          </div>
-          <div className="flex flex-wrap sm:flex-col gap-2 sm:items-end">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getFulfillmentStatusStyles(fulfillmentStatus)}`}>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md ${getFulfillmentStatusStyles(fulfillmentStatus)}`}>
               {getFulfillmentStatusText(fulfillmentStatus)}
             </span>
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getPaymentStatusStyles(paymentStatus)}`}>
+            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md ${getPaymentStatusStyles(paymentStatus)}`}>
               {getPaymentStatusText(paymentStatus)}
             </span>
+            <div className="text-right pl-2 border-l border-border/40">
+              <span className="block text-[10px] uppercase font-bold text-muted-foreground">{t('cart.total')}</span>
+              <span className="font-bold text-base sm:text-lg text-foreground">{formatCurrency(totalAmount)}</span>
+            </div>
           </div>
         </div>
-        <div className="p-6">
-          <h4 className="font-semibold mb-3">{t('orders.products')}</h4>
-          <div className="space-y-3">
+
+        {/* Card Body */}
+        <div className="p-3.5 sm:p-5 space-y-4">
+          {/* Order Items */}
+          <div className="space-y-2.5">
             {order.order_items?.map(item => (
-              <div key={item.id} className="flex items-center gap-4">
+              <div key={item.id} className="flex items-center gap-3 sm:gap-4 p-2.5 rounded-xl bg-background/30 border border-white/40 dark:border-white/5 backdrop-blur-sm">
                 {getOrderItemImage(item) ? (
-                  <img src={getOrderItemImage(item)} alt={getOrderItemName(item)} className="w-16 h-16 rounded-md object-cover border" />
+                  <img
+                    src={getOrderItemImage(item)}
+                    alt={getOrderItemName(item)}
+                    className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-white/50 dark:border-white/10 shadow-xs shrink-0"
+                  />
                 ) : (
-                  <div aria-hidden="true" className="flex h-16 w-16 shrink-0 items-center justify-center rounded-md border bg-muted text-xs text-muted-foreground">80 × 80</div>
+                  <div aria-hidden="true" className="flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-xl border bg-muted text-[10px] text-muted-foreground">
+                    SP
+                  </div>
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold">{getOrderItemName(item)}</p>
-                  <p className="text-sm text-muted-foreground">{t('checkout.qty')}: {item.quantity}</p>
-                  <p className="text-sm text-muted-foreground">{t('orders.price')}: {formatCurrency(item.price_at_purchase)}</p>
+                  <p className="font-semibold text-xs sm:text-sm text-foreground line-clamp-2">{getOrderItemName(item)}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                    <span>{t('checkout.qty')}: <strong className="text-foreground">{item.quantity}</strong></span>
+                    <span>•</span>
+                    <span>{t('orders.price')}: <strong className="text-foreground">{formatCurrency(item.price_at_purchase)}</strong></span>
+                  </div>
                   {canRequestReview && (
                     <button
                       type="button"
                       onClick={() => handleNavigateToReview(item.product?.slug || item.product_id)}
-                      className="mt-2 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/20"
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1 text-xs font-semibold transition-colors"
                     >
                       {t('orders.review_product', 'Viết đánh giá')}
                     </button>
@@ -308,110 +321,141 @@ const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ orders, onNavigate,
               </div>
             ))}
           </div>
+
+          {/* Shipping Info */}
           {order.shipping_provider && order.shipping_code && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h4 className="font-semibold mb-1">{t('orders.shipping_info')}</h4>
-                  <p className="text-sm">{t('orders.carrier')}: <span className="uppercase font-semibold">{order.shipping_provider}</span></p>
-                  <p className="text-sm">{t('orders.tracking_code')}: <span className="font-semibold text-primary">{order.shipping_code}</span></p>
-                  {order.ghtk_status_text && <p className="text-sm font-semibold text-blue-600">{order.ghtk_status_text}</p>}
+            <div className="rounded-2xl border border-white/60 bg-background/40 backdrop-blur-md p-3 sm:p-4 dark:border-white/10">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <TruckIcon className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-xs font-bold uppercase text-muted-foreground">{t('orders.shipping_info')}</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-foreground">
+                    {t('orders.carrier')}: <span className="uppercase font-bold">{order.shipping_provider}</span> — {t('orders.tracking_code')}: <span className="font-mono font-bold text-primary">{order.shipping_code}</span>
+                  </p>
+                  {order.ghtk_status_text && <p className="text-xs font-semibold text-sky-600 dark:text-sky-400">{order.ghtk_status_text}</p>}
                 </div>
                 {trackingUrl && (
-                  <a href={trackingUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-primary/10 text-primary text-sm font-bold py-2 px-3 rounded-lg hover:bg-primary/20 transition-colors btn-press">
-                    <TruckIcon className="w-5 h-5" />
+                  <a
+                    href={trackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-primary/10 hover:bg-primary/20 text-primary text-xs sm:text-sm font-semibold px-3 py-1.5 transition-colors btn-press"
+                  >
+                    <TruckIcon className="w-4 h-4" />
                     <span>{t('orders.track')}</span>
                   </a>
                 )}
               </div>
             </div>
           )}
-          <div className="mt-4 pt-4 border-t border-border space-y-1 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">{t('cart.subtotal')}</span><span>{formatCurrency(subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">{t('cart.discount')}</span><span>- {formatCurrency(discount)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">{t('checkout.tax', 'Thuế')}</span><span>{formatCurrency(taxAmount)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">{t('cart.shipping')}</span><span>{formatCurrency(shipping)}</span></div>
-            <div className="flex justify-between font-bold pt-1 border-t border-border"><span>{t('cart.total')}</span><span>{formatCurrency(totalAmount)}</span></div>
-            {refundedAmount > 0 && (
-              <div className="flex justify-between text-orange-600">
-                <span>{t('orders.refunded_amount')}</span>
-                <span>- {formatCurrency(refundedAmount)}</span>
+
+          {/* Price Breakdown & Delivery Address */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+            {/* Delivery Details */}
+            <div className="rounded-2xl border border-white/50 bg-background/30 backdrop-blur-md p-3 sm:p-4 space-y-2 dark:border-white/10 text-xs sm:text-sm">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t('orders.shipping_address')}</p>
+                <p className="font-semibold text-foreground mt-0.5">{formatShippingAddress(order)}</p>
+                {order.notes && <p className="text-xs text-muted-foreground mt-1 italic">{t('checkout.notes')}: {order.notes}</p>}
               </div>
-            )}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/40">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t('orders.payment_method')}</p>
+                  <p className="font-semibold text-foreground mt-0.5">{getPaymentMethodText(paymentMethod)}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{t('orders.payment_status')}</p>
+                  <p className="font-semibold text-foreground mt-0.5">{getPaymentStatusText(paymentStatus)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Price Calculations */}
+            <div className="rounded-2xl border border-white/50 bg-background/30 backdrop-blur-md p-3 sm:p-4 space-y-1.5 dark:border-white/10 text-xs sm:text-sm">
+              <div className="flex justify-between"><span className="text-muted-foreground">{t('cart.subtotal')}</span><span className="font-medium">{formatCurrency(subtotal)}</span></div>
+              {discount > 0 && <div className="flex justify-between text-emerald-600 dark:text-emerald-400"><span className="text-muted-foreground">{t('cart.discount')}</span><span>-{formatCurrency(discount)}</span></div>}
+              {taxAmount > 0 && <div className="flex justify-between"><span className="text-muted-foreground">{t('checkout.tax', 'Thuế')}</span><span className="font-medium">{formatCurrency(taxAmount)}</span></div>}
+              <div className="flex justify-between"><span className="text-muted-foreground">{t('cart.shipping')}</span><span className="font-medium">{formatCurrency(shipping)}</span></div>
+              <div className="flex justify-between font-bold pt-2 border-t border-border/40 text-sm sm:text-base text-foreground">
+                <span>{t('cart.total')}</span>
+                <span className="text-primary">{formatCurrency(totalAmount)}</span>
+              </div>
+              {refundedAmount > 0 && (
+                <div className="flex justify-between text-orange-600 dark:text-orange-400 font-semibold pt-1 border-t border-border/40 text-xs">
+                  <span>{t('orders.refunded_amount')}</span>
+                  <span>-{formatCurrency(refundedAmount)}</span>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div>
-              <p className="text-muted-foreground">{t('orders.payment_method')}</p>
-              <p className="font-semibold">{getPaymentMethodText(paymentMethod)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">{t('orders.payment_status')}</p>
-              <p className="font-semibold">{getPaymentStatusText(paymentStatus)}</p>
-            </div>
-            <div className="md:col-span-2">
-              <p className="text-muted-foreground">{t('orders.shipping_address')}</p>
-              <p className="font-semibold">{formatShippingAddress(order)}</p>
-              {order.notes && <p className="text-xs text-muted-foreground mt-1">{t('checkout.notes')}: {order.notes}</p>}
-            </div>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2 justify-end">
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center justify-end gap-2.5 pt-2 border-t border-border/40">
             <button
+              type="button"
               onClick={handleDownloadInvoice}
-              className="inline-flex items-center gap-2 bg-secondary text-secondary-foreground text-sm font-bold py-2 px-3 rounded-lg hover:bg-secondary/90 transition-colors btn-press"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-white/60 bg-background/40 hover:bg-background/70 backdrop-blur-xl px-4 py-2 text-xs sm:text-sm font-semibold text-foreground transition-all btn-press dark:border-white/10"
             >
               <DocumentDuplicateIcon className="w-4 h-4" />
               <span>{t('orders.download_invoice')}</span>
             </button>
             <button
+              type="button"
               onClick={() => void handleToggleExpand()}
-              className="inline-flex items-center gap-2 bg-primary/10 text-primary text-sm font-bold py-2 px-3 rounded-lg hover:bg-primary/20 transition-colors btn-press"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border-0 bg-primary/10 hover:bg-primary/20 text-primary backdrop-blur-xl px-4 py-2 text-xs sm:text-sm font-semibold transition-all btn-press"
             >
               <span>{isExpanded ? t('orders.hide_details') : t('orders.view_details')}</span>
-              <ChevronDownIcon className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
+              <ChevronDownIcon className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1400px]' : 'max-h-0'}`}>
-          <div className="bg-muted/30 p-4 border-t border-border space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="bg-card rounded-lg border border-border p-4">
-                <h5 className="font-semibold mb-3">{t('orders.lifecycle_timeline')}</h5>
+
+        {/* Expanded Lifecycle & Tracking History */}
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[1600px]' : 'max-h-0'}`}>
+          <div className="bg-muted/15 p-3.5 sm:p-5 border-t border-border/40 space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+              {/* Timeline */}
+              <div className="rounded-2xl border border-white/60 bg-card/90 p-3.5 sm:p-4 backdrop-blur-xl dark:border-white/10">
+                <h5 className="font-bold text-xs sm:text-sm uppercase tracking-wider text-muted-foreground mb-3">{t('orders.lifecycle_timeline')}</h5>
                 {isLoadingLifecycle ? (
-                  <div className="flex justify-center py-4"><Spinner /></div>
+                  <div className="flex justify-center py-4"><Spinner className="w-5 h-5 text-primary" /></div>
                 ) : lifecycleError ? (
-                  <p className="text-sm text-red-600">{lifecycleError}</p>
+                  <p className="text-xs text-rose-600">{lifecycleError}</p>
                 ) : statusHistory.length === 0 ? (
-                  <div className="text-sm space-y-1">
+                  <div className="text-xs space-y-1">
                     <p className="text-muted-foreground">{t('orders.timeline_not_available')}</p>
                     <p className="font-semibold">{getStatusText(order.status)}</p>
-                    <p className="text-xs text-muted-foreground">{formatDateTime(order.created_at)}</p>
+                    <p className="text-muted-foreground">{formatDateTime(order.created_at)}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {statusHistory.map((entry) => (
-                      <div key={entry.id} className="border-l-2 border-primary/30 pl-3">
-                        <p className="font-semibold">{getFulfillmentStatusText(entry.to_status)}</p>
-                        <p className="text-xs text-muted-foreground">{formatDateTime(entry.created_at)}</p>
-                        {entry.note && <p className="text-xs text-muted-foreground mt-1">{entry.note}</p>}
+                      <div key={entry.id} className="border-l-2 border-primary/40 pl-3 py-0.5">
+                        <p className="font-semibold text-xs sm:text-sm">{getFulfillmentStatusText(entry.to_status)}</p>
+                        <p className="text-[11px] text-muted-foreground">{formatDateTime(entry.created_at)}</p>
+                        {entry.note && <p className="text-xs text-muted-foreground mt-0.5">{entry.note}</p>}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="bg-card rounded-lg border border-border p-4">
-                <h5 className="font-semibold mb-3">{t('orders.payment_logs')}</h5>
+              {/* Payment Logs */}
+              <div className="rounded-2xl border border-white/60 bg-card/90 p-3.5 sm:p-4 backdrop-blur-xl dark:border-white/10">
+                <h5 className="font-bold text-xs sm:text-sm uppercase tracking-wider text-muted-foreground mb-3">{t('orders.payment_logs')}</h5>
                 {isLoadingLifecycle ? (
-                  <div className="flex justify-center py-4"><Spinner /></div>
+                  <div className="flex justify-center py-4"><Spinner className="w-5 h-5 text-primary" /></div>
                 ) : paymentLogs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('orders.payment_logs_empty')}</p>
+                  <p className="text-xs text-muted-foreground">{t('orders.payment_logs_empty')}</p>
                 ) : (
                   <div className="space-y-3">
                     {paymentLogs.map((payment) => (
-                      <div key={payment.id} className="border-l-2 border-emerald-500/30 pl-3">
-                        <p className="font-semibold">{formatCurrency(payment.amount)}</p>
-                        <p className="text-xs text-muted-foreground">{getPaymentMethodText(payment.method)} - {getPaymentStatusText(payment.status)}</p>
-                        <p className="text-xs text-muted-foreground">{formatDateTime(payment.created_at)}</p>
+                      <div key={payment.id} className="border-l-2 border-emerald-500/40 pl-3 py-0.5">
+                        <p className="font-semibold text-xs sm:text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(payment.amount)}</p>
+                        <p className="text-[11px] text-muted-foreground">{getPaymentMethodText(payment.method)} — {getPaymentStatusText(payment.status)}</p>
+                        <p className="text-[11px] text-muted-foreground">{formatDateTime(payment.created_at)}</p>
                       </div>
                     ))}
                   </div>
@@ -419,42 +463,44 @@ const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ orders, onNavigate,
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="bg-card rounded-lg border border-border p-4">
-                <h5 className="font-semibold mb-3">{t('orders.refund_logs')}</h5>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+              {/* Refund Logs */}
+              <div className="rounded-2xl border border-white/60 bg-card/90 p-3.5 sm:p-4 backdrop-blur-xl dark:border-white/10">
+                <h5 className="font-bold text-xs sm:text-sm uppercase tracking-wider text-muted-foreground mb-3">{t('orders.refund_logs')}</h5>
                 {isLoadingLifecycle ? (
-                  <div className="flex justify-center py-4"><Spinner /></div>
+                  <div className="flex justify-center py-4"><Spinner className="w-5 h-5 text-primary" /></div>
                 ) : resolvedRefundLogs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('orders.refund_logs_empty')}</p>
+                  <p className="text-xs text-muted-foreground">{t('orders.refund_logs_empty')}</p>
                 ) : (
                   <div className="space-y-3">
                     {resolvedRefundLogs.map((refund) => (
-                      <div key={refund.id} className="border-l-2 border-orange-500/30 pl-3">
-                        <p className="font-semibold">{formatCurrency(refund.amount)}</p>
+                      <div key={refund.id} className="border-l-2 border-orange-500/40 pl-3 py-0.5">
+                        <p className="font-semibold text-xs sm:text-sm text-orange-600 dark:text-orange-400">{formatCurrency(refund.amount)}</p>
                         <p className="text-xs text-muted-foreground">{refund.reason || t('orders.refund_no_reason')}</p>
-                        <p className="text-xs text-muted-foreground">{formatDateTime(refund.created_at)}</p>
+                        <p className="text-[11px] text-muted-foreground">{formatDateTime(refund.created_at)}</p>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="bg-card rounded-lg border border-border p-4">
-                <h5 className="font-semibold mb-3">{t('orders.shipping_timeline')}</h5>
+              {/* Shipping Timeline */}
+              <div className="rounded-2xl border border-white/60 bg-card/90 p-3.5 sm:p-4 backdrop-blur-xl dark:border-white/10">
+                <h5 className="font-bold text-xs sm:text-sm uppercase tracking-wider text-muted-foreground mb-3">{t('orders.shipping_timeline')}</h5>
                 {order.shipping_provider?.toLowerCase() !== 'ghtk' ? (
-                  <p className="text-sm text-muted-foreground">{t('orders.tracking_not_supported')}</p>
+                  <p className="text-xs text-muted-foreground">{t('orders.tracking_not_supported')}</p>
                 ) : isLoadingTracking ? (
-                  <div className="flex justify-center py-4"><Spinner /></div>
+                  <div className="flex justify-center py-4"><Spinner className="w-5 h-5 text-primary" /></div>
                 ) : trackingHistory.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">{t('orders.tracking_not_available')}</p>
+                  <p className="text-xs text-muted-foreground">{t('orders.tracking_not_available')}</p>
                 ) : (
-                  <div className="relative border-l-2 border-primary/20 ml-4 pl-8 space-y-6">
+                  <div className="relative border-l-2 border-primary/30 ml-2 pl-4 space-y-4">
                     {trackingHistory.map((event, i) => (
-                      <div key={`${event.timestamp}-${i}`} className="relative">
-                        <div className={`absolute -left-[38px] top-1 w-4 h-4 rounded-full border-4 border-card ${i === 0 ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
-                        <p className="text-xs text-muted-foreground">{event.timestamp}</p>
+                      <div key={`${event.timestamp}-${i}`} className="relative text-xs">
+                        <div className={`absolute -left-[21px] top-1 w-2.5 h-2.5 rounded-full ring-2 ring-card ${i === 0 ? 'bg-primary' : 'bg-muted-foreground'}`}></div>
+                        <p className="text-[11px] text-muted-foreground">{event.timestamp}</p>
                         <p className={`font-semibold ${i === 0 ? 'text-primary' : 'text-foreground'}`}>{event.status}</p>
-                        <p className="text-sm text-muted-foreground">{event.location}</p>
+                        <p className="text-muted-foreground">{event.location}</p>
                       </div>
                     ))}
                   </div>
@@ -468,35 +514,44 @@ const OrderHistoryPage: React.FC<OrderHistoryPageProps> = ({ orders, onNavigate,
   };
 
   return (
-    <div className="bg-background text-foreground transition-colors duration-300 animate-scale-in">
-      <div className="container mx-auto px-6 py-12">
-        <AnimatedSection className="mb-12">
-          <BackIconButton onClick={onBack} label={t('common.back')} className="mb-4" />
-          <div className="flex items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <ReceiptIcon className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground font-heading">{t('orders.title')}</h1>
-              <p className="text-lg text-muted-foreground mt-1">{t('orders.subtitle')}</p>
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Page Top Header */}
+        <AnimatedSection>
+          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <BackIconButton onClick={onBack} label={t('common.back')} />
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-inner">
+                <ReceiptIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground font-heading tracking-tight">{t('orders.title')}</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{t('orders.subtitle')}</p>
+              </div>
             </div>
           </div>
         </AnimatedSection>
 
-        <div className="space-y-8">
+        {/* Orders List */}
+        <div className="space-y-4">
           {orders.length > 0 ? (
             orders.map((order, index) => (
-              <AnimatedSection key={order.id} stagger={index * 100}>
+              <AnimatedSection key={order.id} stagger={index * 50}>
                 <OrderCard order={order} />
               </AnimatedSection>
             ))
           ) : (
             <AnimatedSection>
-              <div className="text-center py-16 bg-card rounded-xl border border-border">
-                <ReceiptIcon className="w-16 h-16 mx-auto text-muted-foreground/50" />
-                <h2 className="mt-4 text-xl font-semibold text-muted-foreground">{t('orders.empty')}</h2>
-                <p className="mt-2 text-muted-foreground">{t('orders.empty_desc')}</p>
-                <button onClick={() => onNavigate({ page: 'products' })} className="mt-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-6 rounded-full transition-all-smooth text-base shadow-md hover:shadow-lg transform hover:-translate-y-1 btn-press">
+              <div className="text-center py-16 rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-6 mx-1 sm:mx-0">
+                <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-inner mb-4">
+                  <ReceiptIcon className="w-8 h-8" />
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">{t('orders.empty')}</h2>
+                <p className="mt-1 text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">{t('orders.empty_desc')}</p>
+                <button
+                  onClick={() => onNavigate({ page: 'products' })}
+                  className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border-0 bg-primary hover:bg-primary/90 text-primary-foreground backdrop-blur-xl px-6 py-2.5 text-sm font-semibold shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 btn-press"
+                >
                   {t('orders.shop_now')}
                 </button>
               </div>

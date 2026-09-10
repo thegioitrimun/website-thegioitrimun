@@ -22,29 +22,36 @@ interface AdministrativeProfilePageProps {
 // Component for displaying a field in view mode
 const ProfileField: React.FC<{ label: string; value: string | undefined | null; notSetText: string }> = ({ label, value, notSetText }) => (
   <div>
-    <label className="text-sm font-medium text-muted-foreground">{label}</label>
-    <p className="mt-1 block w-full rounded-md border-border bg-muted/50 px-3 py-2 text-foreground sm:text-sm min-h-[40px] flex items-center">
-      {value || <span className="italic text-muted-foreground/80">{notSetText}</span>}
-    </p>
+    <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</label>
+    <div className="mt-1.5 w-full rounded-2xl border border-white/60 bg-background/40 backdrop-blur-xl px-3.5 py-2.5 text-sm text-foreground min-h-[42px] flex items-center shadow-inner/5 dark:border-white/10">
+      {value || <span className="italic text-muted-foreground/70">{notSetText}</span>}
+    </div>
   </div>
 );
 
 // Component for editing a field
-const EditableField: React.FC<{ label: string; name: keyof PatientProfile; value: any; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void; type?: string; as?: 'input' | 'textarea' | 'select'; options?: { value: string, label: string }[] }> = ({ label, name, value, onChange, type = 'text', as = 'input', options }) => (
+const EditableField: React.FC<{
+  label: string;
+  name: keyof PatientProfile;
+  value: any;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  type?: string;
+  as?: 'input' | 'textarea' | 'select';
+  options?: { value: string; label: string }[];
+}> = ({ label, name, value, onChange, type = 'text', as = 'input', options }) => (
   <div>
-    <label htmlFor={name} className="block text-sm font-medium text-muted-foreground">{label}</label>
+    <label htmlFor={name} className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</label>
     {as === 'textarea' ? (
-      <textarea id={name} name={name} value={value || ''} onChange={onChange} rows={3} className="mt-1 w-full admin-glass-input" />
+      <textarea id={name} name={name} value={value || ''} onChange={onChange} rows={3} className="mt-1.5 w-full admin-glass-input resize-y" />
     ) : as === 'select' ? (
-      <select id={name} name={name} value={value || ''} onChange={onChange} className="mt-1 w-full admin-glass-input py-2.5">
+      <select id={name} name={name} value={value || ''} onChange={onChange} className="mt-1.5 w-full admin-glass-input py-2.5">
         {options?.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
       </select>
     ) : (
-      <input type={type} id={name} name={name} value={value || ''} onChange={onChange} className="mt-1 w-full admin-glass-input" />
+      <input type={type} id={name} name={name} value={value || ''} onChange={onChange} className="mt-1.5 w-full admin-glass-input" />
     )}
   </div>
 );
-
 
 const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ patient, onBack, onUpdateProfile }) => {
   const { t } = useTranslation();
@@ -119,7 +126,7 @@ const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ p
     setPreviewUrl(patient.avatar_url || null);
     setAvatarFile(null);
     setAddressValidationError(null);
-  }
+  };
 
   const genderOptions = [
     { value: '', label: t('profile.not_set') },
@@ -137,23 +144,26 @@ const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ p
   const notSet = t('profile.not_updated');
 
   return (
-    <div className="bg-background text-foreground transition-colors duration-300 animate-scale-in">
-      <div className="container mx-auto px-6 py-12">
-        <AnimatedSection className="mb-12">
-          <BackIconButton onClick={onBack} label={t('common.back')} className="mb-4" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-primary/10 p-3 rounded-full">
-                <UserIcon className="w-8 h-8 text-primary" />
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <AnimatedSection>
+          <div className="rounded-2xl sm:rounded-[1.75rem] border border-white/70 bg-card/85 p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <BackIconButton onClick={onBack} label={t('common.back')} />
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-inner">
+                <UserIcon className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-foreground font-heading">{t('profile.title')}</h1>
-                <p className="text-lg text-muted-foreground mt-1">{t('profile.subtitle')}</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground font-heading tracking-tight">{t('profile.title')}</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-1">{t('profile.subtitle')}</p>
               </div>
             </div>
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 bg-primary text-primary-foreground font-bold py-2 px-5 rounded-full transition-all-smooth shadow-md hover:shadow-lg transform hover:-translate-y-0.5 btn-press">
-                <PencilIcon className="w-5 h-5" />
+              <button
+                onClick={() => setIsEditing(true)}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border-0 bg-primary hover:bg-primary/90 text-primary-foreground backdrop-blur-xl px-4 py-2 text-sm font-semibold shadow-md transition-all hover:shadow-lg hover:-translate-y-0.5 btn-press"
+              >
+                <PencilIcon className="w-4 h-4" />
                 <span>{t('common.edit')}</span>
               </button>
             )}
@@ -161,19 +171,25 @@ const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ p
         </AnimatedSection>
 
         <AnimatedSection stagger={100}>
-          <div className="bg-card p-8 rounded-xl shadow-lg border border-border">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-              <div className="sm:col-span-full flex items-center gap-6">
-                <img
-                  src={previewUrl || `https://ui-avatars.com/api/?name=${patient.name}&background=random`}
-                  alt="Avatar"
-                  className="w-24 h-24 rounded-full object-cover"
-                />
-                {isEditing && (
-                  <div className="w-full max-w-xs">
-                    <ImageDropzone onFilesSelected={handleFileSelected} helpText={t('profile.avatar_help')} className="h-24" />
-                  </div>
-                )}
+          <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-4 sm:p-6 mx-1 sm:mx-0">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-6">
+              <div className="sm:col-span-full flex flex-col sm:flex-row items-center gap-4 sm:gap-6 pb-6 border-b border-border/40">
+                <div className="relative">
+                  <img
+                    src={previewUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(patient.name || 'User')}&background=random`}
+                    alt="Avatar"
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-primary/20 shadow-md"
+                  />
+                </div>
+                <div className="flex-1 text-center sm:text-left">
+                  <h2 className="text-lg sm:text-xl font-bold text-foreground">{patient.name || t('profile.not_updated')}</h2>
+                  <p className="text-sm text-muted-foreground">{patient.email}</p>
+                  {isEditing && (
+                    <div className="mt-3 w-full max-w-sm mx-auto sm:mx-0">
+                      <ImageDropzone onFilesSelected={handleFileSelected} helpText={t('profile.avatar_help')} className="h-24" />
+                    </div>
+                  )}
+                </div>
               </div>
 
               {isEditing ? (
@@ -182,8 +198,8 @@ const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ p
                   <div className="sm:col-span-3"><EditableField label={t('profile.dob')} name="dob" type="date" value={editablePatient.dob} onChange={handleChange} /></div>
                   <div className="sm:col-span-3"><EditableField label={t('profile.phone')} name="phone" value={editablePatient.phone} onChange={handleChange} /></div>
                   <div className="sm:col-span-3">
-                    <label className="text-sm font-medium text-muted-foreground">Email</label>
-                    <p className="mt-1 block w-full rounded-md border-border bg-muted/50 px-3 py-2 text-muted-foreground sm:text-sm min-h-[40px] flex items-center">{editablePatient.email}</p>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Email</label>
+                    <div className="mt-1.5 w-full rounded-2xl border border-white/40 bg-background/20 backdrop-blur-md px-3.5 py-2.5 text-sm text-muted-foreground min-h-[42px] flex items-center dark:border-white/10">{editablePatient.email}</div>
                   </div>
                   <div className="sm:col-span-6">
                     <VietnamAddressFields
@@ -200,7 +216,7 @@ const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ p
                         address_street: address.street,
                         address_district: '',
                       }))}
-                      inputClassName="mt-1 w-full admin-glass-input"
+                      inputClassName="mt-1.5 w-full admin-glass-input"
                       layoutClassName="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2"
                     />
                     {addressValidationError ? (
@@ -234,13 +250,24 @@ const AdministrativeProfilePage: React.FC<AdministrativeProfilePageProps> = ({ p
                 </>
               )}
             </div>
+
             {isEditing && (
-              <div className="flex justify-end gap-4 mt-6 pt-6 border-t border-border">
-                <button onClick={handleCancel} disabled={isSaving} className="bg-muted hover:bg-muted/80 text-muted-foreground font-bold py-2 px-6 rounded-full transition-all-smooth btn-press">
+              <div className="flex flex-wrap items-center justify-end gap-3 mt-6 pt-6 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="inline-flex min-h-10 items-center justify-center rounded-2xl border border-white/60 bg-background/40 hover:bg-background/70 backdrop-blur-xl px-5 py-2.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-all btn-press dark:border-white/10"
+                >
                   {t('common.cancel')}
                 </button>
-                <button onClick={handleSaveChanges} disabled={isSaving} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-6 rounded-full transition-all-smooth btn-press flex items-center justify-center min-w-[120px] ml-auto disabled:bg-muted">
-                  {isSaving ? <Spinner className="w-5 h-5" /> : t('profile.save_changes')}
+                <button
+                  type="button"
+                  onClick={handleSaveChanges}
+                  disabled={isSaving}
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border-0 bg-primary hover:bg-primary/90 text-primary-foreground backdrop-blur-xl px-6 py-2.5 text-sm font-semibold shadow-md hover:shadow-lg transition-all btn-press disabled:opacity-50"
+                >
+                  {isSaving ? <Spinner className="w-4 h-4 text-primary-foreground" /> : t('profile.save_changes')}
                 </button>
               </div>
             )}
