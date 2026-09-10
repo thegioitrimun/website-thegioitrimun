@@ -227,7 +227,7 @@ export const useAppBootstrap = ({
 
     const fetchAdminData = useCallback(async (options: { page?: View['page']; force?: boolean } = {}) => {
         const page = options.page || view.page;
-        if (!page.startsWith('admin')) return;
+        if (!page.startsWith('admin') || page === 'administrativeProfile') return;
 
         const moduleKey = page;
         const existingRequest = adminModulePromiseRef.current.get(moduleKey);
@@ -993,7 +993,7 @@ export const useAppBootstrap = ({
     ]);
 
     useEffect(() => {
-        if (!currentUser || !PRIVILEGED_ROLES.has(currentUser.profile.role) || !view.page.startsWith('admin')) {
+        if (!currentUser || !PRIVILEGED_ROLES.has(currentUser.profile.role) || !view.page.startsWith('admin') || view.page === 'administrativeProfile') {
             return;
         }
         void fetchAdminData({ page: view.page });
@@ -1032,7 +1032,7 @@ export const useAppBootstrap = ({
     }, [currentUser?.profile.role, setAllProductOrders, view.page]);
 
     useEffect(() => {
-        if (!view.page.startsWith('admin') || adminModuleStates[view.page]?.status !== 'ready') return;
+        if (!view.page.startsWith('admin') || view.page === 'administrativeProfile' || adminModuleStates[view.page]?.status !== 'ready') return;
         if (adminPrefetchRef.current.has(view.page)) return;
         adminPrefetchRef.current.add(view.page);
 

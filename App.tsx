@@ -1852,7 +1852,7 @@ const App: React.FC = () => {
         }
     }
 
-    const isAdminView = view.page.startsWith('admin');
+    const isAdminView = view.page.startsWith('admin') && view.page !== 'administrativeProfile';
     const isHomePage = view.page === 'main';
     const isHomeInvertedHeader = isHomePage && isAtTop;
     const contentTransitionClass = ['blog', 'blogCategory', 'productDetail'].includes(view.page) ? '' : 'animate-fade-in-page';
