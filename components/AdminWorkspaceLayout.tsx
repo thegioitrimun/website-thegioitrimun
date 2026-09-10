@@ -10,7 +10,6 @@ import {
   BlogIcon,
   CameraIcon,
   CogIcon,
-  DocumentDuplicateIcon,
   ServiceListIcon,
   ShoppingBagIcon,
   UsersIcon,
@@ -67,7 +66,7 @@ const moduleConfig: Array<{
     label: 'Kế toán VAT',
     mobileLabel: 'VAT',
     description: 'Bảng kê, kỳ thuế và hồ sơ nộp.',
-    icon: <DocumentDuplicateIcon className="h-7 w-7" />,
+    icon: <img src="https://thegioitrimun.vn/r2/assets/admin-icons/1789005613591-Untitled-design-13.webp" alt="Kế toán VAT" className="h-7 w-7 object-contain" />,
   },
   {
     page: 'adminBlogManagement',
