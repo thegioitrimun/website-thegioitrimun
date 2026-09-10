@@ -1436,6 +1436,10 @@ function withSecurityHeaders(response) {
     for (const [name, value] of Object.entries(SECURITY_RESPONSE_HEADERS)) {
         headers.set(name, value);
     }
+    const contentType = headers.get('content-type') || '';
+    if (contentType.includes('text/html') && !headers.has('cache-control')) {
+        headers.set('Cache-Control', 'no-cache, must-revalidate');
+    }
     return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,
@@ -3233,6 +3237,22 @@ export default {
             const adminRequest = new Request(adminHtmlUrl.toString(), request);
             const response = await env.ASSETS.fetch(adminRequest);
             return withSecurityHeaders(withRobotsHeader(response, 'noindex, nofollow, noarchive'));
+        }
+
+        if (path.startsWith('/assets/')) {
+            const assetResponse = await env.ASSETS.fetch(request);
+            const contentType = assetResponse.headers.get('content-type') || '';
+            if (assetResponse.status === 404 || contentType.includes('text/html')) {
+                return new Response('Asset Not Found', {
+                    status: 404,
+                    headers: {
+                        'Content-Type': 'text/plain; charset=utf-8',
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'X-Content-Type-Options': 'nosniff',
+                    },
+                });
+            }
+            return withSecurityHeaders(assetResponse);
         }
 
         return withSecurityHeaders(await env.ASSETS.fetch(request));

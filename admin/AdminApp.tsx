@@ -45,17 +45,18 @@ import type {
   View,
 } from '../types';
 import { LogoutIcon } from '../components/icons';
+import { lazyWithRetry } from '../src/lazyWithRetry';
 
-const AdminDashboardPage = lazy(loadAdminDashboardPage);
-const AdminPharmacyManagementPage = lazy(loadAdminPharmacyManagementPage);
-const AdminSiteManagementPage = lazy(loadAdminSiteManagementPage);
-const AdminUserManagementPage = lazy(loadAdminUserManagementPage);
-const AdminBlogManagementPage = lazy(loadAdminBlogManagementPage);
-const AdminServiceManagementPage = lazy(loadAdminServiceManagementPage);
-const AdminImageLibraryPage = lazy(loadAdminImageLibraryPage);
-const AdminProductImageImporterPage = lazy(loadAdminProductImageImporterPage);
-const AdminPancakeManagementPage = lazy(loadAdminPancakeManagementPage);
-const AdminVatManagementPage = lazy(loadAdminVatManagementPage);
+const AdminDashboardPage = lazyWithRetry(loadAdminDashboardPage, 'AdminDashboardPage');
+const AdminPharmacyManagementPage = lazyWithRetry(loadAdminPharmacyManagementPage, 'AdminPharmacyManagementPage');
+const AdminSiteManagementPage = lazyWithRetry(loadAdminSiteManagementPage, 'AdminSiteManagementPage');
+const AdminUserManagementPage = lazyWithRetry(loadAdminUserManagementPage, 'AdminUserManagementPage');
+const AdminBlogManagementPage = lazyWithRetry(loadAdminBlogManagementPage, 'AdminBlogManagementPage');
+const AdminServiceManagementPage = lazyWithRetry(loadAdminServiceManagementPage, 'AdminServiceManagementPage');
+const AdminImageLibraryPage = lazyWithRetry(loadAdminImageLibraryPage, 'AdminImageLibraryPage');
+const AdminProductImageImporterPage = lazyWithRetry(loadAdminProductImageImporterPage, 'AdminProductImageImporterPage');
+const AdminPancakeManagementPage = lazyWithRetry(loadAdminPancakeManagementPage, 'AdminPancakeManagementPage');
+const AdminVatManagementPage = lazyWithRetry(loadAdminVatManagementPage, 'AdminVatManagementPage');
 
 type AuthState =
   | { status: 'loading' }

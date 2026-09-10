@@ -525,6 +525,16 @@ export async function handleR2ImageRead(request, env, path, deps) {
                 headers,
             });
         }
+        if (bucket === 'site-assets') {
+            const fallbackUrl = new URL('/seo/og-default.jpg', request.url);
+            const fallbackResponse = await env.ASSETS.fetch(new Request(fallbackUrl.toString(), request));
+            const headers = new Headers(fallbackResponse.headers);
+            headers.set('X-Content-Type-Options', 'nosniff');
+            return new Response(request.method === 'HEAD' ? null : fallbackResponse.body, {
+                status: fallbackResponse.status,
+                headers,
+            });
+        }
         return new Response('Not Found', { status: 404 });
     }
 

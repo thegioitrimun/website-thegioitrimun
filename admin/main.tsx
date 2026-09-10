@@ -7,6 +7,16 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { FontProvider } from '../contexts/FontContext';
 import { ToastProvider } from '../contexts/ToastContext';
 
+window.addEventListener('vite:preloadError', () => {
+  const reloadKey = 'vite_preload_admin_reload_ts';
+  const now = Date.now();
+  const lastReload = Number(sessionStorage.getItem(reloadKey) || 0);
+  if (now - lastReload > 8000) {
+    sessionStorage.setItem(reloadKey, String(now));
+    window.location.reload();
+  }
+});
+
 const rootElement = document.getElementById('admin-root');
 if (!rootElement) {
   throw new Error("Could not find root element '#admin-root' to mount TGTM Admin");
