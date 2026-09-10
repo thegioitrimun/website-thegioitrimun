@@ -8,7 +8,6 @@ import {
   CloseIcon,
   EyeIcon,
   SearchIcon,
-  SparklesIcon,
   UserIcon,
 } from './icons';
 import { buildBlogImageAlt } from '../src/imageSeo';
@@ -185,20 +184,11 @@ const BlogPage: React.FC<BlogPageProps> = ({
           <div className="pointer-events-none absolute -left-10 -top-10 h-48 w-48 rounded-full bg-[#ff7f5d]/14 blur-3xl" />
           <div className="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[#35b7a5]/14 blur-3xl" />
 
-          <div className="relative z-10 flex flex-col items-start text-left">
-            {/* Glass Kicker Badge */}
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-primary shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-black/50">
-              <SparklesIcon className="h-3.5 w-3.5" />
-              <span>{t('blog.kicker', 'Kiến thức da liễu')}</span>
-            </div>
-
-            {/* Title & Subtitle */}
-            <h1 className="mt-3 text-2xl font-black leading-tight tracking-[-0.035em] text-foreground sm:text-3xl md:text-[2.5rem]">
+          <div className="relative z-10 flex flex-col items-center text-center">
+            {/* Title */}
+            <h1 className="text-2xl font-black leading-tight tracking-[-0.035em] text-foreground sm:text-3xl md:text-[2.5rem] text-center">
               {t('blog.title')}
             </h1>
-            <p className="mt-2 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm md:text-base">
-              {t('blog.subtitle')}
-            </p>
 
             {/* Apple Frosted Glass Search Input */}
             <div className="relative mt-5 w-full max-w-xl md:max-w-2xl">
@@ -223,7 +213,7 @@ const BlogPage: React.FC<BlogPageProps> = ({
             </div>
 
             {/* Category Glass Pills for Quick Tap */}
-            <div className="mt-5 hidden flex-wrap gap-2 md:flex">
+            <div className="mt-5 hidden flex-wrap justify-center gap-2 md:flex">
               <button
                 type="button"
                 onClick={() => setFilter('all')}
