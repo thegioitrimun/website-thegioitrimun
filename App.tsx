@@ -71,7 +71,6 @@ import {
     loadAdminSiteManagementPage,
     loadAdminUserManagementPage,
     loadAdminVatManagementPage,
-    loadAdminPosPage,
     preloadAdminWorkspace,
 } from './src/adminPageLoaders';
 
@@ -97,7 +96,6 @@ const CheckoutSuccessPage = lazy(() => import('./components/CheckoutSuccessPage'
 const OrderLookupPage = lazy(() => import('./components/OrderLookupPage'));
 const WishlistPage = lazy(() => import('./components/WishlistPage'));
 const AdminDashboardPage = lazy(loadAdminDashboardPage);
-const AdminPosPage = lazy(loadAdminPosPage);
 const AdminUserManagementPage = lazy(loadAdminUserManagementPage);
 const AdminBlogManagementPage = lazy(loadAdminBlogManagementPage);
 const AdminSiteManagementPage = lazy(loadAdminSiteManagementPage);
@@ -135,7 +133,6 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
     'adminProductImageImporter',
     'adminPharmacyManagement',
     'adminPancakeManagement',
-    'adminPos',
     'adminSiteManagement',
     'adminVatManagement',
 ]);
@@ -144,7 +141,6 @@ const AUTH_REQUIRED_PAGES = new Set<View['page']>([
 // them through the shared bootstrap gate would leave pages with no bootstrap
 // tasks stuck in the global loading state forever.
 const SELF_MANAGED_ADMIN_PAGES = new Set<View['page']>([
-    'adminPos',
     'adminPancakeManagement',
     'adminVatManagement',
 ]);
@@ -1602,8 +1598,6 @@ const App: React.FC = () => {
                         return <AdminPancakeManagementPage />;
                     }
                     setView({ page: 'main' }); return null;
-                case 'adminPos':
-                    return <AdminPosPage />;
                 case 'adminVatManagement':
                     if (isVatStaff) {
                         return <AdminVatManagementPage currentRole={currentUser.profile.role} />;
@@ -1683,7 +1677,6 @@ const App: React.FC = () => {
                 <AdminWorkspaceLayout
                     currentPage={(view.page === 'adminPharmacyManagement' && view.section === 'orders' ? 'adminDashboard' : view.page) as any}
                     currentRole={currentUser.profile.role}
-                    posRoles={currentUser.profile.pos_roles}
                     onNavigate={setView}
                     onBack={() => setView(currentUser.profile.role === 'accountant' ? { page: 'account' } : { page: 'adminDashboard' })}
                 >

@@ -24,7 +24,6 @@ type AdminWorkspacePage = AdminNavigationView['page'];
 type AdminWorkspaceLayoutProps = {
   currentPage: AdminWorkspacePage;
   currentRole: 'customer' | 'doctor' | 'accountant' | 'admin' | 'master_admin';
-  posRoles?: string[];
   onBack: () => void;
   onNavigate: (page: AdminNavigationView) => void;
   children: React.ReactNode;
@@ -42,10 +41,6 @@ const moduleConfig: Array<{
   description: string;
   icon: React.ReactNode;
 }> = [
-  {
-    page: 'adminPos', label: 'Quầy bán hàng', mobileLabel: 'POS',
-    description: 'Bán hàng, thu tiền và bàn giao ca.', icon: <ShoppingBagIcon className="h-7 w-7" />,
-  },
   {
     page: 'adminDashboard',
     label: 'Dashboard',
@@ -150,7 +145,6 @@ export const AdminWorkspaceTabs = <T extends string>({
 const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   currentPage,
   currentRole,
-  posRoles = [],
   onBack,
   onNavigate,
   children,
@@ -185,7 +179,6 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
 
   const visibleModules = moduleConfig.filter((item) => {
     if (currentRole === 'master_admin') return true;
-    if (item.page === 'adminPos') return posRoles.length > 0 || currentPage === 'adminPos';
     if (!['admin', 'accountant'].includes(currentRole)) return false;
     if (currentRole === 'accountant') return item.page === 'adminVatManagement';
     return item.page !== 'adminVatManagement';

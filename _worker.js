@@ -20,7 +20,6 @@ import { maybeHandleAppointmentRoute } from './worker/appointments/routes.js';
 import { maybeHandleAccountRoute } from './worker/account/routes.js';
 import { maybeHandleAdminD1Route } from './worker/adminD1/routes.js';
 import { maybeHandleVatRoute } from './worker/vat/routes.js';
-import { maybeHandlePosRoute } from './worker/pos/routes.js';
 import { syncVatCandidates } from './worker/vat/candidates.js';
 import { maybeHandleReviewRoute } from './worker/reviews/routes.js';
 import { maybeHandleAnalyticsRoute } from './worker/analytics/routes.js';
@@ -3035,7 +3034,6 @@ export default {
             () => maybeHandlePancakeRoute(routeContext),
             () => maybeHandleDeplaoRoute(routeContext),
             () => maybeHandleVatRoute(routeContext),
-            () => maybeHandlePosRoute(routeContext),
             () => maybeHandleAdminD1Route(routeContext),
             () => maybeHandleReviewRoute(routeContext),
             () => maybeHandleAnalyticsRoute(routeContext),
