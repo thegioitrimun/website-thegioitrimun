@@ -85,13 +85,27 @@ const formatDateTime = (value?: string | null) => {
   }).format(date);
 };
 
-const MetricTile: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => (
-  <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-4 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all hover:border-primary/40 dark:border-white/10">
-    <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-    <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground font-mono tracking-tight">{value}</p>
-    {hint ? <p className="mt-1.5 text-xs text-muted-foreground line-clamp-1">{hint}</p> : null}
-  </div>
-);
+const MetricTile: React.FC<{ label: string; value: string; hint?: string }> = ({ label, value, hint }) => {
+  const isLongValue = value.length > 8;
+  return (
+    <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 p-3.5 sm:p-5 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl transition-all hover:border-primary/40 dark:border-white/10 overflow-hidden min-w-0">
+      <p className="text-[10px] sm:text-[10.5px] font-bold uppercase tracking-[0.18em] text-muted-foreground truncate">{label}</p>
+      <p
+        className={`mt-1.5 sm:mt-2 font-black text-foreground font-mono tracking-tight truncate leading-tight ${
+          isLongValue ? 'text-base sm:text-xl lg:text-2xl' : 'text-2xl sm:text-3xl'
+        }`}
+        title={value}
+      >
+        {value}
+      </p>
+      {hint ? (
+        <p className="mt-1 sm:mt-1.5 text-[11px] sm:text-xs text-muted-foreground truncate" title={hint}>
+          {hint}
+        </p>
+      ) : null}
+    </div>
+  );
+};
 
 const parseRecipients = (value: string): string[] =>
   Array.from(
