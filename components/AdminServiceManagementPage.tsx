@@ -113,8 +113,8 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
     <div className="space-y-4 -mx-3 sm:mx-0">
       {/* Unified Filter & Action Card (Apple Glass Standard) */}
       <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 p-3 sm:p-4 mx-1 sm:mx-0">
-        {/* Row 1: Preset Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {/* Row 1: Preset Pills (Desktop only, hidden on mobile) */}
+        <div className="hidden lg:flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold bg-primary text-primary-foreground shadow-xs transition-all active:scale-95"
@@ -127,7 +127,7 @@ const AdminServiceManagementPage: React.FC<AdminServiceManagementPageProps> = ({
         </div>
 
         {/* Row 2: Search + Add Service Button */}
-        <div className="mt-2 flex items-center gap-1.5 sm:gap-2">
+        <div className="lg:mt-2 flex items-center gap-1.5 sm:gap-2">
           <div className="relative flex-1">
             <input
               type="text"
