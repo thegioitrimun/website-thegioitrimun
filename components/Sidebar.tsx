@@ -60,11 +60,11 @@ const Sidebar: React.FC<SidebarProps> = ({
             document.body.style.overflow = 'hidden';
             return restoreBodyScroll;
         } else {
+            restoreBodyScroll();
             const timer = setTimeout(() => {
                 setIsRendered(false);
-                restoreBodyScroll();
                 setMode('nav'); // Reset mode when sidebar is fully closed
-            }, 1000);
+            }, 500);
             return () => clearTimeout(timer);
         }
     }, [isOpen, restoreBodyScroll]);
@@ -94,17 +94,17 @@ const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <div
-            className="fixed inset-0 z-[100]"
+            className={`fixed inset-0 z-[100] ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
             aria-labelledby="slide-over-title"
             role="dialog"
             aria-modal="true"
         >
             <div
-                className={`absolute inset-0 bg-transparent ${isOpen ? 'drawer-overlay-enter' : 'drawer-overlay-exit'}`}
+                className={`absolute inset-0 bg-transparent ${isOpen ? 'drawer-overlay-enter pointer-events-auto' : 'drawer-overlay-exit pointer-events-none'}`}
                 onClick={onClose}
             ></div>
 
-            <div className={`fixed inset-y-0 left-0 flex max-w-full pr-10 ${isOpen ? 'drawer-slide-in-left' : 'drawer-slide-out-left'}`}>
+            <div className={`fixed inset-y-0 left-0 flex max-w-full pr-10 ${isOpen ? 'drawer-slide-in-left pointer-events-auto' : 'drawer-slide-out-left pointer-events-none'}`}>
                 <div className="relative w-screen max-w-sm">
                     <button
                         type="button"

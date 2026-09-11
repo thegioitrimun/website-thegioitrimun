@@ -26,17 +26,21 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
   };
 
   useEffect(() => {
+    if (!isOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         closeDropdown();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 0);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      clearTimeout(timer);
+      document.removeEventListener('click', handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
   const handleNavigation = (page: UserPage) => {
     onNavigate({ page });
@@ -72,7 +76,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
     },
   ];
 
-  const triggerClass = `utility-trigger h-10 w-10 shrink-0 overflow-hidden p-0 ${isOpen ? 'is-active' : ''}`;
+  const triggerClass = `utility-trigger h-10 w-10 shrink-0 overflow-hidden p-0 cursor-pointer touch-manipulation select-none ${isOpen ? 'is-active' : ''}`;
 
   const MenuContent = () => (
     <>
@@ -84,13 +88,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
         <div className="space-y-1 p-1.5">
           {loggedInMenuItems.map((item) => (
             <button
+              type="button"
               key={item.label}
               onClick={item.action}
-              className="utility-popover-item text-popover-foreground"
+              className="utility-popover-item text-popover-foreground cursor-pointer touch-manipulation"
               role="menuitem"
             >
-              <span className="text-muted-foreground">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="text-muted-foreground pointer-events-none">{item.icon}</span>
+              <span className="pointer-events-none">{item.label}</span>
             </button>
           ))}
         </div>
@@ -99,13 +104,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
         <div className="border-t border-border p-1.5">
           {adminMenuItems.map((item) => (
             <button
+              type="button"
               key={item.label}
               onClick={item.action}
-              className="utility-popover-item text-popover-foreground"
+              className="utility-popover-item text-popover-foreground cursor-pointer touch-manipulation"
               role="menuitem"
             >
-              <span className="text-muted-foreground">{item.icon}</span>
-              <span>{item.label}</span>
+              <span className="text-muted-foreground pointer-events-none">{item.icon}</span>
+              <span className="pointer-events-none">{item.label}</span>
             </button>
           ))}
         </div>
@@ -113,12 +119,13 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
 
       <div className="border-t border-border p-1.5">
         <button
+          type="button"
           onClick={handleAuthAction}
-          className="utility-popover-item text-destructive hover:bg-destructive/10"
+          className="utility-popover-item text-destructive hover:bg-destructive/10 cursor-pointer touch-manipulation"
           role="menuitem"
         >
-          <LogoutIcon className="w-5 h-5 text-destructive" />
-          <span>{user ? t('common.logout') : t('common.login')}</span>
+          <LogoutIcon className="w-5 h-5 text-destructive pointer-events-none" />
+          <span className="pointer-events-none">{user ? t('common.logout') : t('common.login')}</span>
         </button>
       </div>
     </>
@@ -133,7 +140,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
         title={t('common.login')}
         className={`hidden md:inline-flex ${triggerClass}`}
       >
-        <UserIcon className="utility-trigger-icon" />
+        <UserIcon className="utility-trigger-icon pointer-events-none" />
       </button>
     )
   }
@@ -141,6 +148,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={triggerClass}
         aria-label={t('common.open_user_menu')}
@@ -149,9 +157,9 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
         title={t('common.user_account')}
       >
         {user && user.profile.avatar_url ? (
-          <img src={user.profile.avatar_url} alt={user.profile.name} className="block h-full w-full object-cover" />
+          <img src={user.profile.avatar_url} alt={user.profile.name} className="pointer-events-none block h-full w-full object-cover" />
         ) : (
-          <UserIcon className="utility-trigger-icon" />
+          <UserIcon className="utility-trigger-icon pointer-events-none" />
         )}
       </button>
 

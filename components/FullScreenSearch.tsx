@@ -64,11 +64,11 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
             document.body.style.overflow = 'hidden';
             setTimeout(() => inputRef.current?.focus(), 100);
         } else {
+            document.body.style.overflow = '';
             const timer = setTimeout(() => {
                 setIsRendered(false);
-                document.body.style.overflow = '';
                 setSearchTerm('');
-            }, 1000);
+            }, 500);
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
@@ -307,9 +307,9 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
     if (!isRendered) return null;
 
     return (
-        <div className={`fixed inset-0 z-[100] bg-transparent ${isOpen ? 'drawer-overlay-enter' : 'drawer-overlay-exit'}`} role="dialog" aria-modal="true">
-            <div className={`absolute inset-0 bg-background/95`} onClick={onClose}></div>
-            <div className={`container relative z-10 mx-auto px-4 h-full flex flex-col ${isOpen ? 'search-slide-in' : 'search-slide-out'}`}>
+        <div className={`fixed inset-0 z-[100] bg-transparent ${isOpen ? 'drawer-overlay-enter pointer-events-auto' : 'drawer-overlay-exit pointer-events-none'}`} role="dialog" aria-modal="true">
+            <div className={`absolute inset-0 bg-background/95 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`} onClick={onClose}></div>
+            <div className={`container relative z-10 mx-auto px-4 h-full flex flex-col ${isOpen ? 'search-slide-in pointer-events-auto' : 'search-slide-out pointer-events-none'}`}>
                 {/* Header */}
                 <header className="flex-shrink-0 flex items-center justify-between pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4">
                     <div className="relative w-full">

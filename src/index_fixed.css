@@ -484,7 +484,15 @@
     border: 1px solid transparent;
     background: transparent;
     color: hsl(var(--foreground) / 0.72);
-    transition: all 0.26s ease;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.2s ease;
+  }
+
+  .utility-trigger svg {
+    pointer-events: none;
   }
 
   .utility-trigger:hover {
@@ -704,11 +712,15 @@
   }
 
   .btn-press {
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
     transition: transform 0.1s ease-out;
   }
 
   .btn-press:active {
-    transform: scale(0.95);
+    transform: scale(0.97);
   }
 
   /* For custom scrollbar aesthetics */

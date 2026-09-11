@@ -15,30 +15,35 @@ const SettingsDropdown: React.FC = () => {
     const { t } = useTranslation();
 
     useEffect(() => {
+        if (!isOpen) return;
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
+        const timer = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            clearTimeout(timer);
+            document.removeEventListener('click', handleClickOutside);
         };
-    }, []);
+    }, [isOpen]);
 
     const triggerClass = `utility-trigger ${isOpen ? 'is-active' : ''}`;
 
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={triggerClass}
+                className={`${triggerClass} cursor-pointer touch-manipulation select-none`}
                 aria-label={t('account.settings')}
                 aria-expanded={isOpen}
                 aria-haspopup="menu"
                 title={t('account.settings')}
             >
-                <CogIcon className="utility-trigger-icon" />
+                <CogIcon className="utility-trigger-icon pointer-events-none" />
             </button>
 
             <div
@@ -53,25 +58,28 @@ const SettingsDropdown: React.FC = () => {
                         <h4 className="text-sm font-semibold text-muted-foreground px-1 mb-2">{t('account.theme_mode')}</h4>
                         <div className="grid grid-cols-3 gap-2">
                             <button
+                                type="button"
                                 onClick={() => setTheme('light')}
-                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'light' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
+                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm cursor-pointer touch-manipulation ${theme === 'light' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
                             >
-                                <SunIcon className="w-5 h-5" />
-                                <span>{t('account.light')}</span>
+                                <SunIcon className="w-5 h-5 pointer-events-none" />
+                                <span className="pointer-events-none">{t('account.light')}</span>
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setTheme('dark')}
-                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'dark' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
+                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm cursor-pointer touch-manipulation ${theme === 'dark' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
                             >
-                                <MoonIcon className="w-5 h-5" />
-                                <span>{t('account.dark')}</span>
+                                <MoonIcon className="w-5 h-5 pointer-events-none" />
+                                <span className="pointer-events-none">{t('account.dark')}</span>
                             </button>
                             <button
+                                type="button"
                                 onClick={() => setTheme('system')}
-                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm ${theme === 'system' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
+                                className={`flex flex-col items-center justify-center gap-1 rounded-xl p-2 transition-colors text-sm cursor-pointer touch-manipulation ${theme === 'system' ? 'bg-primary/10 text-primary ring-1 ring-primary/25 font-semibold' : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'}`}
                             >
-                                <SystemIcon className="w-5 h-5" />
-                                <span>{t('account.system')}</span>
+                                <SystemIcon className="w-5 h-5 pointer-events-none" />
+                                <span className="pointer-events-none">{t('account.system')}</span>
                             </button>
                         </div>
                     </div>
@@ -82,17 +90,18 @@ const SettingsDropdown: React.FC = () => {
                         <div className="space-y-1">
                             {Object.keys(FONT_OPTIONS).map((fontKey) => (
                                 <button
+                                    type="button"
                                     key={fontKey}
                                     onClick={() => setFont(fontKey as Font)}
-                                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors duration-150 ${font === fontKey
+                                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-sm transition-colors duration-150 cursor-pointer touch-manipulation ${font === fontKey
                                         ? 'bg-primary/10 text-primary font-bold'
                                         : 'text-popover-foreground hover:bg-black/5 dark:hover:bg-white/10'
                                         }`}
                                     style={{ fontFamily: FONT_OPTIONS[fontKey as Font].stack }}
                                     role="menuitem"
                                 >
-                                    <span>{FONT_OPTIONS[fontKey as Font].label}</span>
-                                    {font === fontKey && <CheckIcon className="w-4 h-4" />}
+                                    <span className="pointer-events-none">{FONT_OPTIONS[fontKey as Font].label}</span>
+                                    {font === fontKey && <CheckIcon className="w-4 h-4 pointer-events-none" />}
                                 </button>
                             ))}
                         </div>

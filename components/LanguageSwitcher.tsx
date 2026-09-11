@@ -17,16 +17,20 @@ const LanguageSwitcher: React.FC = () => {
     const currentLang = LANGUAGES.find((lang) => lang.code === i18n.language) || LANGUAGES[0];
 
     useEffect(() => {
+        if (!isOpen) return;
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
+        const timer = setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+        }, 0);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            clearTimeout(timer);
+            document.removeEventListener('click', handleClickOutside);
         };
-    }, []);
+    }, [isOpen]);
 
     const changeLanguage = (code: string) => {
         i18n.changeLanguage(code);
@@ -38,14 +42,15 @@ const LanguageSwitcher: React.FC = () => {
     return (
         <div className="relative" ref={dropdownRef}>
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className={triggerClass}
+                className={`${triggerClass} cursor-pointer touch-manipulation select-none`}
                 aria-label={t('language.select', 'Chọn ngôn ngữ')}
                 aria-expanded={isOpen}
                 aria-haspopup="menu"
             >
-                <span className="utility-trigger-label">{currentLang.label}</span>
-                <ChevronDownIcon className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                <span className="utility-trigger-label pointer-events-none">{currentLang.label}</span>
+                <ChevronDownIcon className={`h-4 w-4 pointer-events-none transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <div
@@ -56,9 +61,10 @@ const LanguageSwitcher: React.FC = () => {
                 <div className="flex flex-col p-1.5">
                     {LANGUAGES.map((lang) => (
                         <button
+                            type="button"
                             key={lang.code}
                             onClick={() => changeLanguage(lang.code)}
-                            className={`utility-popover-item ${i18n.language === lang.code ? 'is-active font-bold' : ''
+                            className={`utility-popover-item cursor-pointer touch-manipulation ${i18n.language === lang.code ? 'is-active font-bold' : ''
                                 }`}
                             role="menuitem"
                         >

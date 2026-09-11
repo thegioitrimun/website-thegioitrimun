@@ -48,10 +48,10 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
             document.body.style.overflow = 'hidden';
             return restoreBodyScroll;
         } else {
+            restoreBodyScroll();
             const timer = setTimeout(() => {
                 setIsRendered(false);
-                restoreBodyScroll();
-            }, 1000);
+            }, 500);
             return () => clearTimeout(timer);
         }
     }, [isMiniCartOpen, restoreBodyScroll]);
@@ -68,13 +68,13 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
 
     return (
         <div
-            className="fixed inset-0 z-[100]"
+            className={`fixed inset-0 z-[100] ${isMiniCartOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
             aria-labelledby="mini-cart-title"
             role="dialog"
             aria-modal="true"
         >
             <div
-                className={`absolute inset-0 bg-transparent ${isMiniCartOpen ? 'drawer-overlay-enter' : 'drawer-overlay-exit'}`}
+                className={`absolute inset-0 bg-transparent ${isMiniCartOpen ? 'drawer-overlay-enter pointer-events-auto' : 'drawer-overlay-exit pointer-events-none'}`}
                 onClick={closeMiniCart}
             ></div>
 

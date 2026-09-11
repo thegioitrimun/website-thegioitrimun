@@ -1343,12 +1343,16 @@ const App: React.FC = () => {
     const handleNavLinkClick = (action: () => void, href?: string) => {
         action();
         if (href?.startsWith('#') && href.length > 1) {
-            setTimeout(() => {
-                const element = document.getElementById(decodeURIComponent(href.slice(1)));
+            const targetId = decodeURIComponent(href.slice(1));
+            const scrollToTarget = () => {
+                const element = document.getElementById(targetId);
                 if (element) {
                     element.scrollIntoView({ behavior: 'smooth' });
                 }
-            }, 50);
+            };
+            scrollToTarget();
+            setTimeout(scrollToTarget, 60);
+            setTimeout(scrollToTarget, 200);
         }
     };
 
@@ -1698,7 +1702,7 @@ const App: React.FC = () => {
             {!isAdminView ? (
             <header className={`fixed inset-x-0 top-0 z-50 will-change-transform transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
                 <div className="container relative mx-auto px-3 pt-[max(env(safe-area-inset-top,0px),0.625rem)] sm:px-4 sm:pt-[max(env(safe-area-inset-top,0px),0.75rem)] lg:px-6 lg:pt-[max(env(safe-area-inset-top,0px),1rem)]">
-                    <div className={`relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-all duration-500 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 ${
+                    <div className={`relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 ${
                         isAtTop
                             ? 'border border-transparent bg-transparent shadow-none'
                             : 'border border-white/65 bg-[rgba(255,255,255,0.72)] shadow-[0_20px_44px_-34px_rgba(36,46,57,0.16)] backdrop-blur-md dark:border-white/10 dark:bg-[rgba(15,23,34,0.78)] dark:shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:bg-[rgba(255,255,255,0.65)] lg:shadow-[0_26px_56px_-34px_rgba(36,46,57,0.18)] lg:dark:bg-[rgba(15,23,34,0.74)] lg:dark:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)]'
@@ -1709,8 +1713,9 @@ const App: React.FC = () => {
                         </div>
                         <div className="relative z-10 flex min-w-0 items-center gap-1.5 sm:gap-2.5 lg:gap-4">
                             <button
+                                type="button"
                                 onClick={() => setSidebarOpen(true)}
-                                className={`rounded-full p-2 transition-colors duration-500 hover:bg-accent hover:text-primary focus:outline-none btn-press lg:hidden ${
+                                className={`rounded-full p-2 transition-colors duration-200 hover:bg-accent hover:text-primary focus:outline-none btn-press lg:hidden cursor-pointer touch-manipulation select-none ${
                                     isHomeInvertedHeader
                                         ? 'text-slate-900 dark:text-slate-900'
                                         : 'text-foreground dark:text-white'
@@ -1718,7 +1723,7 @@ const App: React.FC = () => {
                                 aria-label={t('common.open_menu')}
                             >
                                 <span className="sr-only">{t('common.open_menu')}</span>
-                                <MenuIcon className="w-6 h-6" />
+                                <MenuIcon className="w-6 h-6 pointer-events-none" />
                             </button>
 
                             <a href="#" onClick={(e) => { e.preventDefault(); handleNavLinkClick(() => setView({ page: 'main' }), '#home'); }} className="flex min-w-0 items-center gap-2 lg:max-w-[340px] lg:gap-3">
@@ -1734,7 +1739,7 @@ const App: React.FC = () => {
                                         height="96"
                                         src={headerLogoUrl}
                                         alt="Da Liễu Nhiệt Đới Phú Quốc Logo"
-                                        className={`${isHomeInvertedHeader ? 'block' : 'dark:hidden'} h-9 w-9 object-contain lg:h-10 lg:w-10`}
+                                        className={`${isHomeInvertedHeader ? 'block' : 'dark:hidden'} h-9 w-9 object-contain lg:h-10 lg:w-10 pointer-events-none`}
                                     />
                                     {!isHomeInvertedHeader && (
                                         <img
@@ -1744,11 +1749,11 @@ const App: React.FC = () => {
                                             height="96"
                                             src={headerLogoDarkUrl}
                                             alt="Da Liễu Nhiệt Đới Phú Quốc Logo"
-                                            className="hidden dark:block h-9 w-9 object-contain lg:h-10 lg:w-10"
+                                            className="hidden dark:block h-9 w-9 object-contain lg:h-10 lg:w-10 pointer-events-none"
                                         />
                                     )}
                                 </span>
-                                <div className="min-w-0 flex flex-col items-center text-center leading-[1.15]">
+                                <div className="min-w-0 flex flex-col items-center text-center leading-[1.15] select-none">
                                     <span className={`block whitespace-nowrap font-['Playfair_Display',_serif] text-[11px] font-black tracking-[-0.01em] transition-colors duration-500 sm:text-[13px] lg:text-[15px] ${
                                         isHomeInvertedHeader
                                             ? 'text-slate-900 dark:text-slate-900'
@@ -1772,9 +1777,10 @@ const App: React.FC = () => {
                                 const isLinkActive = (view.page === 'main' && link.href === '#home') || (view.page === 'services' && link.name === t('nav.services')) || (view.page === 'about' && link.name === t('nav.about')) || ((view.page === 'products' || view.page === 'productsCategory' || view.page === 'brands' || view.page === 'brandLanding') && link.name === t('nav.pharmacy')) || ((view.page === 'blog' || view.page === 'blogCategory') && link.name === t('nav.knowledge'));
                                 return (
                                     <button
+                                        type="button"
                                         key={link.name}
                                         onClick={() => handleNavLinkClick(link.action, link.href)}
-                                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-500 ${
+                                        className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none ${
                                             isLinkActive
                                                 ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
                                                 : isHomeInvertedHeader
@@ -1792,8 +1798,13 @@ const App: React.FC = () => {
                             <div className={`inline-flex items-center gap-1 rounded-full bg-transparent px-1.5 py-1.5 transition-colors duration-500 sm:px-2 ${
                                 isHomeInvertedHeader ? 'text-slate-800 dark:text-slate-900' : 'text-foreground/78 dark:text-white/85'
                             }`}>
-                                <button onClick={handleOpenSearch} className={`utility-trigger btn-press ${isSearchOpen ? 'is-active' : ''}`} aria-label="Tìm kiếm">
-                                    <SearchIcon className="utility-trigger-icon" />
+                                <button
+                                    type="button"
+                                    onClick={handleOpenSearch}
+                                    className={`utility-trigger btn-press cursor-pointer touch-manipulation select-none ${isSearchOpen ? 'is-active' : ''}`}
+                                    aria-label="Tìm kiếm"
+                                >
+                                    <SearchIcon className="utility-trigger-icon pointer-events-none" />
                                 </button>
                                 <div className={`utility-divider hidden lg:block transition-colors duration-500 ${isHomeInvertedHeader ? 'bg-slate-300 dark:bg-slate-400' : ''}`} />
                                 <div className="hidden lg:block">
@@ -1806,16 +1817,25 @@ const App: React.FC = () => {
                                 <div className="hidden lg:block">
                                     <UserAvatar user={currentUser} onGoToAuth={() => setView({ page: 'auth' })} onLogout={handleLogout} onNavigate={(page) => setView(page as any)} />
                                 </div>
-                                <button onClick={openMiniCart} className={`utility-trigger relative btn-press ${isMiniCartOpen ? 'is-active' : ''}`} aria-label="Giỏ hàng">
-                                    <ShoppingBagIcon className="utility-trigger-icon" />
+                                <button
+                                    type="button"
+                                    onClick={openMiniCart}
+                                    className={`utility-trigger relative btn-press cursor-pointer touch-manipulation select-none ${isMiniCartOpen ? 'is-active' : ''}`}
+                                    aria-label="Giỏ hàng"
+                                >
+                                    <ShoppingBagIcon className="utility-trigger-icon pointer-events-none" />
                                     {itemCount > 0 && (
-                                        <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                                        <span className="pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
                                             {itemCount}
                                         </span>
                                     )}
                                 </button>
                             </div>
-                            <button onClick={() => onRequestBooking()} className="hidden min-h-[48px] whitespace-nowrap items-center rounded-full bg-secondary/92 px-5 text-sm font-bold text-secondary-foreground shadow-[0_18px_40px_-28px_rgba(255,127,93,0.46)] transition-all-smooth hover:-translate-y-0.5 hover:brightness-95 lg:inline-flex btn-press">
+                            <button
+                                type="button"
+                                onClick={() => onRequestBooking()}
+                                className="hidden min-h-[48px] whitespace-nowrap items-center rounded-full bg-secondary/92 px-5 text-sm font-bold text-secondary-foreground shadow-[0_18px_40px_-28px_rgba(255,127,93,0.46)] transition-all-smooth hover:-translate-y-0.5 hover:brightness-95 lg:inline-flex btn-press cursor-pointer touch-manipulation select-none"
+                            >
                                 {t('nav.book_appointment')}
                             </button>
                         </div>
