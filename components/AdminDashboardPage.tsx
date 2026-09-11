@@ -270,7 +270,7 @@ const TrendBoard: React.FC<{
           <p className="mt-1 text-sm text-muted-foreground">Trên mỗi cụm kỳ</p>
         </div>
       </div>
-      <div className="rounded-[1.75rem] border border-border/70 bg-secondary/35 p-4">
+      <div className="rounded-[1.75rem] border border-border/70 bg-muted/30 dark:bg-black/20 p-4">
         <svg viewBox="0 0 640 220" className="h-52 w-full" role="img" aria-label="Biểu đồ xu hướng doanh thu">
           <defs>
             <linearGradient id="dashboardTrendArea" x1="0" x2="0" y1="0" y2="1">
@@ -368,7 +368,7 @@ const RankedBarChart: React.FC<{
                 </div>
                 <p className="shrink-0 text-sm font-bold text-foreground tabular-nums">{row.valueLabel}</p>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-secondary/80" aria-hidden="true">
+              <div className="h-3 overflow-hidden rounded-full bg-muted/60 dark:bg-white/10" aria-hidden="true">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ease-out ${barClasses} group-hover/row:brightness-105`}
                   style={{ width: row.value > 0 ? `${Math.max(5, (row.value / maxValue) * 100)}%` : '0%' }}
@@ -412,10 +412,10 @@ const RevenueComparisonChart: React.FC<{
                 <AnimatedCounter value={row.value} formatter={formatCurrency} />
               </p>
             </div>
-            <div className="h-5 overflow-hidden rounded-full bg-secondary md:h-6">
+            <div className="h-4 overflow-hidden rounded-full bg-muted/60 dark:bg-white/10 sm:h-5">
               <div
                 className={`h-full rounded-full transition-all duration-700 ease-out ${row.color} group-hover/row:brightness-105`}
-                style={{ width: row.value > 0 ? `${Math.max(6, (row.value / maxValue) * 100)}%` : '0%' }}
+                style={{ width: row.value > 0 ? `${Math.max(4, (row.value / maxValue) * 100)}%` : '0%' }}
               />
             </div>
           </div>
@@ -665,7 +665,7 @@ const MiniLeaderboard: React.FC<{
         <p className="text-sm text-muted-foreground">Chưa có dữ liệu trong khoảng thời gian này.</p>
       ) : (
         rows.map((row, index) => (
-          <div key={`${row.label}-${index}`} className="flex items-center justify-between gap-4 rounded-[1.4rem] border border-border/70 bg-background px-4 py-3.5 transition-colors hover:border-primary/30 hover:bg-secondary/30">
+          <div key={`${row.label}-${index}`} className="flex items-center justify-between gap-4 rounded-[1.4rem] border border-border/70 bg-background px-4 py-3.5 transition-colors hover:border-primary/30 hover:bg-muted/50">
             <div className="min-w-0">
               <div className="flex items-center gap-3">
                 <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
@@ -710,7 +710,7 @@ const QuickActionGrid: React.FC<{
         <button
           key={`${link.target.page}-${'action' in link.target ? link.target.action || 'default' : 'default'}`}
           onClick={() => onNavigate(link.target)}
-          className="group flex h-full flex-col rounded-[1.5rem] border border-border/80 bg-background px-5 py-5 text-left shadow-[0_12px_24px_-24px_rgba(28,24,18,0.4)] transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-secondary/25"
+          className="group flex h-full flex-col rounded-[1.5rem] border border-border/80 bg-background px-5 py-5 text-left shadow-[0_12px_24px_-24px_rgba(28,24,18,0.4)] transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-muted/50 dark:hover:bg-white/[0.04]"
         >
           <div className="flex items-start justify-between gap-4">
             <div className="rounded-2xl bg-primary/10 p-3 text-primary">{link.icon}</div>
@@ -837,7 +837,7 @@ const TodayWorkBoard: React.FC<{
           key={item.label}
           type="button"
           onClick={item.onClick}
-          className="rounded-[1.5rem] border border-border/80 bg-background px-5 py-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-secondary/20"
+          className="rounded-[1.5rem] border border-border/80 bg-background px-5 py-5 text-left transition-all hover:-translate-y-0.5 hover:border-primary/35 hover:bg-muted/50 dark:hover:bg-white/[0.04]"
         >
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">{item.label}</p>

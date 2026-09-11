@@ -269,10 +269,10 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen animate-scale-in bg-[linear-gradient(135deg,#ffecee_0%,#fff3e6_20%,#fffbea_40%,#ecfdf5_60%,#eff6ff_80%,#f5f3ff_100%)] dark:bg-[linear-gradient(135deg,#2e1010_0%,#2e1f10_20%,#2e2910_40%,#102e1f_60%,#101f2e_80%,#1f102e_100%)] text-foreground transition-colors duration-300">
-      <div className="mx-auto max-w-[1680px] px-3 pb-10 pt-3 sm:px-4 md:px-6 lg:py-6 xl:px-8">
+    <div className="min-h-screen animate-scale-in bg-slate-50/80 dark:bg-[#0b0f17] text-foreground transition-colors duration-300">
+      <div className="mx-auto max-w-[1680px] px-3 sm:px-4 md:px-6 lg:py-6 xl:px-8 pt-0 sm:pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)]">
         {/* COMPACT MOBILE HEADER */}
-        <div className="sticky top-0 z-30 -mx-3 mb-4 border-b border-white/40 dark:border-white/10 bg-white/95 dark:bg-black/90 px-3 py-2.5 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.05)] md:-mx-6 md:px-6 lg:hidden">
+        <div className="sticky top-0 z-30 -mx-3 mb-4 border-b border-white/40 dark:border-white/10 bg-white/95 dark:bg-[#0b0f17]/95 px-3 pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-2.5 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.05)] md:-mx-6 md:px-6 lg:hidden">
           <div className="flex items-center justify-between gap-3">
             <button
               type="button"
@@ -312,7 +312,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
 
             {/* Drawer Content */}
             <div
-              className={`absolute bottom-0 right-0 top-0 w-[280px] max-w-[80vw] overflow-y-auto bg-card p-4 shadow-2xl transition-transform duration-300 ease-in-out ${
+              className={`absolute bottom-0 right-0 top-0 w-[280px] max-w-[80vw] overflow-y-auto bg-card p-4 pt-[max(env(safe-area-inset-top,0px),1rem)] pb-[max(env(safe-area-inset-bottom,0px),1rem)] shadow-2xl transition-transform duration-300 ease-in-out ${
                 isMobileDrawerOpen ? 'translate-x-0' : 'translate-x-full'
               }`}
             >
@@ -458,8 +458,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               <AnimatedSection className="mb-4 lg:mb-0">
 
                 {taskItems && taskItems.length > 0 ? (
-                  <div className="lg:hidden bg-transparent">
-                    <div className="flex snap-x overflow-x-auto hide-scrollbar gap-1.5 pb-1 xl:flex-wrap xl:overflow-visible">
+                  <div className="lg:hidden bg-transparent mb-3.5">
+                    <div className="flex items-center overflow-x-auto hide-scrollbar gap-1.5 px-0.5 pb-1 -mx-0.5 overscroll-x-contain">
                       {taskItems.map((item) => {
                         const isActive = item.key === activeTaskKey;
                         return (
@@ -473,10 +473,10 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                                 onNavigate(item.view);
                               }
                             }}
-                            className={`shrink-0 snap-start rounded-full border px-4 py-2 text-sm font-semibold transition-all xl:w-auto ${
+                            className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                               isActive
-                                ? 'border-primary bg-primary text-primary-foreground shadow-sm'
-                                : 'border-border/50 bg-card text-muted-foreground hover:bg-muted hover:text-foreground'
+                                ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+                                : 'border-border/60 bg-card/90 text-muted-foreground hover:bg-muted hover:text-foreground'
                             }`}
                             title={item.hint || item.label}
                           >
