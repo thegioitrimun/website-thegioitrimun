@@ -1,3 +1,5 @@
+import { maybeHandleAdminPushRoute } from './worker/adminPush/routes.js';
+import { dispatchAdminPushBestEffort } from './worker/adminPush/dispatcher.js';
 // Cloudflare Pages Worker — SEO + Social Link Preview
 // 1. Dynamic sitemap.xml from Cloudflare D1 data
 // 2. Bot detection → OG meta tags for social sharing
@@ -3015,6 +3017,14 @@ export default {
         const routeContext = { request, env, ctx, url, path, host, seoLang, botRequest };
         const publicDataFetch = createPublicDataFetch(env);
 
+        if (path === '/admin/sw.js') {
+            const response = await env.ASSETS.fetch(request);
+            const headers = new Headers(response.headers);
+            headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+            headers.set('Service-Worker-Allowed', '/admin/');
+            return withSecurityHeaders(new Response(response.body, { status: response.status, headers }));
+        }
+
         if (path === '/favicon.ico') {
             const faviconUrl = new URL('/icons/da-lieu-nhiet-doi-phu-quoc-48.png?v=clinic-20260906', request.url);
             const faviconResponse = await env.ASSETS.fetch(new Request(faviconUrl.toString(), request));
@@ -3030,6 +3040,7 @@ export default {
 
         const routeModules = [
             () => maybeHandleAuthRoute(routeContext),
+            () => maybeHandleAdminPushRoute(routeContext),
             () => maybeHandleD1CommerceRoute(routeContext),
             () => maybeHandleSepayRoute(routeContext),
             () => maybeHandleGhtkRoute(routeContext),
@@ -3224,6 +3235,9 @@ export default {
         for (const resolveRoute of routeModules) {
             const response = await resolveRoute();
             if (response) {
+                if (request.method === 'POST' && response.ok && (path === '/api/orders' || path === '/api/admin/orders')) {
+                    ctx.waitUntil(dispatchAdminPushBestEffort(env));
+                }
                 return withSecurityHeaders(response);
             }
         }
@@ -3261,6 +3275,7 @@ export default {
     async scheduled(_controller, env, ctx) {
         applyRuntimeConfig(env);
         ctx.waitUntil(Promise.allSettled([
+            dispatchAdminPushBestEffort(env),
             syncD1ProductIngredientSnapshots(env, {
                 productLimit: 30,
             }).then((summary) => {

@@ -2,8 +2,8 @@
   "name": "Thế Giới Trị Mụn — Admin Workspace",
   "short_name": "TGTM Admin",
   "description": "Hệ thống quản trị chuyên sâu phòng khám & nhà thuốc Thế Giới Trị Mụn",
-  "start_url": "/admin",
-  "scope": "/admin",
+  "start_url": "/admin/",
+  "scope": "/admin/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0b0f17",
@@ -45,5 +45,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "/admin"
 }

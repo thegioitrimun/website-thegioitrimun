@@ -1,3 +1,5 @@
+import AdminPushNotifications from './AdminPushNotifications';
+import { disableAdminPush } from './pushClient';
 import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '../hooks/useToast';
@@ -180,6 +182,7 @@ export const AdminApp: React.FC = () => {
 
   const handleLogout = async () => {
     try {
+      await disableAdminPush().catch(() => {});
       await api.logout();
       setAuthState({ status: 'unauthenticated' });
       addToast('Đã đăng xuất khỏi phiên quản trị', { type: 'info' });
@@ -891,6 +894,7 @@ export const AdminApp: React.FC = () => {
         currentUser={currentUser}
         onLogout={handleLogout}
       >
+        {['admin', 'master_admin'].includes(currentRole) && <AdminPushNotifications onNavigate={setView} />}
         <Suspense fallback={
           <div className="flex min-h-[50vh] items-center justify-center" role="status">
             <span className="text-sm text-muted-foreground">Đang tải phân hệ...</span>
