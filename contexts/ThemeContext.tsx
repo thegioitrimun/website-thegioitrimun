@@ -47,6 +47,12 @@ function ThemeProvider({
           window.matchMedia('(prefers-color-scheme: dark)').matches);
 
       root.classList.toggle('dark', isDark);
+      root.style.backgroundColor = isDark ? '#0b0f17' : '#ffffff';
+
+      const themeMeta = document.getElementById('theme-color-meta');
+      if (themeMeta) {
+        themeMeta.setAttribute('content', isDark ? '#0b0f17' : '#ffffff');
+      }
     };
 
     applyTheme(theme);

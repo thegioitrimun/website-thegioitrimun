@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" style="scroll-behavior: smooth;">
+<html lang="vi" class="bg-background dark:bg-[#0b0f17]" style="scroll-behavior: smooth; overscroll-behavior-y: none;">
 
 <head>
   <meta charset="UTF-8" />
@@ -52,7 +52,9 @@
 
   <!-- Web App Manifest -->
   <link rel="manifest" href="/manifest.json?v=clinic-20260906" />
-  <meta name="theme-color" content="#ffffff" />
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0b0f17" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
 
   <!-- iOS support -->
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260906" />
@@ -94,9 +96,15 @@
       const colorTheme = localStorage.getItem('iskin-clinic-color-theme') || 'teal';
       const root = document.documentElement;
 
-      const isDark = theme === 'dark';
+      const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       root.classList.toggle('dark', isDark);
       root.classList.add(`theme-${colorTheme}`);
+      root.style.backgroundColor = isDark ? '#0b0f17' : '#ffffff';
+
+      const themeMeta = document.getElementById('theme-color-meta');
+      if (themeMeta) {
+        themeMeta.setAttribute('content', isDark ? '#0b0f17' : '#ffffff');
+      }
     })();
     // IIFE to set font instantly, preventing FOUC
     (function () {
