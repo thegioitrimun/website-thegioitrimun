@@ -676,12 +676,12 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               className={`w-[76px] overflow-hidden bg-white/95 dark:bg-black/90 transition-[width] duration-300 ease-in-out rounded-[1.5rem] backdrop-blur-2xl p-2 shadow-lg flex flex-col justify-between min-h-[calc(100vh-3rem)] ${!isTemporarilyCollapsed ? 'group-hover/sidebar:w-[248px] xl:group-hover/sidebar:w-[268px]' : ''}`}
             >
               <div>
-                <div className="mb-3 flex items-center gap-3 rounded-[1.15rem] p-2">
+                <div className={`mb-3 flex items-center rounded-[1.15rem] p-2 transition-all duration-300 ${!isTemporarilyCollapsed ? 'justify-center group-hover/sidebar:justify-start group-hover/sidebar:gap-3' : 'justify-center'}`}>
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center">
                     <img src="/icons/admin-logo.svg" alt="Admin" className="h-8 w-8 object-contain dark:hidden" />
                     <img src="/icons/admin-logo-dark.svg" alt="Admin" className="hidden h-8 w-8 object-contain dark:block" />
                   </div>
-                  <div className={`min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-300 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
+                  <div className={`min-w-0 flex-1 whitespace-nowrap transition-all duration-300 ${!isTemporarilyCollapsed ? 'hidden group-hover/sidebar:block opacity-0 group-hover/sidebar:opacity-100' : 'hidden'}`}>
                     <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Admin</p>
                     <h2 className="mt-1 truncate text-lg font-black text-foreground">Điều hướng</h2>
                   </div>
