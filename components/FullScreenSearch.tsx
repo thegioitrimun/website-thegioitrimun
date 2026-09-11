@@ -311,7 +311,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
             <div className={`absolute inset-0 bg-background/95`} onClick={onClose}></div>
             <div className={`container relative z-10 mx-auto px-4 h-full flex flex-col ${isOpen ? 'search-slide-in' : 'search-slide-out'}`}>
                 {/* Header */}
-                <header className="flex-shrink-0 flex items-center justify-between py-4">
+                <header className="flex-shrink-0 flex items-center justify-between pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4">
                     <div className="relative w-full">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input

@@ -1104,7 +1104,7 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                 <div aria-hidden="true" className="homepage-hero-gradient pointer-events-none absolute inset-0 z-[1]" />
                 <div aria-hidden="true" className="homepage-hero-focus pointer-events-none absolute inset-0 z-[1]" />
 
-                <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pb-14 pt-28 text-center sm:px-6 sm:pb-20 sm:pt-32">
+                <div className="relative z-10 flex min-h-[100svh] flex-col items-center justify-center px-5 pb-14 pt-[calc(env(safe-area-inset-top,0px)+5.5rem)] text-center sm:px-6 sm:pb-20 sm:pt-32">
                     <h1
                         data-testid="homepage-hero-title"
                         className="homepage-hero-copy max-w-6xl animate-fade-rise font-['Playfair_Display',_serif] text-[clamp(1.65rem,6.8vw,6.75rem)] sm:text-[clamp(2.5rem,7vw,6.75rem)] font-[700] leading-[0.95] tracking-[-0.02em] normal-case text-foreground"

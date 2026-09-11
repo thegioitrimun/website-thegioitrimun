@@ -108,14 +108,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="relative w-screen max-w-sm">
                     <button
                         type="button"
-                        className={`absolute top-4 right-0 -mr-12 p-2 rounded-md text-gray-300 hover:text-white focus:outline-none transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+                        className={`absolute top-[max(env(safe-area-inset-top,0px),1rem)] right-0 -mr-12 p-2 rounded-md text-gray-300 hover:text-white focus:outline-none transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
                         onClick={onClose}
                     >
                         <span className="sr-only">{t('common.close')}</span>
                         <CloseIcon className="h-7 w-7" aria-hidden="true" />
                     </button>
 
-                    <div className="flex h-full flex-col overflow-y-auto overscroll-contain bg-[rgba(255,255,255,0.7)] text-foreground py-6 shadow-[24px_0_48px_-12px_rgba(0,0,0,0.1)] backdrop-blur-2xl border-r border-white/60 dark:bg-[rgba(15,23,34,0.65)] dark:border-white/10 dark:shadow-[24px_0_48px_-12px_rgba(0,0,0,0.5)] [-webkit-overflow-scrolling:touch]">
+                    <div className="flex h-full flex-col overflow-y-auto overscroll-contain bg-[rgba(255,255,255,0.7)] text-foreground pt-[max(env(safe-area-inset-top,0px),1.5rem)] pb-[max(env(safe-area-inset-bottom,0px),1.5rem)] shadow-[24px_0_48px_-12px_rgba(0,0,0,0.1)] backdrop-blur-2xl border-r border-white/60 dark:bg-[rgba(15,23,34,0.65)] dark:border-white/10 dark:shadow-[24px_0_48px_-12px_rgba(0,0,0,0.5)] [-webkit-overflow-scrolling:touch]">
                         <div className="px-4 sm:px-6">
                             {mode === 'nav' ? (
                                 <h2 className="text-2xl font-bold text-black dark:text-white font-heading text-center">

@@ -81,11 +81,11 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
             <div className={`fixed inset-y-0 right-0 flex max-w-full pl-10 ${isMiniCartOpen ? 'drawer-slide-in-right' : 'drawer-slide-out-right'}`}>
                 <div className="relative w-screen max-w-md">
                     <div className="flex h-full flex-col overflow-hidden bg-[rgba(255,255,255,0.7)] text-foreground shadow-[24px_0_48px_-12px_rgba(0,0,0,0.1)] backdrop-blur-2xl border-l border-white/60 dark:bg-[rgba(15,23,34,0.65)] dark:border-white/10 dark:shadow-[24px_0_48px_-12px_rgba(0,0,0,0.5)]">
-                        <div className="flex items-center px-4 py-4 sm:px-6 border-b border-border relative">
+                        <div className="flex items-center px-4 pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4 sm:px-6 border-b border-border relative">
                             <h2 id="mini-cart-title" className="text-lg font-bold text-foreground w-full text-center">{t('cart.title')} ({itemCount})</h2>
                             <button
                                 type="button"
-                                className="absolute right-4 sm:right-6 p-2 rounded-md text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
+                                className="absolute right-4 sm:right-6 top-[max(env(safe-area-inset-top,0px),0.75rem)] p-2 rounded-md text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
                                 onClick={closeMiniCart}
                             >
                                 <span className="sr-only">{t('cart.close')}</span>
@@ -131,7 +131,7 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
                         </div>
 
                         {cartItems.length > 0 && (
-                            <div className="px-4 py-6 sm:px-6">
+                            <div className="px-4 pt-4 pb-[max(env(safe-area-inset-bottom,0px),1.5rem)] sm:px-6 border-t border-border/40">
                                 <div className="flex justify-between text-base font-medium text-foreground">
                                     <p>{t('cart.total')}</p>
                                     <p>{formatCurrency(total)}</p>
