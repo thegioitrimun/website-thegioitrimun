@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { loginWithOAuth } from '../services/api';
-import { ArrowLeftIcon, SparklesIcon, ShieldCheckIcon } from '../components/icons';
+import { ArrowLeftIcon, SparklesIcon, ShieldCheckIcon, SunIcon, MoonIcon } from '../components/icons';
+import { useTheme } from '../hooks/useTheme';
 
 type AdminLoginPageProps = {
   onLoginSuccess?: () => void;
@@ -10,6 +11,7 @@ type AdminLoginPageProps = {
 
 export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError }) => {
   const { t } = useTranslation();
+  const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(propError || null);
 
@@ -26,6 +28,18 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
 
   return (
     <div className="relative min-h-[100svh] w-full flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-background text-foreground transition-colors duration-300">
+      {/* Theme toggle in top right */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          type="button"
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="flex h-10 w-10 items-center justify-center rounded-2xl border border-border/80 bg-card/80 text-muted-foreground backdrop-blur-xl transition-all hover:border-primary/40 hover:text-foreground dark:border-white/10 dark:bg-[#151f30]/80 shadow-sm btn-press"
+          title={theme === 'dark' ? 'Chuyển sang chế độ sáng' : 'Chuyển sang chế độ tối'}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+        </button>
+      </div>
       {/* Ambient background glow */}
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[560px] rounded-full bg-primary/15 blur-[120px] dark:bg-primary/20" />
       <div className="pointer-events-none absolute -bottom-32 right-10 h-72 w-72 rounded-full bg-secondary/10 blur-[100px] dark:bg-teal-500/10" />
@@ -74,7 +88,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
-              className="group relative flex w-full min-h-[52px] items-center justify-center gap-3 rounded-2xl border border-border/80 bg-background/90 px-4 py-3 text-sm font-bold text-foreground shadow-sm transition-all hover:bg-accent hover:border-primary/40 hover:shadow-md active:scale-[0.98] disabled:opacity-50 btn-press"
+              className="group relative flex w-full min-h-[52px] items-center justify-center gap-3 rounded-2xl border border-border/80 bg-background/90 dark:bg-white/[0.04] dark:border-white/10 px-4 py-3 text-sm font-bold text-foreground shadow-xs transition-all hover:bg-muted/80 dark:hover:bg-white/[0.08] hover:border-primary/40 hover:shadow-md active:scale-[0.98] disabled:opacity-50 btn-press"
             >
               {isLoading ? (
                 <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
