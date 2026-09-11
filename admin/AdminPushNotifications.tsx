@@ -87,8 +87,14 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
     setBusy(true);
     setError('');
     try {
+      if (typeof Notification === 'undefined' || !('requestPermission' in Notification)) {
+        throw new Error('Safari chưa hỗ trợ Web Push trong tab. Vui lòng nhấn nút Chia sẻ ⎋ ➔ chọn "Thêm vào MH chính" rồi mở app TGTM Admin để nhận thông báo.');
+      }
       const permission = await Notification.requestPermission();
       if (permission !== 'granted') {
+        if (!standalone && isIPhone) {
+          throw new Error('iOS Safari yêu cầu thêm vào MH chính trước: Nhấn nút Chia sẻ ⎋ ➔ chọn "Thêm vào MH chính" ➔ mở app để bật.');
+        }
         throw new Error('Hãy cho phép thông báo cho TGTM Admin trong Cài đặt iPhone → Thông báo.');
       }
       const config = state || await refresh();
@@ -139,8 +145,8 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
     }
   };
 
-  // Condition 1: iPhone user who has NOT granted notification permission
-  const shouldShowIPhonePrompt = isIPhone && !isNotificationGranted && showIPhonePrompt;
+  // Condition 1: WebKit browser on iPhone/iPad (not standalone) where notification is NOT yet granted
+  const shouldShowWebKitIPhonePrompt = isIPhone && !standalone && !isNotificationGranted && showIPhonePrompt;
 
   // Condition 2: New order notification popup (when unread > 0 and not dismissed for current cursor)
   const hasUnread = Boolean(state?.unread && state.unread > 0);
@@ -248,8 +254,8 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
           </div>
         )}
 
-        {/* POPUP 2: HƯỚNG DẪN / BẬT THÔNG BÁO IPHONE (chỉ hiện khi iPhone chưa bật, tắt được) */}
-        {shouldShowIPhonePrompt && (
+        {/* POPUP 2: HƯỚNG DẪN & BẬT THÔNG BÁO WEBKIT IPHONE (chỉ hiện trên WebKit khi chưa bật, tắt được) */}
+        {shouldShowWebKitIPhonePrompt && (
           <div
             role="region"
             aria-label="Hướng dẫn bật thông báo trên iPhone"
@@ -258,8 +264,8 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
             <button
               type="button"
               onClick={() => setShowIPhonePrompt(false)}
-              title="Đóng hướng dẫn"
-              aria-label="Đóng hướng dẫn"
+              title="Đóng thông báo"
+              aria-label="Đóng thông báo"
               className="btn-press absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:scale-95 cursor-pointer touch-manipulation select-none"
             >
               <CloseIcon className="h-3.5 w-3.5" />
@@ -274,44 +280,34 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
 
               <div className="min-w-0 flex-1">
                 <h4 className="text-xs font-bold text-foreground">
-                  {standalone ? 'Bật thông báo đơn trên iPhone' : 'Nhận thông báo đơn mới trên iPhone'}
+                  Nhận thông báo đơn mới trên iPhone
                 </h4>
                 <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {standalone
-                    ? 'Bật thông báo để nhận chuông và tin báo đơn hàng mới ngay trên màn hình khóa iPhone.'
-                    : (
-                      <>
-                        Nhấn nút Chia sẻ <span className="font-semibold text-foreground">⎋</span> ở thanh dưới Safari ➔ chọn <span className="font-semibold text-foreground">"Thêm vào MH chính"</span>, rồi mở app TGTM Admin để nhận thông báo.
-                      </>
-                    )}
+                  Bật thông báo để nhận chuông và tin báo đơn hàng mới. Nếu Safari yêu cầu, nhấn nút Chia sẻ <span className="font-semibold text-foreground">⎋</span> ở thanh dưới ➔ chọn <span className="font-semibold text-foreground">"Thêm vào MH chính"</span>.
                 </p>
 
-                {standalone ? (
-                  <div className="mt-2 flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={busy || !state?.configured}
-                      onClick={enable}
-                      className="btn-press rounded-lg bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground shadow-xs transition-all hover:brightness-105 active:scale-95 disabled:opacity-50 cursor-pointer touch-manipulation select-none"
-                    >
-                      {busy ? 'Đang bật…' : 'Bật thông báo ngay'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowIPhonePrompt(false)}
-                      className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer touch-manipulation select-none"
-                    >
-                      Để sau
-                    </button>
-                  </div>
-                ) : (
+                <div className="mt-2.5 flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={enable}
+                    className="btn-press rounded-xl bg-primary px-3 py-1.5 text-[11px] font-bold text-primary-foreground shadow-xs transition-all hover:brightness-105 active:scale-95 disabled:opacity-50 cursor-pointer touch-manipulation select-none"
+                  >
+                    {busy ? 'Đang bật…' : 'Bật thông báo ngay'}
+                  </button>
                   <button
                     type="button"
                     onClick={() => setShowIPhonePrompt(false)}
-                    className="mt-1.5 inline-block text-[10.5px] text-muted-foreground underline hover:text-foreground cursor-pointer touch-manipulation"
+                    className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer touch-manipulation select-none"
                   >
-                    Đã hiểu, đóng thông báo
+                    Để sau
                   </button>
+                </div>
+
+                {error && (
+                  <div role="alert" className="mt-2 rounded-xl bg-amber-500/10 border border-amber-500/20 p-2 text-[10.5px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                    {error}
+                  </div>
                 )}
               </div>
             </div>
