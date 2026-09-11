@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAdminLayoutConfig, useAdminLayoutDispatch } from './AdminLayoutContext';
 import AnimatedSection from './AnimatedSection';
 import {
-  MenuIcon,
   CloseIcon,
   ArrowRightIcon,
   BlogIcon,
@@ -145,6 +144,38 @@ export const AdminWorkspaceTabs = <T extends string>({
   );
 };
 
+const canElementScrollHorizontally = (target: EventTarget | null, direction: 'left' | 'right'): boolean => {
+  if (!target || !(target instanceof HTMLElement)) return false;
+  let el: HTMLElement | null = target;
+  while (el && el !== document.body) {
+    if (el.dataset.adminTabBar === 'true') {
+      return false;
+    }
+    const tagName = el.tagName.toLowerCase();
+    if (
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      tagName === 'select' ||
+      el.getAttribute('role') === 'slider' ||
+      el.dataset.noSwipe === 'true'
+    ) {
+      return true;
+    }
+    const style = window.getComputedStyle(el);
+    const overflowX = style.overflowX;
+    if ((overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 10) {
+      if (direction === 'left' && el.scrollLeft + el.clientWidth < el.scrollWidth - 10) {
+        return true;
+      }
+      if (direction === 'right' && el.scrollLeft > 10) {
+        return true;
+      }
+    }
+    el = el.parentElement;
+  }
+  return false;
+};
+
 const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   currentPage,
   currentRole,
@@ -170,6 +201,192 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   } = config;
   const [isTemporarilyCollapsed, setIsTemporarilyCollapsed] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  // Auto-hide mobile header on scroll down, reveal on scroll up (matching thegioitrimun.vn navbar behavior)
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const isHeaderVisibleRef = useRef(true);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const isAtTopRef = useRef(true);
+  const lastScrollY = useRef(0);
+  const headerScrollDelta = useRef(0);
+  const headerScrollFrame = useRef<number | null>(null);
+
+  const setHeaderVisibility = useCallback((visible: boolean) => {
+    if (isHeaderVisibleRef.current === visible) return;
+    isHeaderVisibleRef.current = visible;
+    setIsHeaderVisible(visible);
+  }, []);
+
+  const controlHeaderVisibility = useCallback(() => {
+    const currentScrollY = window.scrollY;
+
+    // Track whether we are at the top (under 50px)
+    const atTop = currentScrollY < 50;
+    if (isAtTopRef.current !== atTop) {
+      isAtTopRef.current = atTop;
+      setIsAtTop(atTop);
+    }
+
+    const delta = currentScrollY - lastScrollY.current;
+    lastScrollY.current = currentScrollY;
+
+    // Always keep header visible when near top of the page
+    if (currentScrollY <= 80) {
+      headerScrollDelta.current = 0;
+      setHeaderVisibility(true);
+      return;
+    }
+
+    // Ignore micro touch vibrations
+    if (Math.abs(delta) < 2) return;
+
+    const isSameDirection = Math.sign(headerScrollDelta.current) === Math.sign(delta);
+    headerScrollDelta.current = isSameDirection ? headerScrollDelta.current + delta : delta;
+
+    const hideThreshold = 84;
+    const showThreshold = 56;
+
+    if (headerScrollDelta.current > hideThreshold) {
+      headerScrollDelta.current = 0;
+      setHeaderVisibility(false);
+      return;
+    }
+
+    if (headerScrollDelta.current < -showThreshold) {
+      headerScrollDelta.current = 0;
+      setHeaderVisibility(true);
+    }
+  }, [setHeaderVisibility]);
+
+  useEffect(() => {
+    lastScrollY.current = typeof window !== 'undefined' ? window.scrollY : 0;
+
+    const handleScroll = () => {
+      if (headerScrollFrame.current !== null) return;
+      headerScrollFrame.current = window.requestAnimationFrame(() => {
+        headerScrollFrame.current = null;
+        if (!isMobileDrawerOpen) {
+          controlHeaderVisibility();
+        }
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (headerScrollFrame.current !== null) {
+        window.cancelAnimationFrame(headerScrollFrame.current);
+        headerScrollFrame.current = null;
+      }
+    };
+  }, [controlHeaderVisibility, isMobileDrawerOpen]);
+
+  // Keep header visible when switching page or task
+  useEffect(() => {
+    setHeaderVisibility(true);
+    headerScrollDelta.current = 0;
+    const scrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+    lastScrollY.current = scrollY;
+    const atTop = scrollY < 50;
+    isAtTopRef.current = atTop;
+    setIsAtTop(atTop);
+  }, [currentPage, activeTaskKey, setHeaderVisibility]);
+
+  useEffect(() => {
+    if (isMobileDrawerOpen) {
+      setHeaderVisibility(true);
+    }
+  }, [isMobileDrawerOpen, setHeaderVisibility]);
+
+  const touchStartRef = useRef<{ x: number; y: number; time: number; target: EventTarget | null } | null>(null);
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
+
+  // Auto-scroll active tab into view in horizontal tab bar
+  useEffect(() => {
+    if (activeTabRef.current) {
+      activeTabRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }
+  }, [activeTaskKey]);
+
+  const selectTab = useCallback((item: (typeof taskItems)[number]) => {
+    if (item.onClick) {
+      item.onClick();
+    } else if (item.view) {
+      onNavigate(item.view);
+    }
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try {
+        navigator.vibrate(10);
+      } catch (_) {
+        // ignore
+      }
+    }
+  }, [onNavigate]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (isMobileDrawerOpen) return;
+    if (!taskItems || taskItems.length <= 1) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+
+    // Ignore if touch started too close to the screen edges (e.g. iOS back gesture)
+    if (touch.clientX < 20 || touch.clientX > window.innerWidth - 20) return;
+
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now(),
+      target: e.target,
+    };
+  }, [isMobileDrawerOpen, taskItems]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartRef.current || !taskItems || taskItems.length <= 1) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    if (!touch) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+    const startTarget = touchStartRef.current.target;
+    touchStartRef.current = null;
+
+    const absX = Math.abs(deltaX);
+    const absY = Math.abs(deltaY);
+
+    // Require intentional horizontal swipe (min 50px, under 600ms, X dominance over Y)
+    if (absX < 50 || deltaTime > 600 || absX <= absY * 1.5) {
+      return;
+    }
+
+    const direction = deltaX < 0 ? 'left' : 'right';
+
+    if (canElementScrollHorizontally(startTarget, direction)) {
+      return;
+    }
+
+    const currentIndex = taskItems.findIndex((item) => item.key === activeTaskKey);
+    if (currentIndex === -1) return;
+
+    if (direction === 'left' && currentIndex < taskItems.length - 1) {
+      // Swipe left -> Next tab
+      selectTab(taskItems[currentIndex + 1]);
+    } else if (direction === 'right' && currentIndex > 0) {
+      // Swipe right -> Previous tab
+      selectTab(taskItems[currentIndex - 1]);
+    }
+  }, [activeTaskKey, selectTab, taskItems]);
 
   React.useEffect(() => {
     if (isMobileDrawerOpen) {
@@ -269,29 +486,98 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen animate-scale-in bg-slate-50/80 dark:bg-[#0b0f17] text-foreground transition-colors duration-300">
+    <div className="min-h-screen animate-fade-in bg-slate-50/80 dark:bg-[#0b0f17] text-foreground transition-colors duration-300">
       <div className="mx-auto max-w-[1680px] px-3 sm:px-4 md:px-6 lg:py-6 xl:px-8 pt-0 sm:pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)]">
-        {/* COMPACT MOBILE HEADER */}
-        <div className="sticky top-0 z-30 -mx-3 mb-4 border-b border-white/40 dark:border-white/10 bg-white/95 dark:bg-[#0b0f17]/95 px-3 pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-2.5 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.05)] md:-mx-6 md:px-6 lg:hidden">
-          <div className="flex items-center justify-between gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              className="inline-flex h-9 items-center justify-center rounded-full border border-border bg-card px-2 shadow-sm transition-transform hover:scale-105"
-            >
-              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo.svg" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain dark:hidden" />
-              <img src="/icons/da-lieu-nhiet-doi-phu-quoc-logo-dark.svg" alt="The Gioi Tri Mun" className="h-6 w-auto object-contain hidden dark:block" />
-            </button>
-            <div className="min-w-0 flex-1 text-center">
-              <p className="truncate text-sm font-black text-foreground">{activeModule.label}</p>
+        {/* FLOATING GLASS MOBILE NAVBAR (MATCHING THEGIOITRIMUN.VN NAVBAR) */}
+        <div className={`sticky top-0 z-30 mb-3 pt-[max(env(safe-area-inset-top,0px),0.5rem)] lg:hidden will-change-transform transition-transform duration-300 motion-reduce:transition-none ${
+          isHeaderVisible ? 'translate-y-0' : '-translate-y-full'
+        }`}>
+          <div className={`relative flex min-h-[58px] sm:min-h-[64px] items-center justify-between gap-2 rounded-[28px] sm:rounded-[30px] px-2.5 py-2 sm:px-4 sm:py-2.5 transition-all duration-500 ease-in-out ${
+            isAtTop
+              ? 'border border-white/60 bg-[rgba(255,255,255,0.78)] shadow-[0_12px_36px_-20px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.78)] dark:shadow-[0_16px_40px_-24px_rgba(0,0,0,0.5)]'
+              : 'border border-white/75 bg-[rgba(255,255,255,0.92)] shadow-[0_20px_44px_-24px_rgba(36,46,57,0.18)] backdrop-blur-2xl dark:border-white/15 dark:bg-[rgba(15,23,42,0.92)] dark:shadow-[0_24px_56px_-28px_rgba(0,0,0,0.65)]'
+          }`}>
+            {/* Ambient Gradient Orbs */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px] sm:rounded-[30px]">
+              <div className="absolute -left-6 top-0 h-24 w-24 rounded-full bg-[#ff7f5d]/14 blur-2xl"></div>
+              <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#35b7a5]/14 blur-2xl dark:bg-[#35b7a5]/18"></div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsMobileDrawerOpen(true)}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
-            >
-              <MenuIcon className="h-5 w-5" />
-            </button>
+
+            {/* Left Cluster: Brand Logo */}
+            <div className="relative z-10 flex items-center shrink-0 w-10">
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-[14px] sm:rounded-[16px] bg-white dark:bg-[#15202e] border border-slate-200/80 dark:border-white/10 shadow-xs transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+                title="Về tổng quan Admin"
+              >
+                <img
+                  loading="eager"
+                  decoding="async"
+                  width="96"
+                  height="96"
+                  alt="TGTM Admin Logo"
+                  className="block h-7 w-7 sm:h-8 sm:w-8 object-contain dark:hidden"
+                  src="/icons/admin-logo.svg"
+                />
+                <img
+                  loading="eager"
+                  decoding="async"
+                  width="96"
+                  height="96"
+                  alt="TGTM Admin Logo"
+                  className="hidden h-7 w-7 sm:h-8 sm:w-8 object-contain dark:block"
+                  src="/icons/admin-logo-dark.svg"
+                />
+              </button>
+            </div>
+
+            {/* Center: Active Module Title */}
+            <div className="relative z-10 flex min-w-0 flex-1 items-center justify-center px-1 text-center">
+              <button
+                type="button"
+                onClick={() => setIsMobileDrawerOpen(true)}
+                className="btn-press flex max-w-full items-center justify-center bg-transparent border-0 shadow-none p-1 focus:outline-none cursor-pointer transition-transform active:scale-95"
+                title="Chuyển phân hệ quản trị"
+              >
+                <span className="truncate max-w-[200px] xs:max-w-[250px] sm:max-w-none font-['Playfair_Display',_serif] text-[12px] sm:text-[13.5px] font-black uppercase tracking-[0.08em] text-foreground dark:text-white transition-colors">
+                  {activeModule.label}
+                </span>
+              </button>
+            </div>
+
+            {/* Right Cluster: User Avatar with Gradient Ring & Online Dot */}
+            <div className="relative z-10 flex items-center justify-end shrink-0 w-10">
+              {currentUser ? (
+                <button
+                  type="button"
+                  onClick={() => setIsMobileDrawerOpen(true)}
+                  className="relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full p-0.5 bg-gradient-to-tr from-[#ff7f5d]/50 via-primary/40 to-teal-400/50 shadow-xs transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+                  title={currentUser.profile?.name || 'Admin'}
+                >
+                  <span className="flex h-full w-full items-center justify-center rounded-full overflow-hidden bg-white dark:bg-[#131d2a] border border-white/40 dark:border-white/10">
+                    {currentUser.profile?.avatar_url ? (
+                      <img src={currentUser.profile.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="font-bold text-xs uppercase text-primary">
+                        {(currentUser.profile?.name || currentUser.profile?.email || 'A').charAt(0)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#0f1724]"></span>
+                </button>
+              ) : (
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-black/5 dark:border-white/10 bg-white/80 dark:bg-white/10 text-muted-foreground hover:text-primary transition-all shadow-xs"
+                  title="Mở website khách hàng ở tab mới"
+                >
+                  <HomeIcon className="h-4 w-4 text-primary" />
+                </a>
+              )}
+            </div>
           </div>
         </div>
 
@@ -338,7 +624,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                   </div>
                 ) : (
                   <div className="flex items-center gap-2.5">
-                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-7 w-7 object-contain" />
+                    <img src="/icons/admin-logo.svg" alt="Admin" className="h-7 w-7 object-contain dark:hidden" />
+                    <img src="/icons/admin-logo-dark.svg" alt="Admin" className="hidden h-7 w-7 object-contain dark:block" />
                     <span className="font-bold text-sm text-foreground">Menu</span>
                   </div>
                 )}
@@ -391,7 +678,8 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               <div>
                 <div className="mb-3 flex items-center gap-3 rounded-[1.15rem] p-2">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center">
-                    <img src="https://thegioitrimun.vn/r2/assets/admin-icons/admin.webp" alt="Admin" className="h-8 w-8 object-contain" />
+                    <img src="/icons/admin-logo.svg" alt="Admin" className="h-8 w-8 object-contain dark:hidden" />
+                    <img src="/icons/admin-logo-dark.svg" alt="Admin" className="hidden h-8 w-8 object-contain dark:block" />
                   </div>
                   <div className={`min-w-0 flex-1 whitespace-nowrap opacity-0 transition-opacity duration-300 ${!isTemporarilyCollapsed ? 'group-hover/sidebar:opacity-100' : ''}`}>
                     <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-muted-foreground">Admin</p>
@@ -453,26 +741,29 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
             </aside>
           </AnimatedSection>
 
-          <div className={unwrappedContent ? "min-w-0" : "min-w-0 rounded-[1.7rem]"}>
+          <div
+            className={unwrappedContent ? "min-w-0" : "min-w-0 rounded-[1.7rem]"}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'pan-y' }}
+          >
             {!hideHeader ? (
               <AnimatedSection className="mb-4 lg:mb-0">
 
                 {taskItems && taskItems.length > 0 ? (
                   <div className="lg:hidden bg-transparent mb-3.5">
-                    <div className="flex items-center overflow-x-auto hide-scrollbar gap-1.5 px-0.5 pb-1 -mx-0.5 overscroll-x-contain">
+                    <div
+                      data-admin-tab-bar="true"
+                      className="flex items-center overflow-x-auto hide-scrollbar gap-1.5 px-0.5 pb-1 -mx-0.5 overscroll-x-contain"
+                    >
                       {taskItems.map((item) => {
                         const isActive = item.key === activeTaskKey;
                         return (
                           <button
                             key={item.key}
+                            ref={isActive ? activeTabRef : undefined}
                             type="button"
-                            onClick={() => {
-                              if (item.onClick) {
-                                item.onClick();
-                              } else if (item.view) {
-                                onNavigate(item.view);
-                              }
-                            }}
+                            onClick={() => selectTab(item)}
                             className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                               isActive
                                 ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20'

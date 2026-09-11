@@ -47,11 +47,16 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
       <div className="relative w-full max-w-md">
         {/* Top brand icon */}
         <div className="mb-6 flex justify-center">
-          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-border/80 bg-card/90 p-3 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#151f30] dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-border/80 bg-card/90 p-2.5 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#151f30] dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)]">
             <img
-              src="/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260906"
-              alt="TGTM"
-              className="h-full w-full object-contain"
+              src="/icons/admin-logo.svg"
+              alt="TGTM Admin"
+              className="h-full w-full object-contain dark:hidden"
+            />
+            <img
+              src="/icons/admin-logo-dark.svg"
+              alt="TGTM Admin"
+              className="hidden h-full w-full object-contain dark:block"
             />
             <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-2 ring-background">
               <ShieldCheckIcon className="h-3.5 w-3.5" />

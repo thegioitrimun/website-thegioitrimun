@@ -4,7 +4,6 @@ test.describe('Public service journeys', () => {
   test('opens a service detail from the service listing', async ({ page }) => {
     await page.goto('/dich-vu', { waitUntil: 'networkidle' });
 
-    await expect(page.getByText(/Dịch vụ da liễu/i)).toBeVisible();
     await expect(page.getByText(/Điều trị mụn chuyên sâu/i).first()).toBeVisible();
 
     await page.getByRole('button', { name: /Mở trang liệu trình/i }).first().click();

@@ -108,12 +108,11 @@ test.describe.serial('Admin pharmacy business flows', () => {
       await page.getByRole('button', { name: /Sao chép gửi Zalo/i }).click();
       await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain('ĐƠN HÀNG');
 
-      const popupPromise = page.waitForEvent('popup');
       await page.getByRole('button', { name: /In A4/i }).click();
-      const printPage = await popupPromise;
-      await printPage.waitForLoadState('domcontentloaded').catch(() => null);
-      await expect(printPage.locator('body')).toContainText(/HÓA ĐƠN|ĐƠN HÀNG/);
-      await printPage.close();
+      const printFrame = page.locator('iframe[data-print-frame]');
+      await expect(printFrame).toBeAttached();
+      const frameBody = printFrame.contentFrame().locator('body');
+      await expect(frameBody).toContainText(/HÓA ĐƠN|ĐƠN HÀNG/);
     };
 
     await loginToAdmin(page, '/admin/don-hang?action=new-order&channel=pos');

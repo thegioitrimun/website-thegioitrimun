@@ -6,17 +6,41 @@
   "scope": "/admin",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#0b0f17",
+  "theme_color": "#0b0f17",
   "icons": [
     {
-      "src": "/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260906",
+      "src": "/icons/admin-pwa-dark-180.png?v=admin-20260911",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/admin-pwa-dark-192.png?v=admin-20260911",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/admin-pwa-dark-512.png?v=admin-20260911",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/admin-pwa-180.png?v=admin-20260911",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/da-lieu-nhiet-doi-phu-quoc-512.png",
+      "src": "/icons/admin-pwa-192.png?v=admin-20260911",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/admin-pwa-512.png?v=admin-20260911",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

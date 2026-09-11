@@ -1,0 +1,56 @@
+/* iOS standalone: extend the page canvas to the screen edges, and inset controls.
+   Do not add safe-area padding or overflow locks to html/body. */
+html.is-pwa {
+  --pwa-safe-top: env(safe-area-inset-top, 0px);
+  --pwa-safe-right: env(safe-area-inset-right, 0px);
+  --pwa-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pwa-safe-left: env(safe-area-inset-left, 0px);
+}
+
+html.is-pwa #root {
+  min-height: 100dvh;
+}
+
+html.is-pwa #root header > .container {
+  padding-top: max(0.625rem, var(--pwa-safe-top));
+  padding-left: max(0.75rem, var(--pwa-safe-left));
+  padding-right: max(0.75rem, var(--pwa-safe-right));
+}
+
+/* Inner pages reserve space for the fixed navigation; the home hero stays at y=0. */
+html.is-pwa #root main[class*="pt-"] {
+  padding-top: calc(var(--pwa-safe-top) + 6rem);
+  padding-left: var(--pwa-safe-left);
+  padding-right: var(--pwa-safe-right);
+}
+
+html.is-pwa #root #footer {
+  padding-bottom: var(--pwa-safe-bottom);
+}
+
+html.is-pwa #root [aria-modal="true"] > .container {
+  padding-left: max(1rem, var(--pwa-safe-left));
+  padding-right: max(1rem, var(--pwa-safe-right));
+}
+
+html.is-pwa #root [aria-modal="true"] > .container > header,
+html.is-pwa #root [aria-labelledby="mini-cart-title"] .border-b {
+  padding-top: max(1rem, var(--pwa-safe-top));
+}
+
+html.is-pwa #root [aria-labelledby="mini-cart-title"] button.absolute {
+  top: max(0.75rem, var(--pwa-safe-top));
+}
+
+html.is-pwa #root [aria-labelledby="mini-cart-title"] .border-t {
+  padding-bottom: max(1.5rem, var(--pwa-safe-bottom));
+}
+
+html.is-pwa #root [aria-labelledby="slide-over-title"] .overflow-y-auto {
+  padding-top: max(1.5rem, var(--pwa-safe-top));
+  padding-bottom: max(1.5rem, var(--pwa-safe-bottom));
+}
+
+html.is-pwa #root [aria-labelledby="slide-over-title"] button.absolute {
+  top: max(1rem, var(--pwa-safe-top));
+}

@@ -320,7 +320,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder={t('common.search_placeholder')}
-                            className="w-full bg-transparent border-0 pl-12 pr-4 py-3 text-lg focus:ring-0"
+                            className="w-full bg-transparent border-0 pl-12 pr-4 py-3 text-lg outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
                         />
                     </div>
                     <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground">

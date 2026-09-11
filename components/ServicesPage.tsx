@@ -4,7 +4,6 @@ import type { Service } from '../types';
 import {
   ArrowRightIcon,
   CheckCircleIcon,
-  CloseIcon,
   SearchIcon,
   ServiceListIcon,
   ShieldCheckIcon,
@@ -257,79 +256,38 @@ const ServicesPage: React.FC<ServicesPageProps> = ({ services, onSelectService, 
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
 
-        {/* Compact Apple Frosted Glass Hero Header */}
-        <section className="relative overflow-hidden rounded-[26px] md:rounded-[30px] border border-white/60 bg-white/70 p-5 md:p-7 shadow-[0_20px_50px_-28px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.68)] dark:shadow-[0_24px_56px_-28px_rgba(0,0,0,0.55)]">
-          {/* Ambient Lighting Orbs */}
-          <div className="pointer-events-none absolute -left-10 -top-10 h-44 w-44 rounded-full bg-primary/15 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-10 -right-10 h-44 w-44 rounded-full bg-teal-500/10 blur-2xl" />
+        <h1 className="sr-only">{labels.title}</h1>
 
-          <div className="relative z-10">
-            <h1 className="text-center text-2xl font-black leading-tight tracking-[-0.035em] text-foreground sm:text-3xl md:text-[2.2rem]">
-              {labels.title}
-            </h1>
-
-            {/* Apple Frosted Search & Filter Controls */}
-            <div className="mt-5 space-y-3 border-t border-border/40 pt-4">
-              <div className="relative">
-                <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={labels.searchPlaceholder}
-                  className="w-full rounded-full border border-white/60 bg-white/80 py-2.5 pl-10 pr-9 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 shadow-xs backdrop-blur-xl transition focus:border-primary/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:focus:bg-[#0f1722]"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    onClick={() => setQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
-                    aria-label="Clear search"
-                  >
-                    <CloseIcon className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Price Tier Filters */}
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
-                <div className="no-scrollbar -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0 md:overflow-visible">
-                  <div className="flex items-center gap-2 min-w-max md:min-w-0 md:flex-wrap">
-                    {tierButtons.map((tier) => {
-                      const isActive = priceTier === tier.key;
-                      return (
-                        <button
-                          key={tier.key}
-                          type="button"
-                          onClick={() => setPriceTier(tier.key)}
-                          className={`btn-press inline-flex items-center gap-2 shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[13.5px] font-semibold transition ${
-                            isActive
-                              ? 'bg-[#eef8f6] text-[#2f855a] dark:bg-[#1b7a6d]/25 dark:text-[#35b7a5]'
-                              : 'bg-[#f4f6f8] text-foreground hover:bg-[#e4ebef] dark:bg-white/5 dark:text-foreground dark:hover:bg-white/10'
-                          }`}
-                        >
-                          <span>{tier.label}</span>
-                          <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold ${
-                            isActive ? 'bg-[#2f855a]/15 text-[#2f855a] dark:bg-[#35b7a5]/20 dark:text-[#35b7a5]' : 'bg-black/5 text-muted-foreground dark:bg-white/10'
-                          }`}>
-                            {tier.count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div className="shrink-0 text-[11px] font-bold text-muted-foreground">
-                  {labels.liveResult} <strong className="text-foreground">{filteredServices.length}</strong> {labels.servicesCount}
-                </div>
-              </div>
-            </div>
+        {/* Price Tier Filters */}
+        <div className="no-scrollbar -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0 mb-6 md:overflow-visible">
+          <div className="flex items-center gap-2 min-w-max md:min-w-0 md:flex-wrap">
+            {tierButtons.map((tier) => {
+              const isActive = priceTier === tier.key;
+              return (
+                <button
+                  key={tier.key}
+                  type="button"
+                  onClick={() => setPriceTier(tier.key)}
+                  className={`btn-press inline-flex items-center gap-2 shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-[13.5px] font-semibold transition ${
+                    isActive
+                      ? 'bg-[#eef8f6] text-[#2f855a] dark:bg-[#1b7a6d]/25 dark:text-[#35b7a5]'
+                      : 'bg-[#f4f6f8] text-foreground hover:bg-[#e4ebef] dark:bg-white/5 dark:text-foreground dark:hover:bg-white/10'
+                  }`}
+                >
+                  <span>{tier.label}</span>
+                  <span className={`rounded-full px-1.5 py-0.2 text-[11px] font-bold ${
+                    isActive ? 'bg-[#2f855a]/15 text-[#2f855a] dark:bg-[#35b7a5]/20 dark:text-[#35b7a5]' : 'bg-black/5 text-muted-foreground dark:bg-white/10'
+                  }`}>
+                    {tier.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        </section>
+        </div>
 
         {/* Services Listing Section */}
-        <section className="mt-10">
+        <section className="mt-4">
           {services.length === 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {[1, 2, 3].map((i) => (

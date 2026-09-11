@@ -113,7 +113,15 @@ table { border-collapse:collapse; width:100%; } th,td { border-bottom:1px solid 
 .qty { text-align:center; width:42px; } .money { text-align:right; white-space:nowrap; } .totals { margin-left:auto; margin-top:10px; width:${compact ? '100%' : '360px'}; }
 .totals td { border:0; padding:3px 0; } .total td { border-top:1px solid #111827; font-size:${compact ? '13px' : '15px'}; font-weight:800; padding-top:7px; }
 .notes { border-top:1px dashed #9ca3af; margin-top:10px; padding-top:8px; } .hint { color:#6b7280; margin-top:14px; text-align:center; }
+@media print { .no-print { display: none !important; } }
+.no-print { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #f3f4f6; padding: 8px 12px; border-bottom: 1px solid #e5e7eb; margin-bottom: 12px; }
+.btn-action { font-family: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; cursor: pointer; border: 1px solid #d1d5db; background: #fff; color: #374151; }
+.btn-print { background: #1b7a6d; color: #fff; border-color: #1b7a6d; }
 </style></head><body>
+<div class="no-print">
+  <button type="button" onclick="if(window.opener){window.close();}else{history.back();}" class="btn-action">✕ Đóng / Quay lại</button>
+  <button type="button" onclick="window.print()" class="btn-action btn-print">🖨️ In lại</button>
+</div>
 <div class="brand">${escapeHtml(BRAND_NAME)}</div><h1>${compact ? 'PHIẾU BÁN HÀNG' : 'HÓA ĐƠN / ĐƠN HÀNG'}</h1>
 <div class="meta"><p><strong>Mã đơn:</strong> ${escapeHtml(order.order_code || order.id)}</p><p><strong>Kênh:</strong> ${escapeHtml(getOrderChannelLabel(order))}</p><p><strong>Ngày:</strong> ${escapeHtml(new Date(order.created_at).toLocaleString('vi-VN'))}</p>${customerRows}</div>
 <table><thead><tr><th>Sản phẩm</th><th class="qty">SL</th><th class="money">Thành tiền</th></tr></thead><tbody>${rows || '<tr><td colspan="3">Chưa có sản phẩm</td></tr>'}</tbody></table>
@@ -123,12 +131,74 @@ table { border-collapse:collapse; width:100%; } th,td { border-bottom:1px solid 
 };
 
 export const printProductOrder = (order: ProductOrder, format: OrderPrintFormat): boolean => {
-  if (typeof window === 'undefined') return false;
-  const printWindow = window.open('', '_blank', format === 'receipt80' ? 'width=420,height=760' : 'width=960,height=760');
-  if (!printWindow) return false;
-  printWindow.document.write(buildOrderPrintHtml(order, format));
-  printWindow.document.close();
-  printWindow.focus();
-  window.setTimeout(() => printWindow.print(), 250);
-  return true;
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+
+  const html = buildOrderPrintHtml(order, format);
+
+  try {
+    // Remove any previous print iframe to avoid accumulation
+    const oldFrames = document.querySelectorAll('iframe[data-print-frame]');
+    oldFrames.forEach((el) => el.remove());
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('data-print-frame', 'true');
+    iframe.setAttribute('aria-hidden', 'true');
+    // Position fixed, offscreen with non-zero dimensions for iOS Safari AirPrint compatibility
+    iframe.style.position = 'fixed';
+    iframe.style.top = '0';
+    iframe.style.left = '0';
+    iframe.style.width = '1px';
+    iframe.style.height = '1px';
+    iframe.style.opacity = '0.01';
+    iframe.style.pointerEvents = 'none';
+    iframe.style.border = '0';
+    iframe.style.zIndex = '-99999';
+
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (!doc) {
+      throw new Error('Unable to access print frame document');
+    }
+
+    doc.open();
+    doc.write(html);
+    doc.close();
+
+    const doPrint = () => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (err) {
+        console.warn('Iframe print error:', err);
+      }
+    };
+
+    if (iframe.contentWindow) {
+      iframe.contentWindow.addEventListener('afterprint', () => {
+        window.setTimeout(() => {
+          if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+        }, 500);
+      });
+    }
+
+    // Give browser tick to render iframe DOM before print dialog
+    window.setTimeout(doPrint, 250);
+
+    // Backup cleanup after 60s
+    window.setTimeout(() => {
+      if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, 60000);
+
+    return true;
+  } catch (err) {
+    console.warn('Hidden iframe print failed, falling back to window.open:', err);
+    const printWindow = window.open('', '_blank', format === 'receipt80' ? 'width=420,height=760' : 'width=960,height=760');
+    if (!printWindow) return false;
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    window.setTimeout(() => printWindow.print(), 250);
+    return true;
+  }
 };

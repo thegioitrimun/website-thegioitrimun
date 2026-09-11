@@ -1604,9 +1604,9 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     }
 
     return (
-        <div data-no-scroll-reveal className="product-detail-page bg-white dark:bg-background text-foreground transition-colors duration-300">
+        <div data-no-scroll-reveal className="product-detail-page bg-transparent text-foreground transition-colors duration-300">
             <div className="product-detail-shell container mx-auto md:px-6 md:pb-16 md:pt-8">
-                <div className="product-detail-mobile-commerce md:hidden bg-white dark:bg-background pt-5">
+                <div className="product-detail-mobile-commerce md:hidden bg-transparent pt-5">
                     <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-[13px] text-muted-foreground overflow-hidden">
 
                         <button onClick={onBack} className="shrink-0 transition-colors hover:text-foreground">

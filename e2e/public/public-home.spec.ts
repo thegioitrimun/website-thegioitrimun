@@ -12,7 +12,6 @@ test.describe('Public homepage journeys', () => {
     await page.getByRole('button', { name: /Xem toàn bộ dịch vụ/i }).click();
     await page.waitForLoadState('networkidle').catch(() => null);
     await expect(page).toHaveURL(/\/dich-vu(?:\?.*)?$/);
-    await expect(page.getByText(/Dịch vụ da liễu/i)).toBeVisible();
     await expect(page.getByText(/Mở trang liệu trình/i).first()).toBeVisible();
   });
 
@@ -22,8 +21,7 @@ test.describe('Public homepage journeys', () => {
     await page.waitForLoadState('networkidle').catch(() => null);
 
     await expect(page).toHaveURL(/\/kien-thuc(?:\?.*)?$/);
-    await expect(page.getByRole('heading', { name: /Kiến thức Da liễu/i })).toBeVisible();
-    await expect(page.locator('input[placeholder*="Tìm theo tiêu đề"]').first()).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Chủ đề|Kiến thức/i }).first()).toBeVisible();
   });
 
   test('footer social links have accessible names and absolute URLs', async ({ page }) => {

@@ -3298,7 +3298,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                         placeholder="Tìm theo tên sản phẩm hoặc SKU..."
                                         value={searchQuery}
                                         onChange={e => setSearchQuery(e.target.value)}
-                                        className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+                                        className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
                                     />
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -4756,7 +4756,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 placeholder="Tìm theo mã code, mô tả..."
                                                 value={discountSearchQuery}
                                                 onChange={e => setDiscountSearchQuery(e.target.value)}
-                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
                                             />
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -5482,7 +5482,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             value={orderSearchQuery}
                                             onChange={(e) => setOrderSearchQuery(e.target.value)}
                                             placeholder="Mã đơn / tên khách / SĐT / mã vận đơn..."
-                                            className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+                                            className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-base sm:text-xs placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
                                         />
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -5599,26 +5599,47 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                         </select>
                                     </div>
                                     <div className="col-span-2 sm:col-span-2 lg:col-span-1">
-                                        <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Khoảng ngày</label>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground block">Khoảng ngày</label>
+                                            {(orderDateFrom || orderDateTo) && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setOrderDateFrom(''); setOrderDateTo(''); }}
+                                                    className="text-[10px] font-semibold text-primary hover:underline"
+                                                >
+                                                    Xóa ngày
+                                                </button>
+                                            )}
+                                        </div>
                                         <div className="grid grid-cols-2 gap-1.5">
-                                            <input 
-                                                type={orderDateFrom ? "date" : "text"} 
-                                                value={orderDateFrom} 
-                                                onChange={(e) => setOrderDateFrom(e.target.value)} 
-                                                onFocus={(e) => e.target.type = 'date'}
-                                                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                                                placeholder="Từ ngày"
-                                                className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2 text-xs focus:ring-1 focus:ring-primary/50 outline-none transition-all" 
-                                            />
-                                            <input 
-                                                type={orderDateTo ? "date" : "text"} 
-                                                value={orderDateTo} 
-                                                onChange={(e) => setOrderDateTo(e.target.value)} 
-                                                onFocus={(e) => e.target.type = 'date'}
-                                                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                                                placeholder="Đến ngày"
-                                                className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2 text-xs focus:ring-1 focus:ring-primary/50 outline-none transition-all" 
-                                            />
+                                            <div className="relative flex items-center min-w-0">
+                                                <span className="pointer-events-none absolute left-2 text-[10px] font-semibold text-muted-foreground/70 uppercase">
+                                                    Từ
+                                                </span>
+                                                <input 
+                                                    type="date" 
+                                                    value={orderDateFrom} 
+                                                    onChange={(e) => setOrderDateFrom(e.target.value)} 
+                                                    onClick={(e) => { try { (e.target as HTMLInputElement).showPicker?.(); } catch {} }}
+                                                    aria-label="Từ ngày"
+                                                    title="Từ ngày"
+                                                    className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-7 pr-1 text-xs text-foreground focus:ring-1 focus:ring-primary/50 outline-none transition-all cursor-pointer min-w-0" 
+                                                />
+                                            </div>
+                                            <div className="relative flex items-center min-w-0">
+                                                <span className="pointer-events-none absolute left-2 text-[10px] font-semibold text-muted-foreground/70 uppercase">
+                                                    Đến
+                                                </span>
+                                                <input 
+                                                    type="date" 
+                                                    value={orderDateTo} 
+                                                    onChange={(e) => setOrderDateTo(e.target.value)} 
+                                                    onClick={(e) => { try { (e.target as HTMLInputElement).showPicker?.(); } catch {} }}
+                                                    aria-label="Đến ngày"
+                                                    title="Đến ngày"
+                                                    className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-9 pr-1 text-xs text-foreground focus:ring-1 focus:ring-primary/50 outline-none transition-all cursor-pointer min-w-0" 
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -6440,7 +6461,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 placeholder="Tìm theo tên thương hiệu, slug, mô tả..."
                                                 value={brandSearchQuery}
                                                 onChange={e => setBrandSearchQuery(e.target.value)}
-                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
+                                                className="w-full h-9 rounded-xl border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-8 pr-8 text-base sm:text-xs text-foreground placeholder:text-muted-foreground/70 focus:ring-1 focus:ring-primary/50 outline-none transition-all"
                                             />
                                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />

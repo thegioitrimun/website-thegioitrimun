@@ -4,10 +4,9 @@ test.describe('Public blog journeys', () => {
   test('filters the library and opens a real article body', async ({ page }) => {
     await page.goto('/kien-thuc', { waitUntil: 'networkidle' });
 
-    const searchInput = page.locator('input[placeholder*="Tìm theo tiêu đề"]').first();
-    await expect(searchInput).toBeVisible();
-
-    await searchInput.fill('mụn đầu đen');
+    const categoryBtn = page.getByRole('button', { name: /Điều trị mụn/i }).first();
+    await expect(categoryBtn).toBeVisible();
+    await categoryBtn.click();
     await page.waitForTimeout(1200);
 
     await expect(page.getByText(/mụn đầu đen/i).first()).toBeVisible();

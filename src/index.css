@@ -7,6 +7,10 @@
 
 @layer base {
   :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
     --font-sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     --font-heading: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     --background: 0 0% 100%;
@@ -377,15 +381,43 @@
 @layer base {
   html {
     scroll-behavior: auto;
+    overflow-x: clip;
   }
 
-  html,
+  /* Default web browser mode:
+     Allow natural scrolling and browser-native pull/overscroll chaining. */
   body {
-    overflow-x: hidden;
-    max-width: 100vw;
+    /* Clip horizontal paint without creating a second vertical scroll container. */
+    overflow-x: clip;
+    overflow-y: visible;
+    overscroll-behavior-y: auto;
+    max-width: 100%;
     width: 100%;
-    overscroll-behavior-y: none;
+    min-height: 100%;
+    min-height: 100dvh;
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Standalone PWA WebApp ONLY:
+     Lock rubber-band window overscroll (overscroll-behavior-y: none)
+     so the app stays firm at top/bottom boundaries and does not detach or reveal frame gaps. */
+  @media (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui) {
+    html {
+      overscroll-behavior-y: none;
+    }
+  }
+
+  html.is-pwa {
+    overscroll-behavior-y: none;
+  }
+
+  /* Prevent mobile browsers (especially iOS Safari) from auto-zooming into inputs on focus */
+  @media screen and (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="color"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
   }
 
   html {
@@ -1363,9 +1395,7 @@
       display: block;
       width: 100%;
       overflow-x: hidden;
-      background:
-        radial-gradient(circle at 18% 0%, hsl(var(--primary) / 0.08), transparent 30rem),
-        hsl(var(--background));
+      background: transparent;
     }
 
     .product-mobile-nav {

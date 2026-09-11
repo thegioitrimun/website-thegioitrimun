@@ -1339,9 +1339,7 @@
       display: block;
       width: 100%;
       overflow-x: hidden;
-      background:
-        radial-gradient(circle at 18% 0%, hsl(var(--primary) / 0.08), transparent 30rem),
-        hsl(var(--background));
+      background: transparent;
     }
 
     .product-mobile-nav {

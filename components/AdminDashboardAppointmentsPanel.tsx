@@ -761,27 +761,48 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
               ))}
             </select>
           </div>
-          <div>
-            <label className="text-[10px] font-bold uppercase text-muted-foreground mb-1 block">Khoảng ngày</label>
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[10px] font-bold uppercase text-muted-foreground block">Khoảng ngày</label>
+              {(dateFrom || dateTo) && (
+                <button
+                  type="button"
+                  onClick={() => { setDateFrom(''); setDateTo(''); }}
+                  className="text-[10px] font-semibold text-primary hover:underline"
+                >
+                  Xóa ngày
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-2 gap-1.5">
-              <input
-                type={dateFrom ? "date" : "text"}
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                onFocus={(e) => (e.target.type = 'date')}
-                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                placeholder="Từ ngày"
-                className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2 text-xs focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-              />
-              <input
-                type={dateTo ? "date" : "text"}
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                onFocus={(e) => (e.target.type = 'date')}
-                onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                placeholder="Đến ngày"
-                className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] px-2 text-xs focus:ring-1 focus:ring-primary/50 outline-none transition-all"
-              />
+              <div className="relative flex items-center min-w-0">
+                <span className="pointer-events-none absolute left-2 text-[10px] font-semibold text-muted-foreground/70 uppercase">
+                  Từ
+                </span>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  onClick={(e) => { try { (e.target as HTMLInputElement).showPicker?.(); } catch {} }}
+                  aria-label="Từ ngày"
+                  title="Từ ngày"
+                  className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-7 pr-1 text-xs text-foreground focus:ring-1 focus:ring-primary/50 outline-none transition-all cursor-pointer min-w-0"
+                />
+              </div>
+              <div className="relative flex items-center min-w-0">
+                <span className="pointer-events-none absolute left-2 text-[10px] font-semibold text-muted-foreground/70 uppercase">
+                  Đến
+                </span>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  onClick={(e) => { try { (e.target as HTMLInputElement).showPicker?.(); } catch {} }}
+                  aria-label="Đến ngày"
+                  title="Đến ngày"
+                  className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-9 pr-1 text-xs text-foreground focus:ring-1 focus:ring-primary/50 outline-none transition-all cursor-pointer min-w-0"
+                />
+              </div>
             </div>
           </div>
         </div>

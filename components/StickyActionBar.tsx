@@ -38,7 +38,7 @@ const StickyActionBar: React.FC<StickyActionBarProps> = ({
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/60 dark:border-white/10 bg-card/85 backdrop-blur-2xl shadow-[0_-12px_40px_rgba(0,0,0,0.08)]">
-      <div className="mx-auto flex max-w-[1680px] flex-col gap-2.5 px-3 py-2.5 sm:px-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto flex max-w-[1680px] flex-col gap-2.5 px-3 pt-2.5 pb-[max(env(safe-area-inset-bottom,0px),0.625rem)] sm:px-4 md:px-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold border transition-all ${

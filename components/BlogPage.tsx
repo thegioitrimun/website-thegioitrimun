@@ -4,10 +4,8 @@ import type { BlogCategory, BlogPost } from '../types';
 import {
   ArrowRightIcon,
   BlogIcon,
-  CheckCircleIcon,
   CloseIcon,
   EyeIcon,
-  SearchIcon,
   UserIcon,
 } from './icons';
 import { buildBlogImageAlt } from '../src/imageSeo';
@@ -178,82 +176,10 @@ const BlogPage: React.FC<BlogPageProps> = ({
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-4 py-6 md:px-6 md:py-8">
 
-        {/* Compact Apple Frosted Glass Hero Section */}
-        <section className="relative overflow-hidden rounded-[26px] md:rounded-[34px] border border-white/60 bg-white/70 p-5 md:p-8 lg:p-10 shadow-[0_20px_50px_-28px_rgba(0,0,0,0.08)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.68)] dark:shadow-[0_24px_56px_-28px_rgba(0,0,0,0.55)]">
-          {/* Ambient Lighting Orbs */}
-          <div className="pointer-events-none absolute -left-10 -top-10 h-48 w-48 rounded-full bg-[#ff7f5d]/14 blur-3xl" />
-          <div className="pointer-events-none absolute right-0 top-0 h-52 w-52 rounded-full bg-[#35b7a5]/14 blur-3xl" />
-
-          <div className="relative z-10 flex flex-col items-center text-center">
-            {/* Title */}
-            <h1 className="text-2xl font-black leading-tight tracking-[-0.035em] text-foreground sm:text-3xl md:text-[2.5rem] text-center">
-              {t('blog.title')}
-            </h1>
-
-            {/* Apple Frosted Glass Search Input */}
-            <div className="relative mt-5 w-full max-w-xl md:max-w-2xl">
-              <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder={t('blog.search_placeholder', 'Tìm theo tiêu đề, tóm tắt hoặc chủ đề')}
-                className="h-11 w-full rounded-full border border-white/60 bg-white/80 pl-10 pr-10 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground/60 shadow-xs backdrop-blur-xl transition focus:border-primary/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-white/10 dark:bg-white/5 dark:focus:bg-[#0f1722]"
-              />
-              {searchTerm ? (
-                <button
-                  type="button"
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
-                  aria-label={t('common.clear_search')}
-                >
-                  <CloseIcon className="h-4 w-4" />
-                </button>
-              ) : null}
-            </div>
-
-            {/* Category Glass Pills for Quick Tap */}
-            <div className="mt-5 hidden flex-wrap justify-center gap-2 md:flex">
-              <button
-                type="button"
-                onClick={() => setFilter('all')}
-                className={`btn-press inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                  filter === 'all'
-                    ? 'bg-primary/10 text-primary border border-primary/25 shadow-xs dark:bg-primary/20 dark:text-[#35b7a5]'
-                    : 'border border-white/60 bg-white/60 text-foreground hover:bg-white/90 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-                }`}
-              >
-                <span>{t('blog.all_categories', 'Tất cả')}</span>
-                <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${filter === 'all' ? 'bg-primary/15 text-primary dark:text-[#35b7a5]' : 'bg-black/5 dark:bg-white/10 text-muted-foreground'}`}>
-                  {posts.length}
-                </span>
-              </button>
-              {categoryStats.slice(0, 6).map((entry) => {
-                const isActive = filter === entry.category.slug;
-                return (
-                  <button
-                    key={entry.category.slug}
-                    type="button"
-                    onClick={() => setFilter(entry.category.slug)}
-                    className={`btn-press inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
-                      isActive
-                        ? 'bg-primary/10 text-primary border border-primary/25 shadow-xs dark:bg-primary/20 dark:text-[#35b7a5]'
-                        : 'border border-white/60 bg-white/60 text-foreground hover:bg-white/90 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10'
-                    }`}
-                  >
-                    <span>{getLocalized(entry.category, 'name')}</span>
-                    <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-bold ${isActive ? 'bg-primary/15 text-primary dark:text-[#35b7a5]' : 'bg-black/5 dark:bg-white/10 text-muted-foreground'}`}>
-                      {entry.count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+        <h1 className="sr-only">{t('blog.title')}</h1>
 
         {/* Mobile Horizontal Scrollable Category Bar */}
-        <div className="mt-4 md:hidden">
+        <div className="mb-4 md:hidden">
           <div className="no-scrollbar -mx-4 flex overflow-x-auto px-4 pb-2">
             <div className="flex w-max gap-2">
               {topicOptions.map((option) => {
@@ -281,17 +207,12 @@ const BlogPage: React.FC<BlogPageProps> = ({
         </div>
 
         {/* Main Content Layout: Sidebar + Article Feeds */}
-        <div className="mt-6 md:mt-8 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
           {/* Desktop Frosted Glass Sidebar */}
           <aside className="hidden xl:block">
             <BlogSection className="sticky top-24 overflow-hidden rounded-[28px] border border-white/60 bg-white/70 p-5 shadow-[0_20px_45px_-30px_rgba(0,0,0,0.07)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,42,0.65)] dark:shadow-[0_24px_50px_-28px_rgba(0,0,0,0.55)]">
-              <div className="border-b border-border/40 pb-4">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/80 px-3 py-0.5 text-[10px] font-black uppercase tracking-[0.16em] text-primary shadow-xs backdrop-blur-xl dark:border-white/10 dark:bg-black/50">
-                  <BlogIcon className="h-3 w-3" />
-                  <span>{t('blog.topic_library', 'Thư viện chủ đề')}</span>
-                </div>
-                <h2 className="mt-2 text-xl font-black tracking-[-0.03em] text-foreground">{t('blog.topics', 'Chủ đề')}</h2>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t('blog.topic_library_hint')}</p>
+              <div className="border-b border-border/40 pb-3">
+                <h2 className="text-xl font-black tracking-[-0.03em] text-foreground">{t('blog.topics', 'Chủ đề')}</h2>
               </div>
 
               <div className="mt-4 space-y-2">
@@ -328,19 +249,6 @@ const BlogPage: React.FC<BlogPageProps> = ({
                     </button>
                   );
                 })}
-              </div>
-
-              {/* Medical Evidence Standard Pill */}
-              <div className="mt-5 rounded-[20px] border border-white/60 bg-white/60 p-3.5 backdrop-blur-xl dark:border-white/5 dark:bg-white/5">
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon className="h-4 w-4 text-primary shrink-0" />
-                  <p className="text-[11px] font-bold text-foreground">
-                    {t('blog.evidence_standard', 'Kiểm chứng y khoa')}
-                  </p>
-                </div>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {t('blog.evidence_standard_desc', '100% nội dung được biên soạn theo chuẩn lâm sàng da liễu.')}
-                </p>
               </div>
             </BlogSection>
           </aside>

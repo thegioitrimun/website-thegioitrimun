@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" class="bg-background dark:bg-[#0b0f17]" style="scroll-behavior: smooth; overscroll-behavior-y: none;">
+<html lang="vi" class="bg-background dark:bg-[#0b0f17]">
 
 <head>
   <meta charset="UTF-8" />
@@ -56,11 +56,12 @@
   <meta name="theme-color" content="#0b0f17" media="(prefers-color-scheme: dark)" />
   <meta name="theme-color" content="#ffffff" id="theme-color-meta" />
 
-  <!-- iOS support -->
+  <!-- iOS support: edge-to-edge layout with black-translucent status bar -->
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/da-lieu-nhiet-doi-phu-quoc-180.png?v=clinic-20260906" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="/pwa-layout.css?v=20260911" />
   <meta name="apple-mobile-web-app-title" content="Thế Giới Trị Mụn" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,11 +91,20 @@
     })();
   </script>
   <script>
-    // IIFE to set theme instantly, preventing FOUC
+    // IIFE to detect standalone PWA mode and set theme instantly, preventing FOUC
     (function () {
+      const isStandalonePWA = window.matchMedia('(display-mode: standalone)').matches ||
+                              window.matchMedia('(display-mode: fullscreen)').matches ||
+                              window.matchMedia('(display-mode: minimal-ui)').matches ||
+                              Boolean('standalone' in window.navigator && window.navigator.standalone);
+
       const theme = localStorage.getItem('iskin-clinic-theme') || 'light';
       const colorTheme = localStorage.getItem('iskin-clinic-color-theme') || 'teal';
       const root = document.documentElement;
+
+      if (isStandalonePWA) {
+        root.classList.add('is-pwa');
+      }
 
       const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
       root.classList.toggle('dark', isDark);

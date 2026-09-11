@@ -742,7 +742,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
               </div>
 
               {/* Pinned Glass Footer Bar */}
-              <div className="relative z-10 border-t border-white/45 bg-[rgba(255,255,255,0.60)] p-4 backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,34,0.70)] sm:p-5">
+              <div className="relative z-10 border-t border-white/45 bg-[rgba(255,255,255,0.60)] px-4 pt-4 pb-[max(env(safe-area-inset-bottom,0px),1rem)] backdrop-blur-2xl dark:border-white/10 dark:bg-[rgba(15,23,34,0.70)] sm:px-5 sm:pt-5 sm:pb-[max(env(safe-area-inset-bottom,0px),1.25rem)]">
                 <div className="flex items-center gap-3">
                   {activeFilterCount > 0 && (
                     <button
