@@ -170,3 +170,51 @@ test('D1 product sync prefers the editable ingredients field over the legacy inc
     assert.equal(summary.failed, 0);
     assert.equal(syncedInciText, 'Aqua, Glycerin');
 });
+
+test('D1 scheduled sync skips ingredient lookups when the dirty set is empty', async () => {
+    const env = {
+        APP_DB: { prepare(sql) {
+            assert.match(sql, /FROM product_ingredient_dirty/);
+            return { bind: () => ({ all: async () => ({ results: [] }) }) };
+        } },
+        INCI_SHARD_COUNT: '1',
+        INCI_DB_0: { prepare() { throw new Error('An empty queue must not query ingredients'); } },
+    };
+    const summary = await syncD1ProductIngredientSnapshots(env);
+    assert.equal(summary.selected, 0);
+    assert.equal(summary.failed, 0);
+});
+
+for (const fails of [false, true]) {
+    test(`D1 scheduled sync ${fails ? 'retains failed work' : 'acknowledges only the selected generation'}`, async () => {
+        const deleted = [];
+        const env = {
+            APP_DB: { prepare(sql) {
+                return { bind(...values) {
+                    if (sql.includes('SELECT p.id')) return { all: async () => ({ results: [{
+                        id: 309, ingredients: 'Aqua', inci_text: null, updated_at: 'revision-a', dirty_generation: 'generation-a',
+                    }] }) };
+                    if (sql.includes('INSERT INTO product_ingredient_snapshots')) {
+                        assert.match(sql, /WHERE EXISTS \(SELECT 1 FROM products/);
+                        assert.deepEqual(values.slice(-4), [309, 'revision-a', 'Aqua', null]);
+                        return { run: async () => {
+                            if (fails) throw new Error('temporary write failure');
+                            return { success: true };
+                        } };
+                    }
+                    if (sql.includes('DELETE FROM product_ingredient_dirty')) {
+                        assert.match(sql, /generation = \?/);
+                        return { run: async () => { deleted.push(values); return { success: true }; } };
+                    }
+                    throw new Error(`Unexpected SQL: ${sql}`);
+                } };
+            } },
+            INCI_SHARD_COUNT: '1',
+            INCI_DB_0: { prepare() { return { bind: () => ({ all: async () => ({ results: [] }) }) }; } },
+        };
+        const summary = await syncD1ProductIngredientSnapshots(env);
+        assert.equal(summary.failed, fails ? 1 : 0, JSON.stringify(summary.errors));
+        assert.equal(summary.synced, fails ? 0 : 1);
+        assert.deepEqual(deleted, fails ? [] : [[309, 'generation-a']]);
+    });
+}

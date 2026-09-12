@@ -249,7 +249,10 @@ export async function handleR2ImageUpload(request, env, deps) {
         }, configurationError ? 503 : 415);
     }
 
-    const sanitizedPath = normalizeObjectPath(replacePathExtension(requestedPath, 'webp'));
+    const digest = await crypto.subtle.digest('SHA-256', safeImageBytes);
+    const contentHash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('').slice(0, 16);
+    const versionedPath = replacePathExtension(requestedPath, 'webp').replace(/\.webp$/i, `-${contentHash}.webp`);
+    const sanitizedPath = normalizeObjectPath(versionedPath);
     if (!sanitizedPath) return jsonResponse({ error: 'Invalid sanitized image path.' }, 400);
 
     const scopeError = await enforceImageMutationScope(auth, env, bucket, [sanitizedPath], 'upload');

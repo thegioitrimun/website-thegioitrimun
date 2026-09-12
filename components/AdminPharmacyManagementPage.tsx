@@ -6499,84 +6499,191 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                 </div>
 
                                 {/* 2. List Card */}
-                                <div className="rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0 p-3 sm:p-4">
+                                <div className="overflow-hidden rounded-2xl sm:rounded-[1.7rem] border border-white/70 bg-card/85 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 mx-1 sm:mx-0">
+                                    {/* Header bar */}
+                                    <div className="border-b border-border/50 px-3 py-2 sm:px-4 sm:py-2.5 backdrop-blur-md transition-all bg-muted/10">
+                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                            <span className="text-xs sm:text-sm font-semibold text-foreground">
+                                                Danh sách thương hiệu
+                                            </span>
+                                            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                                <span className="text-[11px] text-muted-foreground">
+                                                    Tổng {filteredBrands.length} thương hiệu
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {filteredBrands.length === 0 ? (
                                         <div className="p-8 text-center text-xs text-muted-foreground">
                                             Không tìm thấy thương hiệu nào phù hợp.
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3 sm:gap-4">
-                                            {filteredBrands.map((brand) => {
-                                                const isEditingThisBrand = editingBrandId === brand.id;
-                                                return (
-                                                    <div
-                                                        key={brand.id}
-                                                        className={`rounded-2xl transition-all flex flex-col sm:flex-row p-3 gap-3 sm:gap-4 items-start sm:items-center ${
-                                                            isEditingThisBrand
-                                                                ? 'border-0 ring-2 ring-primary/50 bg-primary/20 backdrop-blur-xl'
-                                                                : 'border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 hover:-translate-y-0.5 hover:bg-card/90'
-                                                        }`}
-                                                    >
-                                                        {/* Logo */}
-                                                        <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 rounded-[1.1rem] border border-white/70 bg-card/75 shadow-[0_28px_70px_-48px_rgba(24,35,32,0.55)] backdrop-blur-2xl dark:border-white/10 overflow-hidden flex items-center justify-center p-2">
-                                                            {brand.logo_url ? (
-                                                                <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
-                                                            ) : (
-                                                                <div className="text-center">
-                                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase">No Logo</p>
+                                        <>
+                                            {/* Mobile view (< lg) */}
+                                            <div className="flex flex-col lg:hidden">
+                                                {filteredBrands.map((brand) => {
+                                                    const isEditingThisBrand = editingBrandId === brand.id;
+                                                    return (
+                                                        <article
+                                                            key={brand.id}
+                                                            className={`relative border-b border-border/40 last:border-0 transition-colors hover:bg-muted/20 py-[10px] px-[12px] z-0 ${
+                                                                isEditingThisBrand ? 'bg-primary/10' : ''
+                                                            }`}
+                                                        >
+                                                            <div className="relative z-10 flex items-center gap-3">
+                                                                {/* Logo container */}
+                                                                <div className="h-12 w-12 shrink-0 rounded-xl border border-border/70 bg-card/60 backdrop-blur-xl p-1.5 overflow-hidden flex items-center justify-center shadow-xs">
+                                                                    {brand.logo_url ? (
+                                                                        <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
+                                                                    ) : (
+                                                                        <span className="text-[9px] font-bold text-muted-foreground uppercase text-center leading-none">No Logo</span>
+                                                                    )}
                                                                 </div>
-                                                            )}
-                                                        </div>
 
-                                                        {/* Info */}
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <h4 className="text-sm sm:text-base font-black truncate text-foreground">{brand.name}</h4>
-                                                                {isEditingThisBrand && (
-                                                                    <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                                                        Đang sửa
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <p className="font-mono text-[11px] text-muted-foreground truncate mt-0.5">{brand.slug}</p>
-                                                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                                                <span className="inline-flex items-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-[10px] font-semibold">
-                                                                    {brand.productCount} SP
-                                                                </span>
-                                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${brand.logo_url ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}`}>
-                                                                    {brand.logo_url ? 'Có logo' : 'Thiếu logo'}
-                                                                </span>
-                                                                <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${brand.descriptionSnippet ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                                                    {brand.descriptionSnippet ? 'Có mô tả' : 'Thiếu mô tả'}
-                                                                </span>
-                                                            </div>
-                                                        </div>
+                                                                {/* Info */}
+                                                                <div className="min-w-0 flex-1">
+                                                                    <div className="flex items-center justify-between gap-1">
+                                                                        <h4 className="truncate text-sm font-bold text-foreground leading-snug">{brand.name}</h4>
+                                                                        {isEditingThisBrand && (
+                                                                            <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-bold shrink-0">
+                                                                                Đang sửa
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">{brand.slug}</p>
+                                                                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                                                                        <span className="inline-flex items-center rounded-md bg-secondary text-secondary-foreground px-1.5 py-0.5 text-[10px] font-semibold">
+                                                                            {brand.productCount} SP
+                                                                        </span>
+                                                                        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${brand.logo_url ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}`}>
+                                                                            {brand.logo_url ? 'Có logo' : 'Thiếu logo'}
+                                                                        </span>
+                                                                        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${brand.descriptionSnippet ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                                            {brand.descriptionSnippet ? 'Có mô tả' : 'Thiếu mô tả'}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
 
-                                                        {/* Actions */}
-                                                        <div className="flex sm:flex-col gap-1.5 shrink-0 w-full sm:w-auto mt-2 sm:mt-0 items-center justify-end">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleStartEditBrand(brand)}
-                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
-                                                                title={`Sửa thương hiệu: ${brand.name}`}
-                                                            >
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-5 h-5 object-contain" />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => handleDeleteBrandConfirm(brand)}
-                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
-                                                                title={`Xóa thương hiệu: ${brand.name}`}
-                                                            >
-                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-5 h-5 object-contain" />
-                                                            </button>
-                                                        </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
+                                                                {/* Actions */}
+                                                                <div className="flex items-center gap-1 shrink-0">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleStartEditBrand(brand)}
+                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
+                                                                        title={`Sửa thương hiệu: ${brand.name}`}
+                                                                    >
+                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-5 h-5 object-contain" />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => handleDeleteBrandConfirm(brand)}
+                                                                        className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
+                                                                        title={`Xóa thương hiệu: ${brand.name}`}
+                                                                    >
+                                                                        <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-5 h-5 object-contain" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </article>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Desktop table view (>= lg) */}
+                                            <div className="hidden overflow-x-auto lg:block">
+                                                <table className="w-full table-fixed text-left text-sm">
+                                                    <thead className="bg-muted/50 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                                        <tr>
+                                                            <th className="w-[36%] px-4 py-3 font-semibold">Thương hiệu</th>
+                                                            <th className="w-[24%] px-4 py-3 font-semibold">Slug (Đường dẫn)</th>
+                                                            <th className="w-[14%] px-4 py-3 font-semibold">Số sản phẩm</th>
+                                                            <th className="w-[16%] px-4 py-3 font-semibold">Trạng thái</th>
+                                                            <th className="w-[10%] px-4 py-3 font-semibold text-right">Thao tác</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-border">
+                                                        {filteredBrands.map((brand) => {
+                                                            const isEditingThisBrand = editingBrandId === brand.id;
+                                                            return (
+                                                                <tr
+                                                                    key={brand.id}
+                                                                    className={`align-middle transition-colors hover:bg-muted/20 ${
+                                                                        isEditingThisBrand ? 'bg-primary/10' : ''
+                                                                    }`}
+                                                                >
+                                                                    <td className="px-4 py-3">
+                                                                        <div className="flex min-w-0 items-center gap-3">
+                                                                            <div className="h-11 w-11 shrink-0 rounded-xl border border-border/80 bg-card/60 backdrop-blur-xl p-1 overflow-hidden flex items-center justify-center shadow-xs">
+                                                                                {brand.logo_url ? (
+                                                                                    <img src={brand.logo_url} alt={brand.name} className="w-full h-full object-contain" />
+                                                                                ) : (
+                                                                                    <span className="text-[9px] font-bold text-muted-foreground uppercase text-center leading-none">No Logo</span>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="min-w-0">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <p className="truncate text-sm font-bold text-foreground" title={brand.name}>
+                                                                                        {brand.name}
+                                                                                    </p>
+                                                                                    {isEditingThisBrand && (
+                                                                                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-bold shrink-0">
+                                                                                            Đang sửa
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-4 py-3">
+                                                                        <span className="font-mono text-xs text-muted-foreground truncate block" title={brand.slug}>
+                                                                            {brand.slug}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3">
+                                                                        <span className="inline-flex items-center rounded-md bg-secondary text-secondary-foreground px-2 py-0.5 text-xs font-semibold">
+                                                                            {brand.productCount} SP
+                                                                        </span>
+                                                                    </td>
+                                                                    <td className="px-4 py-3">
+                                                                        <div className="flex flex-wrap gap-1.5">
+                                                                            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${brand.logo_url ? 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'}`}>
+                                                                                {brand.logo_url ? 'Có logo' : 'Thiếu logo'}
+                                                                            </span>
+                                                                            <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${brand.descriptionSnippet ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                                                {brand.descriptionSnippet ? 'Có mô tả' : 'Thiếu mô tả'}
+                                                                            </span>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td className="px-4 py-3 text-right">
+                                                                        <div className="flex items-center justify-end gap-1">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleStartEditBrand(brand)}
+                                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-primary transition-all active:scale-95"
+                                                                                title={`Sửa thương hiệu: ${brand.name}`}
+                                                                            >
+                                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-edit.webp" alt="Sửa" className="w-5 h-5 object-contain" />
+                                                                            </button>
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => handleDeleteBrandConfirm(brand)}
+                                                                                className="inline-flex h-8 w-8 items-center justify-center rounded-xl text-foreground hover:bg-card hover:text-destructive transition-all active:scale-95"
+                                                                                title={`Xóa thương hiệu: ${brand.name}`}
+                                                                            >
+                                                                                <img src="https://thegioitrimun.vn/r2/assets/admin-icons/20260718102440-delete.webp" alt="Xóa" className="w-5 h-5 object-contain" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                         </div>
                     )}
                 </div>

@@ -577,10 +577,21 @@ export async function getAdminCapabilities(request, env) {
     } catch (error) { return apiError(error, 'Could not load system capabilities.'); }
 }
 
+const tableExistenceCache = new WeakMap();
+
 async function tableExists(db, tableName) {
+    let tables = tableExistenceCache.get(db);
+    if (!tables) {
+        tables = new Map();
+        tableExistenceCache.set(db, tables);
+    }
+    const cached = tables.get(tableName);
+    if (cached && cached.expiresAt > Date.now()) return cached.exists;
     const row = await db.prepare("SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ? LIMIT 1")
         .bind(tableName).first();
-    return Boolean(row?.present);
+    const exists = Boolean(row?.present);
+    tables.set(tableName, { exists, expiresAt: Date.now() + (exists ? 300_000 : 5_000) });
+    return exists;
 }
 
 async function safeAdminRows(db, tableName, sql, bindings = []) {

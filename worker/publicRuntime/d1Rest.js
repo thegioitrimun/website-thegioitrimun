@@ -105,7 +105,7 @@ async function products(db, params) {
         table: 'product_images',
         idColumn: 'product_id',
         ids: rows.map((row) => row.id),
-        orderBy: ' ORDER BY is_primary DESC, display_order, id',
+        orderBy: ' ORDER BY product_id, is_primary DESC, display_order, id',
     });
     const images = new Map();
     for (const image of imageRows) {

@@ -1,3 +1,4 @@
+import { createPublicCache, finalizePublicCacheResponse } from './cache.js';
 import {
     handleClientMonitor,
     handlePublicRuntimeRest,
@@ -13,13 +14,13 @@ export async function maybeHandlePublicRuntimeRoute(route, deps) {
     if (path.startsWith('/api/public/rest/')) {
         if (request.method === 'OPTIONS') return noContent();
         if (request.method !== 'GET' && request.method !== 'HEAD') return methodNotAllowed();
-        return handlePublicRuntimeRest(request, env, ctx, deps);
+        return finalizePublicCacheResponse(await handlePublicRuntimeRest(request, env, ctx, { ...deps, ...createPublicCache(env) }));
     }
 
     if (path === '/api/public/bootstrap') {
         if (request.method === 'OPTIONS') return noContent();
         if (request.method !== 'GET') return methodNotAllowed();
-        return handlePublicBootstrap(request, env, ctx, deps);
+        return finalizePublicCacheResponse(await handlePublicBootstrap(request, env, ctx, { ...deps, ...createPublicCache(env) }));
     }
 
     if (path === '/api/monitor/client-error') {

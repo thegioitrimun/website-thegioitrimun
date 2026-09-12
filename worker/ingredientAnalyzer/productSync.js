@@ -1,3 +1,6 @@
+import { syncD1ProductIngredientSnapshots } from './productSyncD1.js';
+export { syncD1ProductIngredientSnapshots };
+import { createPublicCache, finalizePublicCacheResponse } from '../publicRuntime/cache.js';
 import { analyzeIngredients, parseInciText } from './analyzer.js';
 import {
     fetchIngredientRows,
@@ -367,50 +370,6 @@ export async function syncPendingProductIngredientEvents(env = {}, deps = {}, op
     return summary;
 }
 
-export async function syncD1ProductIngredientSnapshots(env, options = {}) {
-    if (!env.APP_DB || !getIngredientD1Databases(env).length) {
-        return { selected: 0, synced: 0, failed: 0, errors: [], skipped: true };
-    }
-    const productLimit = Math.max(1, Math.min(Number(options.productLimit || 12), 30));
-    const requestedIds = Array.from(new Set((options.productIds || []).map(Number).filter((id) => Number.isInteger(id) && id > 0))).slice(0, 30);
-    const idFilter = requestedIds.length ? `AND p.id IN (${requestedIds.map(() => '?').join(',')})` : '';
-    const result = await env.APP_DB.prepare(`SELECT p.id, p.inci_text, p.ingredients, p.updated_at
-        FROM products p LEFT JOIN product_ingredient_snapshots s ON s.product_id = p.id
-        WHERE p.is_published = 1 AND trim(COALESCE(NULLIF(trim(p.ingredients), ''), NULLIF(trim(p.inci_text), ''), '')) <> ''
-          ${idFilter}
-          AND (${requestedIds.length ? '1 = 1' : 's.product_id IS NULL OR s.source_updated_at IS NULL OR s.source_updated_at <> p.updated_at'})
-        ORDER BY p.updated_at ASC LIMIT ?`).bind(...requestedIds, productLimit).all();
-    const products = result.results || [];
-    const summary = { selected: products.length, synced: 0, failed: 0, errors: [], skipped: false };
-    for (const product of products) {
-        try {
-            const inciText = getProductInciText(product);
-            const rawNames = parseInciText(inciText);
-            const rows = await fetchIngredientRowsD1(env, rawNames);
-            const analysis = {
-                ...analyzeIngredients(inciText, { rows }),
-                meta: { source: 'cloudflare-d1-snapshot', matched_rows: rows.length, lang: 'vi' },
-            };
-            const hash = await sha256(inciText);
-            const now = new Date().toISOString();
-            await env.APP_DB.prepare(`INSERT INTO product_ingredient_snapshots (
-                product_id, inci_text, inci_hash, analysis_json, recognized_count, total_count,
-                analyzer_version, source_updated_at, analyzed_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(product_id) DO UPDATE SET inci_text=excluded.inci_text, inci_hash=excluded.inci_hash,
-                analysis_json=excluded.analysis_json, recognized_count=excluded.recognized_count,
-                total_count=excluded.total_count, analyzer_version=excluded.analyzer_version,
-                source_updated_at=excluded.source_updated_at, analyzed_at=excluded.analyzed_at, updated_at=excluded.updated_at`)
-                .bind(product.id, inciText, hash, JSON.stringify(analysis), analysis.summary?.recognized || 0,
-                    analysis.summary?.total || rawNames.length, String(ANALYSIS_VERSION), product.updated_at, now, now).run();
-            summary.synced += 1;
-        } catch (error) {
-            summary.failed += 1;
-            summary.errors.push({ productId: product.id, message: error instanceof Error ? error.message : String(error) });
-        }
-    }
-    return summary;
-}
 
 function normalizeRequestedLanguage(value) {
     const lang = String(value || 'vi').toLowerCase();
@@ -423,7 +382,12 @@ function normalizeRequestedLanguage(value) {
 export async function handleProductIngredientSnapshot(request, productKey, env, deps = {}) {
     const { jsonResponse } = deps;
     const edgeCache = deps.edgeCache || globalThis.caches?.default;
-    if (edgeCache) {
+    const d1Cache = String(env.DATA_BACKEND || '').toLowerCase() === 'd1' ? createPublicCache(env, edgeCache) : null;
+    if (d1Cache) {
+        const hit = await d1Cache.readEdgeCache(request);
+        if (hit) return finalizePublicCacheResponse(hit);
+    }
+    if (!d1Cache && edgeCache) {
         const cachedResponse = await edgeCache.match(request).catch(() => null);
         if (cachedResponse) {
             const headers = new Headers(cachedResponse.headers);
@@ -460,12 +424,14 @@ export async function handleProductIngredientSnapshot(request, productKey, env, 
         }
         if (!snapshot) return jsonResponse({ error: 'Product ingredient snapshot not found.' }, 404, { 'Cache-Control': 'no-store' });
         const analysis = JSON.parse(snapshot.analysis_json || '{}');
-        return jsonResponse({
+        const response = jsonResponse({
             ...analysis,
             meta: { ...(analysis.meta || {}), source: 'cloudflare-d1-snapshot', source_product_id: snapshot.product_id,
                 source_updated_at: snapshot.source_updated_at, synced_at: snapshot.updated_at,
                 analysis_version: snapshot.analyzer_version, lang: normalizeRequestedLanguage(new URL(request.url).searchParams.get('lang')) },
         }, 200, { ...PUBLIC_SNAPSHOT_HEADERS, ETag: `"${snapshot.inci_hash}-${snapshot.analyzer_version}"` });
+        await d1Cache.writeEdgeCache(request, response, deps.ctx);
+        return finalizePublicCacheResponse(response);
     }
 
     const ingredientConfig = getIngredientSupabaseConfig(env);

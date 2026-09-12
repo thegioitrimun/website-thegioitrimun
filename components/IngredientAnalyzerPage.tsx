@@ -1224,7 +1224,7 @@ export default function IngredientAnalyzerPage() {
     return (
         <main className="min-h-screen bg-[linear-gradient(180deg,hsl(var(--background))_0%,#eef8ff_48%,#fffaf6_100%)] dark:bg-[linear-gradient(180deg,hsl(var(--background))_0%,#0c1420_50%,#090f17_100%)] pb-20 pt-10 md:pt-32">
             <div className="container mx-auto px-0 md:px-6">
-                <section className="overflow-hidden rounded-none p-4 shadow-[0_28px_80px_-56px_rgba(36,46,57,0.5)] dark:shadow-[0_28px_80px_-56px_rgba(0,0,0,0.7)] md:rounded-[36px] md:p-10 bg-white/65 dark:bg-[#0f1722]/80 dark:border dark:border-white/10">
+                <section className="overflow-hidden rounded-none p-4 shadow-[0_28px_80px_-56px_rgba(36,46,57,0.5)] dark:shadow-none md:rounded-[36px] md:p-10 bg-white/65 dark:bg-transparent dark:border-0">
                     <div className="grid gap-5 md:gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
                         <div className="text-center md:text-left">
                             <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/72 px-4 py-2 text-sm font-bold text-primary dark:bg-primary/15 dark:border-primary/30">

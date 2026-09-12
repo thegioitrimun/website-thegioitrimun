@@ -83,11 +83,6 @@ const DoctorForm: React.FC<DoctorFormProps> = ({ doctor, onSave, onCancel }) => 
             title={t('doctor_form.title', 'Hồ sơ Chuyên môn Bác sĩ')}
             description={`${t('doctor_form.edit_for', 'Chỉnh sửa thông tin cho:')} ${doctor.name}`}
             isDirty={hasUnsavedChanges}
-            sections={[
-                { id: 'doctor-editor-account', label: 'Tài khoản & chứng chỉ' },
-                { id: 'doctor-editor-profile', label: 'Hồ sơ chuyên môn' },
-                { id: 'doctor-editor-homepage', label: 'Hiển thị trang chủ' },
-            ]}
             draftState={{
                 lastSavedAt: doctorDraftSavedAt,
                 hasRestorableDraft: hasRestorableDoctorDraft,

@@ -498,6 +498,8 @@ const prunePublicRuntimeCache = () => {
 }
 
 const getPublicRuntimeCacheTtlMs = (endpoint: string): number => {
+    // D1 edge caching checks database revisions; local TTL must not bypass it.
+    if (USE_D1_API) return 0;
     const resource = String(endpoint || '').split('?')[0].replace(/^\/+/, '');
     if (['site_info', 'footer_content', 'homepage_hero', 'payment_settings', 'auth_page_images'].includes(resource)) {
         return 5 * 60 * 1000;

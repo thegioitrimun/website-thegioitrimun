@@ -57,6 +57,7 @@ export default {
             fontFamily: {
                 sans: ['var(--font-sans)', 'sans-serif'],
                 heading: ['var(--font-heading)', 'sans-serif'],
+                kanit: ['Kanit', 'sans-serif'],
             },
             transitionTimingFunction: {
                 'custom-bezier': 'cubic-bezier(0.4, 0, 0.2, 1)',

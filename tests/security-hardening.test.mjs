@@ -72,8 +72,8 @@ test('R2 upload stores only re-encoded WebP bytes and metadata', async () => {
     const payload = await response.json();
 
     assert.equal(response.status, 200);
-    assert.equal(payload.path, 'sample.webp');
-    assert.equal(stored.key, 'product-images/sample.webp');
+    assert.match(payload.path, /^sample-[0-9a-f]{16}\.webp$/);
+    assert.equal(stored.key, `product-images/${payload.path}`);
     assert.equal(stored.options.httpMetadata.contentType, 'image/webp');
     assert.equal(stored.options.customMetadata.sanitized, 'true');
     assert.equal(new Uint8Array(stored.bytes)[0], 0x52);

@@ -1,3 +1,4 @@
+import { createPublicCache, finalizePublicCacheResponse } from '../publicRuntime/cache.js';
 import { analyzeIngredients, parseInciText } from './analyzer.js';
 import { fetchIngredientRowsD1, getIngredientD1Databases } from './handlersD1.js';
 import { requireCsrf, requireRole } from '../auth/session.js';
@@ -33,12 +34,17 @@ export async function syncD1ProductIngredientSnapshots(env, options = {}) {
     const productLimit = Math.max(1, Math.min(Number(options.productLimit || 12), 30));
     const requestedIds = Array.from(new Set((options.productIds || []).map(Number).filter((id) => Number.isInteger(id) && id > 0))).slice(0, 30);
     const idFilter = requestedIds.length ? `AND p.id IN (${requestedIds.map(() => '?').join(',')})` : '';
-    const result = await env.APP_DB.prepare(`SELECT p.id, p.inci_text, p.ingredients, p.updated_at
-        FROM products p LEFT JOIN product_ingredient_snapshots s ON s.product_id = p.id
-        WHERE p.is_published = 1 AND trim(COALESCE(NULLIF(trim(p.ingredients), ''), NULLIF(trim(p.inci_text), ''), '')) <> ''
-          ${idFilter}
-          AND (${requestedIds.length ? '1 = 1' : 's.product_id IS NULL OR s.source_updated_at IS NULL OR s.source_updated_at <> p.updated_at'})
-        ORDER BY p.updated_at ASC LIMIT ?`).bind(...requestedIds, productLimit).all();
+    const result = requestedIds.length
+        ? await env.APP_DB.prepare(`SELECT p.id, p.inci_text, p.ingredients, p.updated_at,
+            d.generation AS dirty_generation FROM products p
+            LEFT JOIN product_ingredient_dirty d ON d.product_id = p.id
+            WHERE p.is_published = 1
+              AND trim(COALESCE(NULLIF(trim(p.ingredients), ''), NULLIF(trim(p.inci_text), ''), '')) <> ''
+              ${idFilter} ORDER BY p.updated_at ASC LIMIT ?`).bind(...requestedIds, productLimit).all()
+        : await env.APP_DB.prepare(`SELECT p.id, p.inci_text, p.ingredients, p.updated_at,
+            d.generation AS dirty_generation
+            FROM (SELECT product_id, generation FROM product_ingredient_dirty ORDER BY product_id LIMIT ?) d
+            JOIN products p ON p.id = d.product_id`).bind(productLimit).all();
     const products = result.results || [];
     const summary = { selected: products.length, synced: 0, failed: 0, errors: [], skipped: false };
     for (const product of products) {
@@ -55,13 +61,21 @@ export async function syncD1ProductIngredientSnapshots(env, options = {}) {
             await env.APP_DB.prepare(`INSERT INTO product_ingredient_snapshots (
                 product_id, inci_text, inci_hash, analysis_json, recognized_count, total_count,
                 analyzer_version, source_updated_at, analyzed_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            WHERE EXISTS (SELECT 1 FROM products WHERE id = ? AND is_published = 1
+                AND updated_at = ? AND ingredients IS ? AND inci_text IS ?)
             ON CONFLICT(product_id) DO UPDATE SET inci_text=excluded.inci_text, inci_hash=excluded.inci_hash,
                 analysis_json=excluded.analysis_json, recognized_count=excluded.recognized_count,
                 total_count=excluded.total_count, analyzer_version=excluded.analyzer_version,
                 source_updated_at=excluded.source_updated_at, analyzed_at=excluded.analyzed_at, updated_at=excluded.updated_at`)
                 .bind(product.id, inciText, hash, JSON.stringify(analysis), analysis.summary?.recognized || 0,
-                    analysis.summary?.total || rawNames.length, String(ANALYSIS_VERSION), product.updated_at, now, now).run();
+                    analysis.summary?.total || rawNames.length, String(ANALYSIS_VERSION), product.updated_at, now, now,
+                    product.id, product.updated_at, product.ingredients ?? null, product.inci_text ?? null).run();
+            if (product.dirty_generation != null) {
+                await env.APP_DB.prepare(`DELETE FROM product_ingredient_dirty
+                    WHERE product_id = ? AND generation = ?`)
+                    .bind(product.id, product.dirty_generation).run();
+            }
             summary.synced += 1;
         } catch (error) {
             summary.failed += 1;
@@ -73,15 +87,9 @@ export async function syncD1ProductIngredientSnapshots(env, options = {}) {
 
 export async function handleProductIngredientSnapshot(request, productKey, env, deps = {}) {
     const { jsonResponse } = deps;
-    const edgeCache = deps.edgeCache || globalThis.caches?.default;
-    if (edgeCache) {
-        const cachedResponse = await edgeCache.match(request).catch(() => null);
-        if (cachedResponse) {
-            const headers = new Headers(cachedResponse.headers);
-            headers.set('X-Ingredient-Snapshot-Cache', 'HIT');
-            return new Response(cachedResponse.body, { status: cachedResponse.status, statusText: cachedResponse.statusText, headers });
-        }
-    }
+    const cache = createPublicCache(env, deps.edgeCache || globalThis.caches?.default);
+    const hit = await cache.readEdgeCache(request);
+    if (hit) return finalizePublicCacheResponse(hit);
     if (!env.APP_DB) return jsonResponse({ error: 'APP_DB is not configured.' }, 503);
     const isNumeric = /^\d+$/.test(String(productKey || ''));
     let snapshot = await env.APP_DB.prepare(`SELECT s.*, p.slug FROM product_ingredient_snapshots s
@@ -108,12 +116,8 @@ export async function handleProductIngredientSnapshot(request, productKey, env, 
             lang: normalizeRequestedLanguage(new URL(request.url).searchParams.get('lang')),
         },
     }, 200, { ...PUBLIC_SNAPSHOT_HEADERS, ETag: `"${snapshot.inci_hash}-${snapshot.analyzer_version}"`, 'X-Ingredient-Snapshot-Cache': 'MISS' });
-    if (edgeCache) {
-        const cacheWrite = edgeCache.put(request, response.clone()).catch(() => undefined);
-        if (deps.ctx?.waitUntil) deps.ctx.waitUntil(cacheWrite);
-        else await cacheWrite;
-    }
-    return response;
+    await cache.writeEdgeCache(request, response, deps.ctx);
+    return finalizePublicCacheResponse(response);
 }
 
 export async function handleProductIngredientSync(request, env, deps = {}) {

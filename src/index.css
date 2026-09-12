@@ -2478,3 +2478,11 @@
   will-change: transform, opacity;
 }
 
+/* Jack 3D Creator Portfolio Styles */
+.hero-heading {
+  background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
