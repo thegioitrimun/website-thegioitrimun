@@ -704,13 +704,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
             inactiveTransition="transform 0.6s ease-in-out"
             className="w-full cursor-pointer"
           >
-            <img
-              src="/logo_darkmode.svg"
-              alt="Thế Giới Trị Mụn Logo"
-              className="w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-none select-none"
-              draggable={false}
-              loading="eager"
-            />
+            <picture className="w-full h-auto block">
+              <source srcSet="/hero-character.webp" type="image/webp" />
+              <img
+                src="/hero-character.png"
+                alt="Thế Giới Trị Mụn 3D"
+                className="w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-none select-none"
+                draggable={false}
+                loading="eager"
+              />
+            </picture>
           </Magnet>
         </FadeIn>
       </div>
