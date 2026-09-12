@@ -716,9 +716,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
         <FadeIn delay={0.35} y={20}>
           <p
             style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
-            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[160px] sm:max-w-[220px] md:max-w-[260px]"
+            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[180px] sm:max-w-[240px] md:max-w-[300px]"
           >
-            a 3d creator driven by crafting striking and unforgettable projects
+            Chăm sóc da liễu chuyên nghiệp tại phú quốc
           </p>
         </FadeIn>
 
