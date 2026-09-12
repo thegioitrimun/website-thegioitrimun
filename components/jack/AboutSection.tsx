@@ -71,9 +71,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <FadeIn delay={0} y={40}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
-            className="hero-heading font-black uppercase leading-none tracking-tight text-center"
+            className="hero-heading font-black uppercase leading-none tracking-tight text-center whitespace-nowrap"
           >
-            Về Chúng Tôi
+            Sứ Mệnh
           </h2>
         </FadeIn>
 

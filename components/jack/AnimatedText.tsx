@@ -34,22 +34,37 @@ export const AnimatedText: React.FC<AnimatedTextProps> = ({ text, className = ''
     offset: ['start 0.8', 'end 0.2'],
   });
 
-  const characters = text.split('');
-  const total = characters.length;
+  const words = text.split(' ');
+  const total = text.length;
+  let charCounter = 0;
 
   return (
     <p ref={containerRef} className={className}>
-      {characters.map((char, index) => {
-        const start = index / total;
-        const end = Math.min(1, (index + 1) / total);
+      {words.map((word, wordIndex) => {
+        const wordChars = word.split('');
+        const startCharIndex = charCounter;
+        charCounter += word.length + 1;
+
         return (
-          <Character
-            key={index}
-            char={char}
-            progress={scrollYProgress}
-            start={start}
-            end={end}
-          />
+          <React.Fragment key={wordIndex}>
+            <span className="inline-block whitespace-nowrap">
+              {wordChars.map((char, charIdx) => {
+                const globalIndex = startCharIndex + charIdx;
+                const start = globalIndex / total;
+                const end = Math.min(1, (globalIndex + 1) / total);
+                return (
+                  <Character
+                    key={charIdx}
+                    char={char}
+                    progress={scrollYProgress}
+                    start={start}
+                    end={end}
+                  />
+                );
+              })}
+            </span>
+            {wordIndex < words.length - 1 && ' '}
+          </React.Fragment>
         );
       })}
     </p>
