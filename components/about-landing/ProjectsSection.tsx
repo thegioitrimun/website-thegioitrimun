@@ -177,7 +177,7 @@ export const ProjectsSection: React.FC = () => {
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
             className="hero-heading font-black uppercase leading-none tracking-tight text-center"
           >
-            Dự Án Tiêu Biểu
+            Sản Phẩm
           </h2>
         </FadeIn>
       </div>
