@@ -6,7 +6,8 @@ interface MarqueeVideoItem {
   alt: string;
 }
 
-const MARQUEE_VIDEOS: MarqueeVideoItem[] = [
+// Row 1: 7 unique treatment videos (runs to the right)
+const ROW_1_RAW: MarqueeVideoItem[] = [
   {
     video: '/videos/about/video-1.mp4',
     poster: '/videos/about/poster-1.jpg',
@@ -44,22 +45,43 @@ const MARQUEE_VIDEOS: MarqueeVideoItem[] = [
   },
 ];
 
-// Row 1 starts in original sequence
-const ROW_1_RAW = [...MARQUEE_VIDEOS];
-// Row 2 is offset for visual variety so identical items are not vertically aligned
-const ROW_2_RAW = [
-  MARQUEE_VIDEOS[3],
-  MARQUEE_VIDEOS[4],
-  MARQUEE_VIDEOS[5],
-  MARQUEE_VIDEOS[6],
-  MARQUEE_VIDEOS[0],
-  MARQUEE_VIDEOS[1],
-  MARQUEE_VIDEOS[2],
+// Row 2: 6 unique treatment videos (runs to the left, 0% overlap with Row 1)
+const ROW_2_RAW: MarqueeVideoItem[] = [
+  {
+    video: '/videos/about/video-8.mp4',
+    poster: '/videos/about/poster-8.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 8',
+  },
+  {
+    video: '/videos/about/video-9.mp4',
+    poster: '/videos/about/poster-9.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 9',
+  },
+  {
+    video: '/videos/about/video-10.mp4',
+    poster: '/videos/about/poster-10.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 10',
+  },
+  {
+    video: '/videos/about/video-11.mp4',
+    poster: '/videos/about/poster-11.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 11',
+  },
+  {
+    video: '/videos/about/video-12.mp4',
+    poster: '/videos/about/poster-12.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 12',
+  },
+  {
+    video: '/videos/about/video-13.mp4',
+    poster: '/videos/about/poster-13.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 13',
+  },
 ];
 
-// Tripled to guarantee seamless scrolling across wide monitors (21 items * 432px = 9,072px)
+// Repeated to guarantee seamless infinite scrolling across wide monitors
 const ROW_1 = [...ROW_1_RAW, ...ROW_1_RAW, ...ROW_1_RAW];
-const ROW_2 = [...ROW_2_RAW, ...ROW_2_RAW, ...ROW_2_RAW];
+const ROW_2 = [...ROW_2_RAW, ...ROW_2_RAW, ...ROW_2_RAW, ...ROW_2_RAW];
 
 interface VideoCardProps {
   item: MarqueeVideoItem;
