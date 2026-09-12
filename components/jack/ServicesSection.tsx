@@ -6,9 +6,9 @@ const SERVICES: ServiceItem[] = [
   {
     id: '01',
     number: '01',
-    name: '3D Modeling',
+    name: 'Điều trị mụn chuyên sâu',
     description:
-      'Creation of detailed objects, characters, or environments tailored to specific client needs, ideal for games, products, and visualizations.',
+      'Phác đồ điều trị mụn cá nhân hóa kết hợp công nghệ hiện đại và dược mỹ phẩm chuyên dụng.',
   },
   {
     id: '02',
