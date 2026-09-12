@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { FadeIn } from './FadeIn';
 import { Magnet } from './Magnet';
 import { ContactButton } from './Buttons';
 
@@ -30,7 +29,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
   return (
     <section className="relative h-screen w-full flex flex-col justify-between overflow-x-clip bg-[#0C0C0C] select-none">
       {/* 1. Navbar */}
-      <FadeIn delay={0} y={-20} className="w-full z-30">
+      <div className="w-full z-30">
         <header className="w-full px-3 sm:px-6 md:px-10 pt-4 sm:pt-6 md:pt-8">
           <div className="relative flex min-h-[64px] items-center justify-between gap-2 px-3 py-2.5 sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 bg-transparent border-none shadow-none">
 
@@ -674,11 +673,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
             </div>
           )}
         </header>
-      </FadeIn>
+      </div>
 
       {/* 2. Hero Heading */}
       <div className="relative z-0 w-full flex items-center justify-center">
-        <FadeIn delay={0.15} y={40} className="w-full">
+        <div className="w-full">
           <h1
             style={{ margin: '30px 0px 0px' }}
             className="font-['Playfair_Display',_serif] font-black tracking-[-0.01em] leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] text-white select-none drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]"
@@ -691,12 +690,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
               &nbsp;Mụn
             </span>
           </h1>
-        </FadeIn>
+        </div>
       </div>
 
       {/* 3. Hero Portrait with Magnet */}
       <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 pointer-events-none">
-        <FadeIn delay={0.6} y={30} className="w-full flex justify-center pointer-events-auto">
+        <div className="w-full flex justify-center pointer-events-auto">
           <Magnet
             padding={150}
             strength={3}
@@ -715,23 +714,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
               />
             </picture>
           </Magnet>
-        </FadeIn>
+        </div>
       </div>
 
       {/* 4. Bottom bar */}
       <div className="relative z-20 w-full flex justify-between items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
-        <FadeIn delay={0.35} y={20}>
+        <div>
           <p
             style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
             className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[180px] sm:max-w-[240px] md:max-w-[300px]"
           >
             Chăm sóc da liễu chuyên nghiệp tại phú quốc
           </p>
-        </FadeIn>
+        </div>
 
-        <FadeIn delay={0.5} y={20}>
+        <div>
           <ContactButton onClick={onContactClick} />
-        </FadeIn>
+        </div>
       </div>
     </section>
   );

@@ -1348,11 +1348,15 @@ const App: React.FC = () => {
                 const element = document.getElementById(targetId);
                 if (element) {
                     element.scrollIntoView({ behavior: 'smooth' });
+                    return true;
                 }
+                return false;
             };
-            scrollToTarget();
-            setTimeout(scrollToTarget, 60);
-            setTimeout(scrollToTarget, 200);
+            if (!scrollToTarget()) {
+                requestAnimationFrame(() => {
+                    scrollToTarget();
+                });
+            }
         }
     };
 
