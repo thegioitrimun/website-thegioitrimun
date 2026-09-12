@@ -53,7 +53,7 @@ export const ServicesSection: React.FC = () => {
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
             className="text-[#0C0C0C] font-black uppercase text-center leading-none tracking-tight mb-16 sm:mb-20 md:mb-28"
           >
-            Services
+            Dịch vụ
           </h2>
         </FadeIn>
 
