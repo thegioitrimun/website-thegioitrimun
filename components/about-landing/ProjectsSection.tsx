@@ -8,8 +8,8 @@ const PROJECTS: ProjectItem[] = [
   {
     id: '01',
     number: '01',
-    category: 'Client',
-    name: 'Nextlevel Studio',
+    category: 'Đa dạng',
+    name: 'Kem chống nắng',
     images: {
       col1Top:
         'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055344_5eff02e0-87a5-41ce-b64f-eb08da8f33db.png&w=1280&q=85',
