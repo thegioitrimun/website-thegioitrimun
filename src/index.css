@@ -2483,6 +2483,7 @@
   background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  font-family: var(--font-heading), var(--font-sans), sans-serif;
 }
 
 

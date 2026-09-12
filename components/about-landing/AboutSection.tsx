@@ -71,7 +71,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <FadeIn delay={0} y={40}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
-            className="hero-heading font-black uppercase leading-none tracking-tight text-center whitespace-nowrap"
+            className="hero-heading font-heading font-black uppercase leading-none tracking-tight text-center whitespace-nowrap"
           >
             Sứ Mệnh
           </h2>
@@ -81,7 +81,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <div className="mt-10 sm:mt-14 md:mt-16 w-full flex justify-center">
           <AnimatedText
             text={paragraphText}
-            className="text-[#D7E2EA] font-medium text-center leading-relaxed max-w-[560px]"
+            className="text-[#D7E2EA] font-sans font-medium text-center leading-relaxed max-w-[560px]"
           />
         </div>
 

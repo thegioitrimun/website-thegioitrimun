@@ -51,7 +51,7 @@ export const ServicesSection: React.FC = () => {
         <FadeIn delay={0} y={40}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
-            className="text-[#0C0C0C] font-black uppercase text-center leading-none tracking-tight mb-16 sm:mb-20 md:mb-28"
+            className="text-[#0C0C0C] font-heading font-black uppercase text-center leading-none tracking-tight mb-16 sm:mb-20 md:mb-28"
           >
             Dịch vụ
           </h2>
@@ -65,7 +65,7 @@ export const ServicesSection: React.FC = () => {
                 {/* Number on left */}
                 <span
                   style={{ fontSize: 'clamp(3rem, 10vw, 140px)' }}
-                  className="font-black text-[#0C0C0C] leading-none select-none tracking-tighter flex-shrink-0"
+                  className="font-heading font-black text-[#0C0C0C] leading-none select-none tracking-tighter flex-shrink-0"
                 >
                   {service.number}
                 </span>
@@ -74,13 +74,13 @@ export const ServicesSection: React.FC = () => {
                 <div className="flex flex-col gap-2 sm:gap-3 flex-1">
                   <h3
                     style={{ fontSize: 'clamp(1rem, 2.2vw, 2.1rem)' }}
-                    className="font-medium uppercase text-[#0C0C0C] tracking-wide"
+                    className="font-heading font-semibold uppercase text-[#0C0C0C] tracking-wide"
                   >
                     {service.name}
                   </h3>
                   <p
                     style={{ fontSize: 'clamp(0.85rem, 1.6vw, 1.25rem)' }}
-                    className="font-light leading-relaxed max-w-2xl text-[#0C0C0C] opacity-60"
+                    className="font-sans font-normal leading-relaxed max-w-2xl text-[#0C0C0C] opacity-70"
                   >
                     {service.description}
                   </p>

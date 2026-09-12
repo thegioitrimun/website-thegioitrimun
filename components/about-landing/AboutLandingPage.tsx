@@ -35,10 +35,10 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
     <div
       style={{
         backgroundColor: '#0C0C0C',
-        fontFamily: "'Kanit', sans-serif",
+        fontFamily: 'var(--font-sans)',
         overflowX: 'clip',
       }}
-      className="w-full min-h-screen text-[#D7E2EA] bg-[#0C0C0C] font-kanit selection:bg-[#B600A8] selection:text-white"
+      className="w-full min-h-screen text-[#D7E2EA] bg-[#0C0C0C] font-sans selection:bg-[#B600A8] selection:text-white"
     >
       {/* SECTION ORDER:
           1. HeroSection
@@ -65,7 +65,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="hero-heading font-black text-2xl sm:text-3xl uppercase tracking-wider">
+              <h3 className="hero-heading font-heading font-black text-2xl sm:text-3xl uppercase tracking-wider">
                 Liên Hệ Với Chúng Tôi
               </h3>
               <button

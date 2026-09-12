@@ -95,15 +95,15 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           <div className="flex items-center gap-4 sm:gap-6">
             <span
               style={{ fontSize: 'clamp(2.2rem, 6vw, 5rem)' }}
-              className="font-black text-[#D7E2EA] leading-none select-none tracking-tighter"
+              className="font-heading font-black text-[#D7E2EA] leading-none select-none tracking-tighter"
             >
               {project.number}
             </span>
             <div className="flex flex-col">
-              <span className="text-[#D7E2EA]/60 text-xs sm:text-sm uppercase tracking-widest font-light">
+              <span className="font-sans text-[#D7E2EA]/60 text-xs sm:text-sm uppercase tracking-widest font-normal">
                 {project.category}
               </span>
-              <h3 className="text-white font-medium text-lg sm:text-2xl md:text-3xl uppercase tracking-wider">
+              <h3 className="font-heading text-white font-bold text-lg sm:text-2xl md:text-3xl uppercase tracking-wider">
                 {project.name}
               </h3>
             </div>
@@ -175,7 +175,7 @@ export const ProjectsSection: React.FC = () => {
         <FadeIn delay={0} y={40}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
-            className="hero-heading font-black uppercase leading-none tracking-tight text-center"
+            className="hero-heading font-heading font-black uppercase leading-none tracking-tight text-center"
           >
             Sản Phẩm
           </h2>

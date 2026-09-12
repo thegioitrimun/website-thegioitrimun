@@ -245,7 +245,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
         <div className="w-full">
           <h1
             style={{ margin: '30px 0px 0px' }}
-            className="font-['Playfair_Display',_serif] font-black tracking-[-0.01em] leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] text-white select-none drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]"
+            className="font-heading font-black tracking-[-0.01em] leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] text-white select-none drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]"
           >
             Thế Giới{' '}
             <span className="inline-block whitespace-nowrap">
