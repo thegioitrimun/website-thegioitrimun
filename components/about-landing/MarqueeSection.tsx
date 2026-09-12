@@ -6,7 +6,7 @@ interface MarqueeVideoItem {
   alt: string;
 }
 
-// Row 1: 7 unique treatment videos (runs to the right)
+// Row 1: 9 unique treatment videos (runs to the right; video-14 and video-15 inserted in the center)
 const ROW_1_RAW: MarqueeVideoItem[] = [
   {
     video: '/videos/about/video-1.mp4',
@@ -23,6 +23,18 @@ const ROW_1_RAW: MarqueeVideoItem[] = [
     poster: '/videos/about/poster-3.jpg',
     alt: 'Quy trình liệu trình chuyên sâu 3',
   },
+  // --- New Videos 3 (Center Position of Row 1) ---
+  {
+    video: '/videos/about/video-14.mp4',
+    poster: '/videos/about/poster-14.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 14',
+  },
+  {
+    video: '/videos/about/video-15.mp4',
+    poster: '/videos/about/poster-15.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 15',
+  },
+  // ------------------------------------------------
   {
     video: '/videos/about/video-4.mp4',
     poster: '/videos/about/poster-4.jpg',
@@ -45,7 +57,7 @@ const ROW_1_RAW: MarqueeVideoItem[] = [
   },
 ];
 
-// Row 2: 6 unique treatment videos (runs to the left, 0% overlap with Row 1)
+// Row 2: 8 unique treatment videos (runs to the left; video-16 and video-17 inserted in the center)
 const ROW_2_RAW: MarqueeVideoItem[] = [
   {
     video: '/videos/about/video-8.mp4',
@@ -62,6 +74,18 @@ const ROW_2_RAW: MarqueeVideoItem[] = [
     poster: '/videos/about/poster-10.jpg',
     alt: 'Quy trình liệu trình chuyên sâu 10',
   },
+  // --- New Videos 3 (Center Position of Row 2) ---
+  {
+    video: '/videos/about/video-16.mp4',
+    poster: '/videos/about/poster-16.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 16',
+  },
+  {
+    video: '/videos/about/video-17.mp4',
+    poster: '/videos/about/poster-17.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 17',
+  },
+  // ------------------------------------------------
   {
     video: '/videos/about/video-11.mp4',
     poster: '/videos/about/poster-11.jpg',
@@ -81,7 +105,7 @@ const ROW_2_RAW: MarqueeVideoItem[] = [
 
 // Repeated to guarantee seamless infinite scrolling across wide monitors
 const ROW_1 = [...ROW_1_RAW, ...ROW_1_RAW, ...ROW_1_RAW];
-const ROW_2 = [...ROW_2_RAW, ...ROW_2_RAW, ...ROW_2_RAW, ...ROW_2_RAW];
+const ROW_2 = [...ROW_2_RAW, ...ROW_2_RAW, ...ROW_2_RAW];
 
 interface VideoCardProps {
   item: MarqueeVideoItem;
