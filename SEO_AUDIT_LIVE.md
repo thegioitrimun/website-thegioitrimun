@@ -2,7 +2,7 @@
 
 ## Summary
 - Base URL: [https://thegioitrimun.vn](https://thegioitrimun.vn)
-- Generated at: `2026-08-18T01:53:37.212Z`
+- Generated at: `2026-09-12T05:08:31.122Z`
 - URLs audited: `12`
 - Sitemap parity sampled: `40`
 - Control audited: `/dang-nhap?lang=ru`
