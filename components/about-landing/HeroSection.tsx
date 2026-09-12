@@ -25,10 +25,26 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       y={20}
       className="relative h-screen w-full flex flex-col justify-between overflow-x-clip bg-[#0C0C0C] select-none"
     >
+      {/* Background Poster Image */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+        <picture className="w-full h-full block">
+          <source srcSet="/about-hero-bg.webp" type="image/webp" />
+          <img
+            src="/about-hero-bg.png"
+            alt="Thế Giới Trị Mụn - Phòng khám Da Liễu Phú Quốc"
+            className="w-full h-full object-cover object-center"
+            loading="eager"
+            fetchPriority="high"
+          />
+        </picture>
+        {/* Ambient Vignette & Scrim for Navbar and Bottom Bar legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-transparent to-black/70 pointer-events-none" />
+      </div>
+
       {/* 1. Navbar */}
       <div className="w-full z-30">
         <header className="w-full px-3 sm:px-6 md:px-10 pt-4 sm:pt-6 md:pt-8">
-          <div className="relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 border border-white/10 bg-[rgba(255,255,255,0.06)] shadow-none backdrop-blur-md lg:min-h-[78px] lg:px-5 lg:py-4 lg:justify-center lg:border-none lg:bg-transparent lg:backdrop-blur-none">
+          <div className="relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 border border-white/20 bg-black/40 shadow-2xl backdrop-blur-md lg:min-h-[78px] lg:px-5 lg:py-4 lg:justify-center lg:border-none lg:bg-transparent lg:backdrop-blur-none">
             {/* Ambient colored blur for mobile & tablet glass effect */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] transition-opacity duration-500 ease-in-out opacity-60 lg:hidden">
               <div className="absolute -left-6 top-0 h-24 w-24 rounded-full bg-[#ff7f5d]/15 blur-2xl"></div>
@@ -86,47 +102,47 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
             </div>
 
             {/* Middle: Centered Navigation Links on Desktop */}
-            <nav className="relative z-10 hidden lg:flex items-center gap-1 rounded-full bg-transparent px-2 py-1.5">
+            <nav className="relative z-10 hidden lg:flex items-center gap-1 rounded-full bg-black/40 border border-white/20 px-3 py-1.5 backdrop-blur-md shadow-2xl">
               <a
                 href="/"
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/80 hover:text-primary hover:bg-white/5"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10"
               >
                 Trang chủ
               </a>
               <a
                 href="/dich-vu"
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/80 hover:text-primary hover:bg-white/5"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10"
               >
                 Dịch vụ
               </a>
               <a
                 href="/ve-chung-toi"
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none bg-primary/20 text-primary"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none bg-primary/25 text-primary"
               >
                 Về chúng tôi
               </a>
               <a
                 href="/san-pham"
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/80 hover:text-primary hover:bg-white/5"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10"
               >
                 Sản phẩm
               </a>
               <a
                 href="/phan-tich-thanh-phan-my-pham"
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/80 hover:text-primary hover:bg-white/5"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10"
               >
                 Phân tích
               </a>
               <a
                 href="/kien-thuc"
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/80 hover:text-primary hover:bg-white/5"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10"
               >
                 Kiến thức
               </a>
               <button
                 type="button"
                 onClick={() => (onContactClick ? onContactClick() : scrollTo('contact'))}
-                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/80 hover:text-primary hover:bg-white/5 bg-transparent border-none"
+                className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10 bg-transparent border-none"
               >
                 Liên hệ
               </button>
@@ -240,26 +256,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
         </header>
       </div>
 
-      {/* 2. Hero Heading */}
-      <div className="relative z-0 w-full flex items-center justify-center">
-        <div className="w-full">
-          <h1
-            style={{ margin: '30px 0px 0px' }}
-            className="font-heading font-black tracking-[-0.01em] leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] text-white select-none drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]"
-          >
-            Thế Giới{' '}
-            <span className="inline-block whitespace-nowrap">
-              <span className="text-[#ef4444] animate-doll-jump cursor-pointer" title="Trị">
-                Trị
-              </span>
-              &nbsp;Mụn
-            </span>
-          </h1>
-        </div>
-      </div>
+      {/* 2. SEO Accessible Heading (Visual branding is embedded in the background artwork) */}
+      <h1 className="sr-only">
+        Thế Giới Trị Mụn - Phòng Khám Chuyên Khoa Da Liễu Phú Quốc
+      </h1>
 
       {/* 3. Hero Portrait with Magnet */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[520px] top-1/2 -translate-y-1/2 sm:top-auto sm:translate-y-0 sm:bottom-0 pointer-events-none">
+      <div className="absolute left-1/2 -translate-x-1/2 z-10 w-[280px] sm:w-[360px] md:w-[440px] lg:w-[500px] xl:w-[540px] bottom-0 pointer-events-none">
         <div className="w-full flex justify-center pointer-events-auto">
           <Magnet
             padding={150}
@@ -273,7 +276,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
               <img
                 src="/hero-character.png"
                 alt="Thế Giới Trị Mụn"
-                className="w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-none select-none"
+                className="w-full h-auto object-contain drop-shadow-[0_25px_60px_rgba(0,0,0,0.85)] pointer-events-none select-none"
                 draggable={false}
                 loading="eager"
               />
@@ -284,10 +287,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
 
       {/* 4. Bottom bar */}
       <div className="relative z-20 w-full flex justify-between items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
-        <div>
+        <div className="rounded-2xl bg-black/40 backdrop-blur-md border border-white/15 px-4 py-2.5 shadow-xl max-w-[200px] sm:max-w-[260px] md:max-w-[320px]">
           <p
-            style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
-            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[180px] sm:max-w-[240px] md:max-w-[300px]"
+            style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.35rem)' }}
+            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug drop-shadow"
           >
             Chăm sóc da liễu chuyên nghiệp tại phú quốc
           </p>
