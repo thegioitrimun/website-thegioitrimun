@@ -65,9 +65,9 @@ const ROW_2_RAW: MarqueeVideoItem[] = [
     alt: 'Quy trình liệu trình chuyên sâu 4',
   },
   {
-    video: '/videos/about/video-3.mp4',
-    poster: '/videos/about/poster-3.jpg',
-    alt: 'Quy trình liệu trình chuyên sâu 3',
+    video: '/videos/about/video-17.mp4',
+    poster: '/videos/about/poster-17.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 17',
   },
   {
     video: '/videos/about/video-10.mp4',
@@ -81,9 +81,9 @@ const ROW_2_RAW: MarqueeVideoItem[] = [
     alt: 'Quy trình liệu trình chuyên sâu 16',
   },
   {
-    video: '/videos/about/video-17.mp4',
-    poster: '/videos/about/poster-17.jpg',
-    alt: 'Quy trình liệu trình chuyên sâu 17',
+    video: '/videos/about/video-3.mp4',
+    poster: '/videos/about/poster-3.jpg',
+    alt: 'Quy trình liệu trình chuyên sâu 3',
   },
   // ------------------------------------------------
   {
