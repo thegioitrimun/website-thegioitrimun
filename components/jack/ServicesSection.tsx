@@ -13,30 +13,30 @@ const SERVICES: ServiceItem[] = [
   {
     id: '02',
     number: '02',
-    name: 'Rendering',
+    name: 'Peel da hóa học',
     description:
-      'High-quality, photorealistic renders that showcase designs with custom lighting, textures, and materials to bring concepts to life.',
+      'Tái tạo bề mặt da bằng các loại acid chuyên dụng, cải thiện sắc tố, mụn và lão hóa.',
   },
   {
     id: '03',
     number: '03',
-    name: 'Motion Design',
+    name: 'Vi kim RF tái tạo da',
     description:
-      'Dynamic animations and motion graphics that add energy and storytelling to brands, products, and digital experiences.',
+      'Công nghệ vi kim kết hợp sóng cao tần (RF) kích thích collagen, điều trị sẹo rỗ và trẻ hóa da.',
   },
   {
     id: '04',
     number: '04',
-    name: 'Branding',
+    name: 'Laser trẻ hóa da',
     description:
-      'Crafting cohesive visual identities -- from logos to full brand systems -- that communicate a clear and memorable presence.',
+      'Công nghệ laser phân đoạn (Fractional CO2/Er:YAG) tái tạo da toàn diện, xóa nếp nhăn và trẻ hóa.',
   },
   {
     id: '05',
     number: '05',
-    name: 'Web Design',
+    name: 'Tiêm dưỡng chất Mesotherapy',
     description:
-      'Designing clean, modern, and conversion-focused websites with attention to layout, typography, and user experience.',
+      'Tiêm trực tiếp vitamin, hyaluronic acid và peptide vào trung bì để nuôi dưỡng và trẻ hóa da từ bên trong.',
   },
 ];
 
