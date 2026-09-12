@@ -280,16 +280,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       </div>
 
       {/* 4. Bottom bar */}
-      <div className="relative z-20 w-full flex justify-between items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
-        <div>
-          <p
-            style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
-            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[180px] sm:max-w-[240px] md:max-w-[300px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
-          >
-            Chăm sóc da liễu chuyên nghiệp tại phú quốc
-          </p>
-        </div>
-
+      <div className="relative z-20 w-full flex justify-end items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
         <div>
           <ContactButton onClick={onContactClick} />
         </div>

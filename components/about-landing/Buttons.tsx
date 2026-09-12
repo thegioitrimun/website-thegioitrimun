@@ -16,12 +16,15 @@ export const ContactButton: React.FC<ContactButtonProps> = ({
       type="button"
       onClick={onClick}
       style={{
-        background: 'linear-gradient(123deg, #18011F 7%, #B600A8 37%, #7621B0 72%, #BE4C00 100%)',
-        boxShadow: '0px 4px 4px rgba(181, 1, 167, 0.25), 4px 4px 12px #7721B1 inset',
-        outline: '2px solid #FFFFFF',
-        outlineOffset: '-3px',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.08) 100%)',
+        backdropFilter: 'blur(24px) saturate(190%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(190%)',
+        border: '1px solid rgba(255, 255, 255, 0.45)',
+        boxShadow:
+          '0 8px 32px 0 rgba(0, 0, 0, 0.35), inset 0 1px 2px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.15)',
+        textShadow: '0 1px 3px rgba(0, 0, 0, 0.45)',
       }}
-      className={`rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-xs sm:text-sm md:text-base text-white font-medium uppercase tracking-widest transition-all duration-300 hover:brightness-110 active:scale-95 inline-flex items-center justify-center cursor-pointer select-none ${className}`}
+      className={`rounded-full px-8 py-3 sm:px-10 sm:py-3.5 md:px-12 md:py-4 text-xs sm:text-sm md:text-base text-white font-medium uppercase tracking-widest transition-all duration-300 hover:brightness-115 hover:scale-105 active:scale-95 inline-flex items-center justify-center cursor-pointer select-none ${className}`}
     >
       {label}
     </button>
