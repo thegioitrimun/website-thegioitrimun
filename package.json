@@ -25,7 +25,7 @@
     "qa:tax": "node scripts/qa_tax_runtime.mjs",
     "qa:phase5": "bash scripts/qa_phase5_release.sh",
     "migrate:r2:http-images": "node scripts/migrate_public_http_images_to_r2.mjs",
-    "preview": "npm run build && wrangler dev _worker.js --config wrangler.d1.production.jsonc --assets dist",
+    "preview": "npm run build && wrangler dev _worker.js --config wrangler.d1.production.jsonc --assets dist/client",
     "deploy": "npm run build && npm run qa:d1-bundle && npm run qa:d1-email && wrangler deploy --config wrangler.d1.production.jsonc",
     "deploy:pages": "npm run build && wrangler pages deploy dist --project-name website-thegioitrimun",
     "seo:translate-blog-backlog": "node scripts/translate_blog_backlog.mjs",
