@@ -686,9 +686,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
         <FadeIn delay={0.15} y={40} className="w-full">
           <h1
             style={{ margin: '30px 0px 0px' }}
-            className="hero-heading font-black uppercase tracking-tight leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] select-none"
+            className="font-['Playfair_Display',_serif] font-black tracking-[-0.01em] leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] text-white select-none drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]"
           >
-            Thế Giới Trị Mụn
+            Thế Giới{' '}
+            <span className="inline-block whitespace-nowrap">
+              <span className="text-[#ef4444] animate-doll-jump cursor-pointer" title="Trị">
+                Trị
+              </span>
+              &nbsp;Mụn
+            </span>
           </h1>
         </FadeIn>
       </div>
