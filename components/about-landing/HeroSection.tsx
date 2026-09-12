@@ -44,13 +44,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       {/* 1. Navbar */}
       <div className="w-full z-30">
         <header className="w-full px-3 sm:px-6 md:px-10 pt-4 sm:pt-6 md:pt-8">
-          <div className="relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 border border-white/20 bg-black/40 shadow-2xl backdrop-blur-md lg:min-h-[78px] lg:px-5 lg:py-4 lg:justify-center lg:border-none lg:bg-transparent lg:backdrop-blur-none">
-            {/* Ambient colored blur for mobile & tablet glass effect */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] transition-opacity duration-500 ease-in-out opacity-60 lg:hidden">
-              <div className="absolute -left-6 top-0 h-24 w-24 rounded-full bg-[#ff7f5d]/15 blur-2xl"></div>
-              <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#35b7a5]/15 blur-2xl"></div>
-            </div>
-
+          <div className="relative flex min-h-[64px] items-center justify-between gap-2 px-3 py-2.5 sm:min-h-[68px] sm:px-4 bg-transparent border-none shadow-none backdrop-blur-none lg:min-h-[78px] lg:px-5 lg:py-4 lg:justify-center">
             {/* Left on Mobile & Tablet: Menu button + Brand Logo (identical to homepage) */}
             <div className="relative z-10 flex min-w-0 items-center gap-1.5 sm:gap-2.5 lg:hidden">
               <button
@@ -102,7 +96,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
             </div>
 
             {/* Middle: Centered Navigation Links on Desktop */}
-            <nav className="relative z-10 hidden lg:flex items-center gap-1 rounded-full bg-black/40 border border-white/20 px-3 py-1.5 backdrop-blur-md shadow-2xl">
+            <nav className="relative z-10 hidden lg:flex items-center gap-1 rounded-full bg-transparent px-2 py-1.5">
               <a
                 href="/"
                 className="rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none text-white/90 hover:text-primary hover:bg-white/10"
@@ -287,10 +281,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
 
       {/* 4. Bottom bar */}
       <div className="relative z-20 w-full flex justify-between items-end pb-7 sm:pb-8 md:pb-10 px-6 md:px-10">
-        <div className="rounded-2xl bg-black/40 backdrop-blur-md border border-white/15 px-4 py-2.5 shadow-xl max-w-[200px] sm:max-w-[260px] md:max-w-[320px]">
+        <div>
           <p
-            style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.35rem)' }}
-            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug drop-shadow"
+            style={{ fontSize: 'clamp(0.75rem, 1.4vw, 1.5rem)' }}
+            className="text-[#D7E2EA] font-light uppercase tracking-wide leading-snug max-w-[180px] sm:max-w-[240px] md:max-w-[300px] drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]"
           >
             Chăm sóc da liễu chuyên nghiệp tại phú quốc
           </p>
