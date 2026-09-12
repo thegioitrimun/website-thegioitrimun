@@ -13,10 +13,6 @@ export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
-    // Set page title as requested: "Jack -- 3D Creator"
-    const originalTitle = document.title;
-    document.title = 'Jack -- 3D Creator';
-
     // Ensure page background is #0C0C0C
     const originalBodyBg = document.body.style.backgroundColor;
     const originalHtmlBg = document.documentElement.style.backgroundColor;
@@ -26,7 +22,6 @@ export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) 
     window.scrollTo(0, 0);
 
     return () => {
-      document.title = originalTitle;
       document.body.style.backgroundColor = originalBodyBg;
       document.documentElement.style.backgroundColor = originalHtmlBg;
     };
@@ -71,7 +66,7 @@ export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) 
           >
             <div className="flex items-center justify-between">
               <h3 className="hero-heading font-black text-2xl sm:text-3xl uppercase tracking-wider">
-                Let&apos;s Connect
+                Liên Hệ Với Chúng Tôi
               </h3>
               <button
                 type="button"
@@ -83,25 +78,32 @@ export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) 
             </div>
 
             <p className="text-[#D7E2EA]/80 font-light text-sm sm:text-base leading-relaxed">
-              Have a project in mind, 3D modeling requirement, or motion design inquiry? Drop an email or reach out directly:
+              Bạn cần tư vấn phác đồ điều trị mụn chuyên sâu, đặt lịch khám trực tiếp hoặc thắc mắc về sản phẩm? Hãy liên hệ ngay với Thế Giới Trị Mụn:
             </p>
 
             <div className="flex flex-col gap-3">
               <a
-                href="mailto:jack.3dcreator@gmail.com"
+                href="tel:0934086843"
+                className="w-full py-3.5 px-6 rounded-2xl bg-[#1e1e1e] hover:bg-[#252525] border border-[#D7E2EA]/20 flex items-center justify-between text-white font-medium transition-colors"
+              >
+                <span>Hotline / Tư vấn</span>
+                <span className="text-sm text-[#D7E2EA]/70">0934 086 843</span>
+              </a>
+              <a
+                href="mailto:thegioitrimun@gmail.com"
                 className="w-full py-3.5 px-6 rounded-2xl bg-[#1e1e1e] hover:bg-[#252525] border border-[#D7E2EA]/20 flex items-center justify-between text-white font-medium transition-colors"
               >
                 <span>Email</span>
-                <span className="text-sm text-[#D7E2EA]/70">jack.3dcreator@gmail.com</span>
+                <span className="text-sm text-[#D7E2EA]/70">thegioitrimun@gmail.com</span>
               </a>
               <a
-                href="https://t.me/"
+                href="https://zalo.me/0934086843"
                 target="_blank"
                 rel="noreferrer"
                 className="w-full py-3.5 px-6 rounded-2xl bg-[#1e1e1e] hover:bg-[#252525] border border-[#D7E2EA]/20 flex items-center justify-between text-white font-medium transition-colors"
               >
-                <span>Telegram</span>
-                <span className="text-sm text-[#D7E2EA]/70">@jack_3d</span>
+                <span>Zalo tư vấn</span>
+                <span className="text-sm text-[#D7E2EA]/70">0934 086 843</span>
               </a>
             </div>
 
@@ -111,7 +113,7 @@ export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) 
                 onClick={() => setIsContactModalOpen(false)}
                 className="rounded-full px-6 py-2.5 text-xs uppercase tracking-widest text-[#D7E2EA] hover:underline"
               >
-                Close
+                Đóng
               </button>
             </div>
           </div>

@@ -714,7 +714,26 @@ const App: React.FC = () => {
                     : 'phân tích thành phần mỹ phẩm, tra cứu INCI, kiểm tra thành phần skincare';
                 imageAlt = pageTitle;
                 break;
-            case 'about': pageTitle = 'Jack -- 3D Creator'; break;
+            case 'about':
+                pageTitle = currentLang === 'en'
+                    ? `About Us | ${clinicName}`
+                    : currentLang === 'ru'
+                        ? `О нас | ${clinicName}`
+                        : currentLang === 'cn'
+                            ? `关于我们 | ${clinicName}`
+                            : `Về chúng tôi | ${clinicName}`;
+                pageDescription = currentLang === 'en'
+                    ? 'Learn about Thế Giới Trị Mụn - Professional dermatology clinic and acne treatment in Phu Quoc.'
+                    : currentLang === 'ru'
+                        ? 'О Thế Giới Trị Mụn - Профессиональная дерматологическая клиника и лечение акне на Фукуоке.'
+                        : currentLang === 'cn'
+                            ? '了解 Thế Giới Trị Mụn - 富国岛专业皮肤科与痤疮治疗中心。'
+                            : 'Tìm hiểu về Thế Giới Trị Mụn - Phòng khám da liễu chuyên sâu, phác đồ điều trị mụn chuẩn y khoa hàng đầu tại Phú Quốc.';
+                keywords = currentLang === 'en'
+                    ? 'about the gioi tri mun, dermatology clinic phu quoc, acne care'
+                    : 've chung toi, the gioi tri mun, phong kham da lieu phu quoc, tri mun phu quoc, cham soc da';
+                imageAlt = pageTitle;
+                break;
             default: break;
         }
 
@@ -1691,7 +1710,7 @@ const App: React.FC = () => {
 
     const isAdminView = view.page.startsWith('admin') && view.page !== 'administrativeProfile';
     const isHomePage = view.page === 'main';
-    const isJackPage = view.page === 'about';
+    const isAboutLandingPage = view.page === 'about';
     const isHomeInvertedHeader = isHomePage && isAtTop;
     const contentTransitionClass = ['blog', 'blogCategory', 'productDetail'].includes(view.page) ? '' : 'animate-fade-in-page';
     const contentKey = isAdminView
@@ -1699,8 +1718,8 @@ const App: React.FC = () => {
         : view.page + ((view as any).id || (view as any).slug || '');
 
     return (
-        <div className={`${isJackPage ? 'bg-[#0C0C0C]' : 'bg-background'} text-foreground transition-colors duration-300`}>
-            {!isAdminView && !isJackPage ? (
+        <div className={`${isAboutLandingPage ? 'bg-[#0C0C0C]' : 'bg-background'} text-foreground transition-colors duration-300`}>
+            {!isAdminView && !isAboutLandingPage ? (
                 <Suspense fallback={null}>
                     <FullScreenSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} products={products} services={services} blogPosts={blogPosts} hasFullProductCatalog={hasFullProductCatalog} isProductCatalogLoading={isProductCatalogLoading} onNavigate={handleNavigate} />
                     <MiniCart onNavigate={handleNavigate} />
@@ -1708,7 +1727,7 @@ const App: React.FC = () => {
                 </Suspense>
             ) : null}
 
-            {!isAdminView && !isJackPage ? (
+            {!isAdminView && !isAboutLandingPage ? (
             <header className={`fixed inset-x-0 top-0 z-50 will-change-transform transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
                 <div className="container relative mx-auto px-3 pt-[max(env(safe-area-inset-top,0px),0.625rem)] sm:px-4 sm:pt-[max(env(safe-area-inset-top,0px),0.75rem)] lg:px-6 lg:pt-[max(env(safe-area-inset-top,0px),1rem)]">
                     <div className={`relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 ${
@@ -1853,8 +1872,8 @@ const App: React.FC = () => {
             </header>
             ) : null}
 
-            <main className={`min-h-screen ${isAdminView || isJackPage || view.page === 'main' ? '' : 'pt-[calc(env(safe-area-inset-top,0px)+6rem)] md:pt-28'}`}>
-                {isAdminView || isJackPage ? (
+            <main className={`min-h-screen ${isAdminView || isAboutLandingPage || view.page === 'main' ? '' : 'pt-[calc(env(safe-area-inset-top,0px)+6rem)] md:pt-28'}`}>
+                {isAdminView || isAboutLandingPage ? (
                     <div key={contentKey} className={contentTransitionClass}>
                         <Suspense fallback={
                             <div className="flex justify-center items-center min-h-[40vh]">
@@ -1879,7 +1898,7 @@ const App: React.FC = () => {
                 )}
             </main>
 
-            {!isAdminView && !isJackPage ? (
+            {!isAdminView && !isAboutLandingPage ? (
             <footer id="footer" className="relative overflow-hidden border-t border-border/70 bg-white text-foreground transition-colors duration-300 dark:border-white/10 dark:bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)]">
                 <div className="container relative mx-auto px-2 py-16 md:px-6 md:py-20">
                     <AnimatedSection className="overflow-hidden rounded-[36px] border-0 bg-transparent px-2 py-8 shadow-none md:p-10 lg:p-12">
