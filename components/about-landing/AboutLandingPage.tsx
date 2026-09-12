@@ -65,7 +65,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="hero-heading font-heading font-black text-2xl sm:text-3xl uppercase tracking-wider">
+              <h3 className="hero-heading font-heading font-black text-2xl sm:text-3xl uppercase tracking-wider leading-tight py-1">
                 Liên Hệ Với Chúng Tôi
               </h3>
               <button

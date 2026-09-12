@@ -51,7 +51,7 @@ export const ServicesSection: React.FC = () => {
         <FadeIn delay={0} y={40}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
-            className="text-[#0C0C0C] font-heading font-black uppercase text-center leading-none tracking-tight mb-16 sm:mb-20 md:mb-28"
+            className="text-[#0C0C0C] font-heading font-black uppercase text-center leading-tight tracking-tight py-2 mb-16 sm:mb-20 md:mb-28"
           >
             Dịch vụ
           </h2>

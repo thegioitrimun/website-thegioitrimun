@@ -2482,8 +2482,14 @@
 .hero-heading {
   background: linear-gradient(180deg, #646973 0%, #BBCCD7 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   font-family: var(--font-heading), var(--font-sans), sans-serif;
+  display: inline-block;
+  line-height: 1.2;
+  padding-top: 0.22em;
+  padding-bottom: 0.1em;
+  overflow: visible;
 }
 
 
