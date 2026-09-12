@@ -704,8 +704,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
             className="w-full cursor-pointer"
           >
             <img
-              src="https://shrug-person-78902957.figma.site/_components/v2/d24c01ad3a56fc65e942a1f501eb73db42d7cf9a/Rectangle_40443.81459862.png"
-              alt="Jack 3D Creator"
+              src="/logo_darkmode.svg"
+              alt="Thế Giới Trị Mụn Logo"
               className="w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-none select-none"
               draggable={false}
               loading="eager"
