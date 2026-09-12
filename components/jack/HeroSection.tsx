@@ -684,8 +684,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       {/* 2. Hero Heading */}
       <div className="relative z-0 w-full overflow-hidden flex items-center justify-center">
         <FadeIn delay={0.15} y={40} className="w-full">
-          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[14vw] sm:text-[15vw] md:text-[16vw] lg:text-[17.5vw] mt-6 sm:mt-4 md:-mt-5 select-none">
-            Hi, i&apos;m jack
+          <h1 className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] mt-6 sm:mt-4 md:-mt-5 select-none">
+            Thế Giới Trị Mụn
           </h1>
         </FadeIn>
       </div>
