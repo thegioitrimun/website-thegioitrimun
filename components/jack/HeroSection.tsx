@@ -32,12 +32,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       {/* 1. Navbar */}
       <FadeIn delay={0} y={-20} className="w-full z-30">
         <header className="w-full px-3 sm:px-6 md:px-10 pt-4 sm:pt-6 md:pt-8">
-          <div className="relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 border border-white/10 bg-[rgba(255,255,255,0.06)] shadow-none backdrop-blur-md">
-            {/* Ambient glows */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] transition-opacity duration-500 ease-in-out opacity-60">
-              <div className="absolute -left-6 top-0 h-24 w-24 rounded-full bg-[#ff7f5d]/15 blur-2xl"></div>
-              <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#35b7a5]/15 blur-2xl"></div>
-            </div>
+          <div className="relative flex min-h-[64px] items-center justify-between gap-2 px-3 py-2.5 sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 bg-transparent border-none shadow-none">
 
             {/* Left: Mobile menu toggle + Logo */}
             <div className="relative z-10 flex min-w-0 items-center gap-1.5 sm:gap-2.5 lg:gap-4">
