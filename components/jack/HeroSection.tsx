@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { FadeIn } from './FadeIn';
 import { Magnet } from './Magnet';
 import { ContactButton } from './Buttons';
 
@@ -27,7 +28,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
   };
 
   return (
-    <section className="relative h-screen w-full flex flex-col justify-between overflow-x-clip bg-[#0C0C0C] select-none">
+    <FadeIn
+      as="section"
+      delay={0.05}
+      duration={0.8}
+      y={20}
+      className="relative h-screen w-full flex flex-col justify-between overflow-x-clip bg-[#0C0C0C] select-none"
+    >
       {/* 1. Navbar */}
       <div className="w-full z-30">
         <header className="w-full px-3 sm:px-6 md:px-10 pt-4 sm:pt-6 md:pt-8">
@@ -732,7 +739,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
           <ContactButton onClick={onContactClick} />
         </div>
       </div>
-    </section>
+    </FadeIn>
   );
 };
 
