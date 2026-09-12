@@ -9,7 +9,7 @@ interface AboutSectionProps {
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) => {
   const paragraphText =
-    "With more than five years of experience in design, i focus on branding, web design, and user experience, i truly enjoy working with businesses that aim to stand out and present their best image. Let's build something incredible together!";
+    "Sứ mệnh của Thế Giới Trị Mụn là mang lại các giải pháp chăm sóc da toàn diện, an toàn và hiệu quả nhất, dựa trên nền tảng y học chứng cứ. Chúng tôi cam kết đồng hành cùng khách hàng trên hành trình chinh phục một làn da khỏe đẹp và một sự tự tin trọn vẹn.";
 
   return (
     <section
@@ -73,7 +73,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
             className="hero-heading font-black uppercase leading-none tracking-tight text-center"
           >
-            About me
+            Về Chúng Tôi
           </h2>
         </FadeIn>
 
