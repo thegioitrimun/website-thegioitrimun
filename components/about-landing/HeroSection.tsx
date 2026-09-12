@@ -265,7 +265,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
             inactiveTransition="transform 0.6s ease-in-out"
             className="w-full cursor-pointer"
           >
-            <picture className="w-full h-auto block">
+            <picture className="w-full h-auto block scale-[1.2] origin-bottom">
               <source srcSet="/hero-character.webp" type="image/webp" />
               <img
                 src="/hero-character.png"
