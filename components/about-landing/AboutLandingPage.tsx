@@ -5,11 +5,11 @@ import AboutSection from './AboutSection';
 import ServicesSection from './ServicesSection';
 import ProjectsSection from './ProjectsSection';
 
-interface JackPortfolioProps {
+export interface AboutLandingProps {
   onBackToClinic?: () => void;
 }
 
-export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) => {
+export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }) => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
@@ -136,4 +136,4 @@ export const JackPortfolio: React.FC<JackPortfolioProps> = ({ onBackToClinic }) 
   );
 };
 
-export default JackPortfolio;
+export default AboutLandingPage;

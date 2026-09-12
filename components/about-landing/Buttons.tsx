@@ -9,7 +9,7 @@ interface ContactButtonProps {
 export const ContactButton: React.FC<ContactButtonProps> = ({
   onClick,
   className = '',
-  label = 'Contact Me',
+  label = 'Liên hệ ngay',
 }) => {
   return (
     <button
@@ -37,7 +37,7 @@ interface LiveProjectButtonProps {
 export const LiveProjectButton: React.FC<LiveProjectButtonProps> = ({
   onClick,
   className = '',
-  label = 'Live Project',
+  label = 'Xem dự án',
 }) => {
   return (
     <button

@@ -190,7 +190,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
               <source srcSet="/hero-character.webp" type="image/webp" />
               <img
                 src="/hero-character.png"
-                alt="Thế Giới Trị Mụn 3D"
+                alt="Thế Giới Trị Mụn"
                 className="w-full h-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-none select-none"
                 draggable={false}
                 loading="eager"

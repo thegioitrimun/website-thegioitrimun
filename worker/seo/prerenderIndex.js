@@ -839,12 +839,18 @@ export async function handleAboutPrerender(lang = 'vi', deps) {
         cn: '关于 Thế Giới Trị Mụn',
     }, lang);
     const intro = getLocalizedField(about, 'header_subtitle', lang) || getLocalizedLabel({
-        vi: 'Phòng khám da liễu chuyên sâu tập trung vào giải pháp điều trị, chăm sóc và đồng hành dài hạn với làn da.',
-        en: 'An advanced dermatology clinic focused on treatment, skin care, and long-term patient guidance.',
-        ru: 'Профессиональная дерматологическая клиника, ориентированная на лечение, уход и долгосрочное сопровождение пациентов.',
-        cn: '专注治疗、护理与长期皮肤管理的专业皮肤诊疗机构。',
+        vi: `Tìm hiểu về ${SITE_NAME} - Phòng khám chuyên khoa Da liễu hàng đầu tại Phú Quốc. Đội ngũ bác sĩ chuyên môn cao, phác đồ điều trị mụn chuẩn y khoa cá nhân hóa, công nghệ hiện đại mang lại làn da khỏe đẹp và tự tin.`,
+        en: `Learn about ${SITE_NAME} - Premier medical dermatology and acne treatment clinic in Phu Quoc. Expert dermatologists, evidence-based personalized protocols, and advanced skin care.`,
+        ru: `О клинике ${SITE_NAME} - Ведущая дерматологическая клиника и лечение акне на Фукуоке. Квалифицированные врачи, доказательная медицина и передовые технологии.`,
+        cn: `了解 ${SITE_NAME} - 富国岛领先的专业皮肤科与痤疮治疗机构。资深医师团队、个性化循证医疗方案，助您重塑健康美肌。`,
     }, lang);
-    const title = `${heading} | ${SITE_NAME}`;
+    const title = lang === 'en'
+        ? `About Us | ${SITE_NAME} - Dermatology & Acne Care Clinic Phu Quoc`
+        : lang === 'ru'
+            ? `О нас | ${SITE_NAME} - Дерматологическая клиника на Фукуоке`
+            : lang === 'cn'
+                ? `关于我们 | ${SITE_NAME} - 富国岛专业皮肤科诊所`
+                : `Về chúng tôi | ${SITE_NAME} - Phòng Khám Da Liễu Phú Quốc`;
     const description = intro;
 
     return generatePrerenderListHtml({

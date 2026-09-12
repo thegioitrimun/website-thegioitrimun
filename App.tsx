@@ -716,22 +716,26 @@ const App: React.FC = () => {
                 break;
             case 'about':
                 pageTitle = currentLang === 'en'
-                    ? `About Us | ${clinicName}`
+                    ? `About Us | ${clinicName} - Dermatology & Acne Care Clinic Phu Quoc`
                     : currentLang === 'ru'
-                        ? `О нас | ${clinicName}`
+                        ? `О нас | ${clinicName} - Дерматологическая клиника на Фукуоке`
                         : currentLang === 'cn'
-                            ? `关于我们 | ${clinicName}`
-                            : `Về chúng tôi | ${clinicName}`;
+                            ? `关于我们 | ${clinicName} - 富国岛专业皮肤科诊所`
+                            : `Về chúng tôi | ${clinicName} - Phòng Khám Da Liễu Phú Quốc`;
                 pageDescription = currentLang === 'en'
-                    ? 'Learn about Thế Giới Trị Mụn - Professional dermatology clinic and acne treatment in Phu Quoc.'
+                    ? `Learn about ${clinicName} - Premier medical dermatology and acne treatment clinic in Phu Quoc. Expert dermatologists, evidence-based personalized protocols, and advanced skin care.`
                     : currentLang === 'ru'
-                        ? 'О Thế Giới Trị Mụn - Профессиональная дерматологическая клиника и лечение акне на Фукуоке.'
+                        ? `О клинике ${clinicName} - Ведущая дерматологическая клиника и лечение акне на Фукуоке. Квалифицированные врачи, доказательная медицина и передовые технологии.`
                         : currentLang === 'cn'
-                            ? '了解 Thế Giới Trị Mụn - 富国岛专业皮肤科与痤疮治疗中心。'
-                            : 'Tìm hiểu về Thế Giới Trị Mụn - Phòng khám da liễu chuyên sâu, phác đồ điều trị mụn chuẩn y khoa hàng đầu tại Phú Quốc.';
+                            ? `了解 ${clinicName} - 富国岛领先的专业皮肤科与痤疮治疗机构。资深医师团队、个性化循证医疗方案，助您重塑健康美肌。`
+                            : `Tìm hiểu về ${clinicName} - Phòng khám chuyên khoa Da liễu hàng đầu tại Phú Quốc. Đội ngũ bác sĩ chuyên môn cao, phác đồ điều trị mụn chuẩn y khoa cá nhân hóa, công nghệ hiện đại mang lại làn da khỏe đẹp và tự tin.`;
                 keywords = currentLang === 'en'
-                    ? 'about the gioi tri mun, dermatology clinic phu quoc, acne care'
-                    : 've chung toi, the gioi tri mun, phong kham da lieu phu quoc, tri mun phu quoc, cham soc da';
+                    ? 'about the gioi tri mun, dermatology clinic phu quoc, acne treatment phu quoc, medical skincare phu quoc'
+                    : currentLang === 'ru'
+                        ? 'о нас thế giới trị mụn, дерматолог фукуок, лечение акне фукуок, клиника красоты фукуок'
+                        : currentLang === 'cn'
+                            ? '关于 thế giới trị mụn, 富国岛皮肤科, 富国岛祛痘, 医学护肤'
+                            : 'về chúng tôi, thế giới trị mụn, phòng khám da liễu phú quốc, điều trị mụn chuyên sâu, trị mụn chuẩn y khoa, bác sĩ da liễu phú quốc, chăm sóc da phú quốc';
                 imageAlt = pageTitle;
                 break;
             default: break;
@@ -876,6 +880,29 @@ const App: React.FC = () => {
             }
         } else {
             removeJsonLd('homepage-faq-jsonld');
+        }
+
+        if (view.page === 'about') {
+            upsertJsonLd('about-page-jsonld', {
+                '@context': 'https://schema.org',
+                '@type': 'AboutPage',
+                name: pageTitle,
+                url: `https://thegioitrimun.vn${targetPath}`,
+                description: pageDescription,
+                inLanguage: currentLang === 'cn' ? 'zh' : currentLang,
+                mainEntity: {
+                    '@type': 'MedicalClinic',
+                    name: clinicName,
+                    url: 'https://thegioitrimun.vn',
+                    logo: DEFAULT_SEO_LOGO_URL,
+                    image: pageImage,
+                    telephone: footerContent?.phone || '0934086843',
+                    email: footerContent?.email || 'thegioitrimun@gmail.com',
+                    address: footerContent?.address || undefined,
+                },
+            });
+        } else {
+            removeJsonLd('about-page-jsonld');
         }
 
     }, [view, products, productCategories, brands, blogPosts, blogCategories, services, faqItems, i18n.language, siteInfo, footerContent, getLocalized, getLocalizedArray, getBrandProducts]);

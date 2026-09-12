@@ -22,7 +22,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <FadeIn delay={0.1} x={-80} y={0} duration={0.9}>
           <img
             src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/moon_icon.11395d36.png"
-            alt="Moon 3D Decorative"
+            alt="Họa tiết trang trí Thế Giới Trị Mụn"
             className="w-[120px] sm:w-[160px] md:w-[210px] h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]"
             loading="lazy"
           />
@@ -34,7 +34,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <FadeIn delay={0.25} x={-80} y={0} duration={0.9}>
           <img
             src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/p59_1.4659672e.png"
-            alt="3D Abstract Shape"
+            alt="Họa tiết biểu trưng Thế Giới Trị Mụn"
             className="w-[100px] sm:w-[140px] md:w-[180px] h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]"
             loading="lazy"
           />
@@ -46,7 +46,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <FadeIn delay={0.15} x={80} y={0} duration={0.9}>
           <img
             src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/lego_icon-1.703bb594.png"
-            alt="Lego 3D Decorative"
+            alt="Khối hình thương hiệu Thế Giới Trị Mụn"
             className="w-[120px] sm:w-[160px] md:w-[210px] h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]"
             loading="lazy"
           />
@@ -58,7 +58,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onContactClick }) =>
         <FadeIn delay={0.3} x={80} y={0} duration={0.9}>
           <img
             src="https://shrug-person-78902957.figma.site/_components/v2/ebb2b8f25d8e24d5f0a5ca8af4c950de81aa2fd7/Group_134-1.2e04f3ce.png"
-            alt="3D Group Objects"
+            alt="Cụm họa tiết trang trí Thế Giới Trị Mụn"
             className="w-[130px] sm:w-[170px] md:w-[220px] h-auto object-contain drop-shadow-[0_15px_30px_rgba(0,0,0,0.7)]"
             loading="lazy"
           />

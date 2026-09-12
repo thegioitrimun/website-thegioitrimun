@@ -1,5 +1,5 @@
 import React from 'react';
-import JackPortfolio from './jack/JackPortfolio';
+import AboutLandingPage from './about-landing/AboutLandingPage';
 
 interface AboutPageProps {
   onBack?: () => void;
@@ -11,7 +11,7 @@ interface AboutPageProps {
 }
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onBack }) => {
-  return <JackPortfolio onBackToClinic={onBack} />;
+  return <AboutLandingPage onBackToClinic={onBack} />;
 };
 
 export default AboutPage;
