@@ -682,11 +682,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       </FadeIn>
 
       {/* 2. Hero Heading */}
-      <div className="relative z-0 w-full overflow-hidden flex items-center justify-center">
+      <div className="relative z-0 w-full flex items-center justify-center">
         <FadeIn delay={0.15} y={40} className="w-full">
           <h1
             style={{ margin: '30px 0px 0px' }}
-            className="hero-heading font-black uppercase tracking-tight leading-none whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] select-none"
+            className="hero-heading font-black uppercase tracking-tight leading-[1.15] pt-4 pb-2 whitespace-nowrap w-full text-center text-[8.5vw] sm:text-[9.5vw] md:text-[10.5vw] lg:text-[11.5vw] xl:text-[12vw] select-none"
           >
             Thế Giới Trị Mụn
           </h1>
