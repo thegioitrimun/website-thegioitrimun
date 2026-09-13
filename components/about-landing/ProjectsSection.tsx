@@ -12,20 +12,23 @@ const PROJECTS: ProjectItem[] = [
     images: {
       col1Top: '/images/about/sunscreen-day-cream-top.webp',
       col1Bottom: '/images/about/sunscreen-dd-cream-bottom.webp',
-      col2:
-        'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055451_e317bf2d-28d4-48cc-86b0-6f72f25b6327.png&w=1280&q=85',
+      col2: '/images/about/sunscreen-segle-col2.webp',
     },
     links: {
       col1Top:
         '/san-pham/kem-chong-nang/kem-chong-nang-4-in-1-dermeden-day-cream-global-action-combination-skin-spf-50-pa-da-hon-hop-da-dau-50ml',
       col1Bottom:
         '/san-pham/kem-chong-nang/kem-chong-nang-vitamin-d-dermeden-dd-cream-spf50-50ml',
+      col2:
+        '/san-pham/kem-chong-nang/segle-spf50-sun-care-gel-crema---kem-chng-nng-ph-rng-bo-v-ton-din-spf-50-pa',
     },
     alts: {
       col1Top:
         'Kem chống nắng 4 in 1 DermEden Day Cream Global Action Combination Skin SPF 50 PA+++',
       col1Bottom:
         'Kem chống nắng Vitamin D DermEden DD Cream SPF50',
+      col2:
+        'SEGLE SPF50+ SUN CARE GEL CREMA - Kem Chống Nắng Phổ Rộng Bảo Vệ Toàn Diện SPF 50+, PA++++',
     },
   },
   {
