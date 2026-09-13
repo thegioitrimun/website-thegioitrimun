@@ -1738,7 +1738,7 @@ const App: React.FC = () => {
     const isAdminView = view.page.startsWith('admin') && view.page !== 'administrativeProfile';
     const isHomePage = view.page === 'main';
     const isAboutLandingPage = view.page === 'about';
-    const isHomeInvertedHeader = isHomePage && isAtTop;
+    const isHomeInvertedHeader = (isHomePage || isAboutLandingPage) && isAtTop;
     const contentTransitionClass = ['blog', 'blogCategory', 'productDetail'].includes(view.page) ? '' : 'animate-fade-in-page';
     const contentKey = isAdminView
         ? 'admin-workspace'
@@ -1746,7 +1746,7 @@ const App: React.FC = () => {
 
     return (
         <div className={`${isAboutLandingPage ? 'bg-[#0C0C0C]' : 'bg-background'} text-foreground transition-colors duration-300`}>
-            {!isAdminView && !isAboutLandingPage ? (
+            {!isAdminView ? (
                 <Suspense fallback={null}>
                     <FullScreenSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} products={products} services={services} blogPosts={blogPosts} hasFullProductCatalog={hasFullProductCatalog} isProductCatalogLoading={isProductCatalogLoading} onNavigate={handleNavigate} />
                     <MiniCart onNavigate={handleNavigate} />
@@ -1754,7 +1754,7 @@ const App: React.FC = () => {
                 </Suspense>
             ) : null}
 
-            {!isAdminView && !isAboutLandingPage ? (
+            {!isAdminView ? (
             <header className={`fixed inset-x-0 top-0 z-50 will-change-transform transition-transform duration-300 motion-reduce:transition-none ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
                 <div className="container relative mx-auto px-3 pt-[max(env(safe-area-inset-top,0px),0.625rem)] sm:px-4 sm:pt-[max(env(safe-area-inset-top,0px),0.75rem)] lg:px-6 lg:pt-[max(env(safe-area-inset-top,0px),1rem)]">
                     <div className={`relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 ${
