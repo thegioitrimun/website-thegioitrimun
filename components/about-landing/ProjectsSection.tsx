@@ -37,12 +37,25 @@ const PROJECTS: ProjectItem[] = [
     category: 'Cá nhân',
     name: 'Tinh Chất Đặc Trị',
     images: {
+      col1Top: '/images/about/serum-intelderm-top.webp',
+      col1Bottom: '/images/about/serum-tretinoin-bottom.webp',
+      col2: '/images/about/serum-seasonly-col2.webp',
+    },
+    links: {
       col1Top:
-        'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055654_911201c5-36d9-4bc6-bac7-331adfce159f.png&w=1280&q=85',
+        '/san-pham/tinh-chat-dac-tri/serum-tr-nm-trng-da-intelderm-3-tranexamic-acid--10-niacinamide-30ml-chnh-hng',
       col1Bottom:
-        'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055723_5ceda0b8-d9c2-4665-b2e3-83ba19ba76d1.png&w=1280&q=85',
+        '/san-pham/tinh-chat-dac-tri/kem-giam-mun-mo-nam-tre-hoa-da-nanogize-tretinoin-0-1-10ml',
       col2:
-        'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055753_adc5dcbd-a8e6-49c0-b43a-9b030d835cea.png&w=1280&q=85',
+        '/san-pham/tinh-chat-dac-tri/serum-tr-mn-seasonly-blemish-control-serum-30ml',
+    },
+    alts: {
+      col1Top:
+        'Serum Trị Nám, Trắng Da Intelderm 3% Tranexamic Acid + 10% Niacinamide 30ml',
+      col1Bottom:
+        'Kem giảm mụn, mờ nám, trẻ hoá da Nanogize Tretinoin 0.1% (10ml)',
+      col2:
+        'Serum trị mụn Seasonly Blemish-Control Serum 30ml',
     },
   },
   {
