@@ -13,15 +13,15 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
-    // Match dark mode footer gradient: linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)
+    // Enhanced rich dark gradient: deep midnight navy -> royal twilight -> vibrant oceanic teal -> deep emerald night
     const originalBodyBg = document.body.style.background;
     const originalBodyBgColor = document.body.style.backgroundColor;
     const originalHtmlBgColor = document.documentElement.style.backgroundColor;
 
     document.body.style.background =
-      'linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)';
-    document.body.style.backgroundColor = '#0a111b';
-    document.documentElement.style.backgroundColor = '#0a111b';
+      'linear-gradient(180deg, #0a1526 0%, #0f2540 25%, #13334c 50%, #0e3843 78%, #092027 100%)';
+    document.body.style.backgroundColor = '#0a1526';
+    document.documentElement.style.backgroundColor = '#0a1526';
 
     window.scrollTo(0, 0);
 
@@ -40,12 +40,12 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
     <div
       style={{
         background:
-          'linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)',
-        backgroundColor: '#0a111b',
+          'linear-gradient(180deg, #0a1526 0%, #0f2540 25%, #13334c 50%, #0e3843 78%, #092027 100%)',
+        backgroundColor: '#0a1526',
         fontFamily: 'var(--font-sans)',
         overflowX: 'clip',
       }}
-      className="w-full min-h-screen text-[#D7E2EA] bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)] font-sans selection:bg-[#B600A8] selection:text-white"
+      className="w-full min-h-screen text-[#D7E2EA] bg-[linear-gradient(180deg,#0a1526_0%,#0f2540_25%,#13334c_50%,#0e3843_78%,#092027_100%)] font-sans selection:bg-[#B600A8] selection:text-white"
     >
       {/* SECTION ORDER:
           1. HeroSection
