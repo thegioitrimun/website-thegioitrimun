@@ -15,4 +15,14 @@ export interface ProjectItem {
     col1Bottom: string;
     col2: string;
   };
+  links?: {
+    col1Top?: string;
+    col1Bottom?: string;
+    col2?: string;
+  };
+  alts?: {
+    col1Top?: string;
+    col1Bottom?: string;
+    col2?: string;
+  };
 }

@@ -11,11 +11,23 @@ const PROJECTS: ProjectItem[] = [
     name: 'Kem chống nắng',
     images: {
       col1Top:
-        'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055344_5eff02e0-87a5-41ce-b64f-eb08da8f33db.png&w=1280&q=85',
+        'https://thegioitrimun.vn/r2/product-images/products/kem-chong-nang-4-in-1-dermeden-day-cream-global-action-combination-skin-spf-50-pa-da-hon-hop-da-dau-50ml/manual-gallery/9aaa1ee75f95-0081-kem-chong-nang-4-in-1-dermeden-day-cream-global-action-combination-skin-spf-50-pa-da-hon-hop-da-dau-kem-chong-nang-.webp',
       col1Bottom:
-        'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055431_11d841fd-8b41-46a5-82e4-b04f2407a7d8.png&w=1280&q=85',
+        'https://thegioitrimun.vn/r2/product-images/products/kem-chong-nang-vitamin-d-dermeden-dd-cream-spf50-50ml/manual-gallery/be76d253b3f2-0083-kem-chong-nang-vitamin-d-dermeden-dd-cream-spf50-50ml-kem-chong-nang-vitamin-d-dermeden-dd-cream-spf50-50ml-01-gall.webp',
       col2:
         'https://images.higgs.ai/?default=1&output=webp&url=https%3A%2F%2Fd8j0ntlcm91z4.cloudfront.net%2Fuser_38xzZboKViGWJOttwIXH07lWA1P%2Fhf_20260412_055451_e317bf2d-28d4-48cc-86b0-6f72f25b6327.png&w=1280&q=85',
+    },
+    links: {
+      col1Top:
+        '/san-pham/kem-chong-nang/kem-chong-nang-4-in-1-dermeden-day-cream-global-action-combination-skin-spf-50-pa-da-hon-hop-da-dau-50ml',
+      col1Bottom:
+        '/san-pham/kem-chong-nang/kem-chong-nang-vitamin-d-dermeden-dd-cream-spf50-50ml',
+    },
+    alts: {
+      col1Top:
+        'Kem chống nắng 4 in 1 DermEden Day Cream Global Action Combination Skin SPF 50 PA+++',
+      col1Bottom:
+        'Kem chống nắng Vitamin D DermEden DD Cream SPF50',
     },
   },
   {
@@ -117,34 +129,79 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               style={{ height: 'clamp(130px, 16vw, 230px)' }}
               className="w-full overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
             >
-              <img
-                src={project.images.col1Top}
-                alt={`${project.name} preview top`}
-                loading="lazy"
-                className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
-              />
+              {project.links?.col1Top ? (
+                <a
+                  href={project.links.col1Top}
+                  className="group block w-full h-full cursor-pointer overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]"
+                  title={project.alts?.col1Top || `${project.name} preview top`}
+                >
+                  <img
+                    src={project.images.col1Top}
+                    alt={project.alts?.col1Top || `${project.name} preview top`}
+                    loading="lazy"
+                    className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 group-hover:scale-105 select-none"
+                  />
+                </a>
+              ) : (
+                <img
+                  src={project.images.col1Top}
+                  alt={project.alts?.col1Top || `${project.name} preview top`}
+                  loading="lazy"
+                  className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
+                />
+              )}
             </div>
             <div
               style={{ height: 'clamp(160px, 22vw, 340px)' }}
               className="w-full overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
             >
-              <img
-                src={project.images.col1Bottom}
-                alt={`${project.name} preview bottom`}
-                loading="lazy"
-                className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
-              />
+              {project.links?.col1Bottom ? (
+                <a
+                  href={project.links.col1Bottom}
+                  className="group block w-full h-full cursor-pointer overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]"
+                  title={project.alts?.col1Bottom || `${project.name} preview bottom`}
+                >
+                  <img
+                    src={project.images.col1Bottom}
+                    alt={project.alts?.col1Bottom || `${project.name} preview bottom`}
+                    loading="lazy"
+                    className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 group-hover:scale-105 select-none"
+                  />
+                </a>
+              ) : (
+                <img
+                  src={project.images.col1Bottom}
+                  alt={project.alts?.col1Bottom || `${project.name} preview bottom`}
+                  loading="lazy"
+                  className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
+                />
+              )}
             </div>
           </div>
 
           {/* Right column (60% width): 1 tall image */}
           <div className="md:col-span-7 h-full min-h-[260px] sm:min-h-[320px] md:min-h-0 overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]">
-            <img
-              src={project.images.col2}
-              alt={`${project.name} main visual`}
-              loading="lazy"
-              className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
-            />
+            {project.links?.col2 ? (
+              <a
+                href={project.links.col2}
+                className="group block w-full h-full cursor-pointer overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]"
+                title={project.alts?.col2 || `${project.name} main visual`}
+              >
+                <img
+                  src={project.images.col2}
+                  alt={project.alts?.col2 || `${project.name} main visual`}
+                  loading="lazy"
+                  className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 group-hover:scale-105 select-none"
+                />
+              </a>
+            ) : (
+              <img
+                src={project.images.col2}
+                alt={project.alts?.col2 || `${project.name} main visual`}
+                loading="lazy"
+                className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
+              />
+            )}
           </div>
         </div>
       </motion.div>
