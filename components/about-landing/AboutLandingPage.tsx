@@ -39,14 +39,73 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
   return (
     <div
       style={{
-        background:
-          'linear-gradient(180deg, #0a1526 0%, #0f2540 25%, #13334c 50%, #0e3843 78%, #092027 100%)',
         backgroundColor: '#0a1526',
         fontFamily: 'var(--font-sans)',
         overflowX: 'clip',
       }}
-      className="w-full min-h-screen text-[#D7E2EA] bg-[linear-gradient(180deg,#0a1526_0%,#0f2540_25%,#13334c_50%,#0e3843_78%,#092027_100%)] font-sans selection:bg-[#B600A8] selection:text-white"
+      className="relative w-full min-h-screen text-[#D7E2EA] bg-[#0a1526] font-sans selection:bg-[#B600A8] selection:text-white"
     >
+      {/* Living Smooth Transition Dark Gradient Background (Fixed Viewport Layer) */}
+      <div
+        className="about-animated-bg fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        aria-hidden="true"
+      >
+        {/* State 1: Deep Midnight Navy & Sapphire Base */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'linear-gradient(160deg, #0a1526 0%, #0f2744 35%, #133956 70%, #0d2e3a 100%)',
+          }}
+        />
+
+        {/* State 2: Smooth Cross-fading Oceanic Deep Teal / Emerald */}
+        <div
+          className="absolute inset-0 will-change-[opacity]"
+          style={{
+            background:
+              'linear-gradient(195deg, #071929 0%, #0b3042 30%, #0e4650 70%, #09242c 100%)',
+            animation: 'aboutBgFade1 14s ease-in-out infinite alternate',
+          }}
+        />
+
+        {/* State 3: Smooth Cross-fading Royal Twilight Indigo */}
+        <div
+          className="absolute inset-0 will-change-[opacity]"
+          style={{
+            background:
+              'linear-gradient(225deg, #0c1832 0%, #142c4e 35%, #11405c 75%, #0b2735 100%)',
+            animation: 'aboutBgFade2 18s ease-in-out infinite alternate',
+          }}
+        />
+
+        {/* Floating Glowing Ambient Orbs for gentle, organic light motion */}
+        <div
+          className="absolute -top-[15%] -left-[10%] w-[65vw] h-[65vw] max-w-[850px] max-h-[850px] rounded-full blur-[120px] opacity-45 mix-blend-screen will-change-transform"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(24, 82, 138, 0.75) 0%, rgba(13, 44, 76, 0) 70%)',
+            animation: 'aboutOrbDrift1 22s ease-in-out infinite alternate',
+          }}
+        />
+        <div
+          className="absolute top-[35%] -right-[15%] w-[70vw] h-[70vw] max-w-[900px] max-h-[900px] rounded-full blur-[130px] opacity-40 mix-blend-screen will-change-transform"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(16, 102, 110, 0.7) 0%, rgba(9, 48, 56, 0) 70%)',
+            animation: 'aboutOrbDrift2 26s ease-in-out infinite alternate',
+          }}
+        />
+        <div
+          className="absolute -bottom-[15%] left-[20%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] rounded-full blur-[120px] opacity-35 mix-blend-screen will-change-transform"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(19, 74, 118, 0.65) 0%, rgba(10, 38, 66, 0) 70%)',
+            animation: 'aboutOrbDrift1 28s ease-in-out infinite alternate-reverse',
+          }}
+        />
+      </div>
+
       {/* SECTION ORDER:
           1. HeroSection
           2. MarqueeSection
@@ -54,11 +113,13 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
           4. ServicesSection
           5. ProjectsSection
       */}
-      <HeroSection onContactClick={handleContact} />
-      <MarqueeSection />
-      <AboutSection onContactClick={handleContact} />
-      <ServicesSection />
-      <ProjectsSection />
+      <div className="relative z-10">
+        <HeroSection onContactClick={handleContact} />
+        <MarqueeSection />
+        <AboutSection onContactClick={handleContact} />
+        <ServicesSection />
+        <ProjectsSection />
+      </div>
 
       {/* Optional Contact / Inquiry Modal */}
       {isContactModalOpen && (
