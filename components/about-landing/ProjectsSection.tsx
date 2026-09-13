@@ -89,9 +89,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   return (
     <div
       ref={containerRef}
-      className="h-[85vh] flex items-center justify-center sticky top-24 md:top-32"
+      className="min-h-screen py-8 md:py-12 flex items-center justify-center sticky top-20 md:top-24"
       style={{
-        top: `calc(5rem + ${index * 28}px)`,
+        top: `calc(4.5rem + ${index * 24}px)`,
       }}
     >
       <motion.div
@@ -126,8 +126,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           {/* Left column (40% width): 2 stacked images */}
           <div className="md:col-span-5 flex flex-col gap-4 sm:gap-6 justify-between">
             <div
-              style={{ height: 'clamp(130px, 16vw, 230px)' }}
-              className="w-full overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
+              className="w-full aspect-square overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
             >
               {project.links?.col1Top ? (
                 <a
@@ -152,8 +151,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               )}
             </div>
             <div
-              style={{ height: 'clamp(160px, 22vw, 340px)' }}
-              className="w-full overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
+              className="w-full aspect-square overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
             >
               {project.links?.col1Bottom ? (
                 <a
