@@ -236,11 +236,7 @@ export const ProjectsSection: React.FC = () => {
     <section
       ref={containerRef}
       id="projects"
-      style={{
-        background:
-          'linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)',
-      }}
-      className="relative w-full bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-28 md:pt-36 pb-32 px-4 sm:px-6 md:px-10 z-10 select-none"
+      className="relative w-full bg-transparent rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-28 md:pt-36 pb-32 px-4 sm:px-6 md:px-10 z-10 select-none"
     >
       {/* Heading: "Project" (singular) */}
       <div className="max-w-6xl mx-auto mb-16 sm:mb-20 md:mb-24 flex justify-center">
