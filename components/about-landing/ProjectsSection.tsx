@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import { FadeIn } from './FadeIn';
-import { LiveProjectButton } from './Buttons';
 import type { ProjectItem } from './types';
 
 const PROJECTS: ProjectItem[] = [
@@ -108,8 +107,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               </h3>
             </div>
           </div>
-
-          <LiveProjectButton />
         </div>
 
         {/* Bottom row: Two-column image grid */}
