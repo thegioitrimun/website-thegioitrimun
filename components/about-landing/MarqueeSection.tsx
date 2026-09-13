@@ -151,7 +151,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ item }) => {
   }, []);
 
   return (
-    <div className="w-[420px] h-[270px] flex-shrink-0 rounded-2xl overflow-hidden bg-[#1A1A1A]">
+    <div className="w-[210px] h-[135px] sm:w-[420px] sm:h-[270px] flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden bg-[#1A1A1A]">
       <video
         ref={videoRef}
         src={item.video}
@@ -162,7 +162,7 @@ const VideoCard: React.FC<VideoCardProps> = ({ item }) => {
         playsInline
         preload="metadata"
         aria-label={item.alt}
-        className="w-full h-full object-cover rounded-2xl pointer-events-none"
+        className="w-full h-full object-cover rounded-xl sm:rounded-2xl pointer-events-none"
       />
     </div>
   );
@@ -202,16 +202,16 @@ export const MarqueeSection: React.FC = () => {
     <section
       id="about-marquee"
       ref={sectionRef}
-      className="relative w-full bg-[#0C0C0C] pt-24 sm:pt-32 md:pt-40 pb-10 overflow-hidden"
+      className="relative w-full bg-[#0C0C0C] pt-14 sm:pt-32 md:pt-40 pb-6 sm:pb-10 overflow-hidden"
     >
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 sm:gap-3">
         {/* Row 1: Moves RIGHT on scroll: translateX(offset - 200) */}
         <div
           style={{
             transform: `translateX(${offset - 200}px)`,
             willChange: 'transform',
           }}
-          className="flex gap-3"
+          className="flex gap-2 sm:gap-3"
         >
           {ROW_1.map((item, i) => (
             <VideoCard key={`r1-${i}`} item={item} uniqueKey={`r1-${i}`} />
@@ -224,7 +224,7 @@ export const MarqueeSection: React.FC = () => {
             transform: `translateX(${-(offset - 200)}px)`,
             willChange: 'transform',
           }}
-          className="flex gap-3"
+          className="flex gap-2 sm:gap-3"
         >
           {ROW_2.map((item, i) => (
             <VideoCard key={`r2-${i}`} item={item} uniqueKey={`r2-${i}`} />
