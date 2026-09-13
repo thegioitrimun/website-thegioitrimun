@@ -113,7 +113,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           scale,
           top: `${index * 28}px`,
         }}
-        className="relative w-full max-w-6xl rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 flex flex-col gap-6 shadow-2xl origin-top will-change-transform"
+        className="relative w-full max-w-6xl rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0a111b]/95 backdrop-blur-xl p-4 sm:p-6 md:p-8 flex flex-col gap-6 shadow-2xl origin-top will-change-transform"
       >
         {/* Top row */}
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D7E2EA]/20 pb-4 sm:pb-6">
@@ -236,7 +236,11 @@ export const ProjectsSection: React.FC = () => {
     <section
       ref={containerRef}
       id="projects"
-      className="relative w-full bg-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-28 md:pt-36 pb-32 px-4 sm:px-6 md:px-10 z-10 select-none"
+      style={{
+        background:
+          'linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)',
+      }}
+      className="relative w-full bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] -mt-10 sm:-mt-12 md:-mt-14 pt-20 sm:pt-28 md:pt-36 pb-32 px-4 sm:px-6 md:px-10 z-10 select-none"
     >
       {/* Heading: "Project" (singular) */}
       <div className="max-w-6xl mx-auto mb-16 sm:mb-20 md:mb-24 flex justify-center">

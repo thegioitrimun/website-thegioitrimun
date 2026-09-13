@@ -202,7 +202,7 @@ export const MarqueeSection: React.FC = () => {
     <section
       id="about-marquee"
       ref={sectionRef}
-      className="relative w-full bg-[#0C0C0C] pt-14 sm:pt-32 md:pt-40 pb-6 sm:pb-10 overflow-hidden"
+      className="relative w-full bg-transparent pt-14 sm:pt-32 md:pt-40 pb-6 sm:pb-10 overflow-hidden"
     >
       <div className="flex flex-col gap-2 sm:gap-3">
         {/* Row 1: Moves RIGHT on scroll: translateX(offset - 200) */}

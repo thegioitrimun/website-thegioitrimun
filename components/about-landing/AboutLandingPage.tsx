@@ -13,17 +13,22 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
-    // Ensure page background is #0C0C0C
-    const originalBodyBg = document.body.style.backgroundColor;
-    const originalHtmlBg = document.documentElement.style.backgroundColor;
-    document.body.style.backgroundColor = '#0C0C0C';
-    document.documentElement.style.backgroundColor = '#0C0C0C';
+    // Match dark mode footer gradient: linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)
+    const originalBodyBg = document.body.style.background;
+    const originalBodyBgColor = document.body.style.backgroundColor;
+    const originalHtmlBgColor = document.documentElement.style.backgroundColor;
+
+    document.body.style.background =
+      'linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)';
+    document.body.style.backgroundColor = '#0a111b';
+    document.documentElement.style.backgroundColor = '#0a111b';
 
     window.scrollTo(0, 0);
 
     return () => {
-      document.body.style.backgroundColor = originalBodyBg;
-      document.documentElement.style.backgroundColor = originalHtmlBg;
+      document.body.style.background = originalBodyBg;
+      document.body.style.backgroundColor = originalBodyBgColor;
+      document.documentElement.style.backgroundColor = originalHtmlBgColor;
     };
   }, []);
 
@@ -34,11 +39,13 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
   return (
     <div
       style={{
-        backgroundColor: '#0C0C0C',
+        background:
+          'linear-gradient(180deg, #0a111b 0%, #0d1623 52%, #0d1e24 100%)',
+        backgroundColor: '#0a111b',
         fontFamily: 'var(--font-sans)',
         overflowX: 'clip',
       }}
-      className="w-full min-h-screen text-[#D7E2EA] bg-[#0C0C0C] font-sans selection:bg-[#B600A8] selection:text-white"
+      className="w-full min-h-screen text-[#D7E2EA] bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)] font-sans selection:bg-[#B600A8] selection:text-white"
     >
       {/* SECTION ORDER:
           1. HeroSection

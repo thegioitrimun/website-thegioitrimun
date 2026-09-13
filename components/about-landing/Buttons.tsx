@@ -12,7 +12,7 @@ export const ContactButton: React.FC<ContactButtonProps> = ({
   label = 'Liên hệ ngay',
 }) => {
   const baseClass =
-    'mt-10 inline-flex min-h-14 items-center gap-3 rounded-full border border-white/50 bg-white/20 backdrop-blur-2xl px-10 py-4 font-sans text-[15px] font-bold text-white shadow-[0_12px_36px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-white/30 hover:border-white/80 hover:shadow-[0_18px_48px_rgba(0,0,0,0.7),inset_0_1px_2px_rgba(255,255,255,0.6)] focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-4 focus:ring-offset-[#0C0C0C] animate-fade-rise-delay-2 sm:mt-12 sm:px-12 sm:text-base cursor-pointer select-none';
+    'mt-10 inline-flex min-h-14 items-center gap-3 rounded-full border border-white/50 bg-white/20 backdrop-blur-2xl px-10 py-4 font-sans text-[15px] font-bold text-white shadow-[0_12px_36px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.02] hover:bg-white/30 hover:border-white/80 hover:shadow-[0_18px_48px_rgba(0,0,0,0.7),inset_0_1px_2px_rgba(255,255,255,0.6)] focus:outline-none focus:ring-2 focus:ring-white/40 focus:ring-offset-4 focus:ring-offset-[#0a111b] animate-fade-rise-delay-2 sm:mt-12 sm:px-12 sm:text-base cursor-pointer select-none';
 
   return (
     <button
