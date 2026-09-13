@@ -113,10 +113,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           scale,
           top: `${index * 28}px`,
         }}
-        className="relative w-full max-w-6xl rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0a111b]/95 backdrop-blur-xl p-4 sm:p-6 md:p-8 flex flex-col gap-6 shadow-2xl origin-top will-change-transform"
+        className="relative w-full max-w-6xl rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[rgba(15,23,34,0.78)] lg:bg-[rgba(15,23,34,0.74)] backdrop-blur-md shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)] p-4 sm:p-6 md:p-8 flex flex-col gap-6 origin-top will-change-transform"
       >
+        {/* Ambient glow matching navbar darkmode */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]">
+          <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#ff7f5d]/12 blur-3xl"></div>
+          <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-[#35b7a5]/15 blur-3xl"></div>
+        </div>
+
         {/* Top row */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D7E2EA]/20 pb-4 sm:pb-6">
+        <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 sm:pb-6">
           <div className="flex items-center gap-4 sm:gap-6">
             <span
               style={{ fontSize: 'clamp(2.2rem, 6vw, 5rem)' }}
@@ -136,7 +142,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         </div>
 
         {/* Bottom row: Two-column image grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+        <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-stretch">
           {/* Left column (40% width): 2 stacked images */}
           <div className="md:col-span-5 flex flex-col gap-4 sm:gap-6 justify-between">
             <div
