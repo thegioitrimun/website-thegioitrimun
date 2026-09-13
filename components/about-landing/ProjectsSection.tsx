@@ -77,35 +77,28 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   range,
   targetScale,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start end', 'start start'],
-  });
-
-  const imageScale = useTransform(scrollYProgress, [2, 0], [2, 1]);
   const scale = useTransform(progress, range, [1, targetScale]);
 
   return (
     <div
-      ref={containerRef}
-      className="min-h-screen py-8 md:py-12 flex items-center justify-center sticky top-20 md:top-24"
+      className={`sticky top-16 md:top-20 flex flex-col items-center ${
+        index === totalCards - 1 ? 'pb-16 md:pb-24' : 'pb-[50vh] md:pb-[70vh]'
+      }`}
       style={{
-        top: `calc(4.5rem + ${index * 24}px)`,
+        top: `calc(4rem + ${index * 20}px)`,
       }}
     >
       <motion.div
         style={{
           scale,
-          top: `${index * 28}px`,
         }}
-        className="relative w-full max-w-6xl rounded-[40px] sm:rounded-[50px] md:rounded-[60px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-6 md:p-8 flex flex-col gap-6 shadow-2xl origin-top will-change-transform"
+        className="relative w-full max-w-6xl rounded-[32px] sm:rounded-[40px] md:rounded-[48px] border-2 border-[#D7E2EA] bg-[#0C0C0C] p-4 sm:p-5 md:p-6 lg:p-7 flex flex-col gap-4 md:gap-5 shadow-2xl origin-top will-change-transform"
       >
         {/* Top row */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D7E2EA]/20 pb-4 sm:pb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D7E2EA]/20 pb-3 md:pb-4">
           <div className="flex items-center gap-4 sm:gap-6">
             <span
-              style={{ fontSize: 'clamp(2.2rem, 6vw, 5rem)' }}
+              style={{ fontSize: 'clamp(2rem, 4vw, 3.5rem)' }}
               className="font-heading font-black text-[#D7E2EA] leading-none select-none tracking-tighter"
             >
               {project.number}
@@ -114,7 +107,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               <span className="font-sans text-[#D7E2EA]/60 text-xs sm:text-sm uppercase tracking-widest font-normal">
                 {project.category}
               </span>
-              <h3 className="font-heading text-white font-bold text-lg sm:text-2xl md:text-3xl uppercase tracking-wider">
+              <h3 className="font-heading text-white font-bold text-lg sm:text-xl md:text-2xl uppercase tracking-wider">
                 {project.name}
               </h3>
             </div>
@@ -122,23 +115,23 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
         </div>
 
         {/* Bottom row: Two-column image grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-stretch">
-          {/* Left column (40% width): 2 stacked images */}
-          <div className="md:col-span-5 flex flex-col gap-4 sm:gap-6 justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-5 md:gap-6 items-stretch md:h-[clamp(360px,46vh,500px)]">
+          {/* Left column (col-span-4 on md, col-span-3 on lg): 2 square product images */}
+          <div className="md:col-span-4 lg:col-span-3 grid grid-cols-2 md:flex md:flex-col gap-3 sm:gap-4 justify-between h-full">
             <div
-              className="w-full aspect-square overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
+              className="w-full h-auto md:h-[calc(50%-0.5rem)] aspect-square overflow-hidden rounded-[20px] sm:rounded-[28px] md:rounded-[32px] bg-[#1a1a1a]"
             >
               {project.links?.col1Top ? (
                 <a
                   href={project.links.col1Top}
-                  className="group block w-full h-full cursor-pointer overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]"
+                  className="group block w-full h-full cursor-pointer overflow-hidden rounded-[20px] sm:rounded-[28px] md:rounded-[32px]"
                   title={project.alts?.col1Top || `${project.name} preview top`}
                 >
                   <img
                     src={project.images.col1Top}
                     alt={project.alts?.col1Top || `${project.name} preview top`}
                     loading="lazy"
-                    className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 group-hover:scale-105 select-none"
+                    className="w-full h-full object-cover rounded-[20px] sm:rounded-[28px] md:rounded-[32px] transition-transform duration-500 group-hover:scale-105 select-none"
                   />
                 </a>
               ) : (
@@ -146,24 +139,24 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   src={project.images.col1Top}
                   alt={project.alts?.col1Top || `${project.name} preview top`}
                   loading="lazy"
-                  className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
+                  className="w-full h-full object-cover rounded-[20px] sm:rounded-[28px] md:rounded-[32px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
                 />
               )}
             </div>
             <div
-              className="w-full aspect-square overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]"
+              className="w-full h-auto md:h-[calc(50%-0.5rem)] aspect-square overflow-hidden rounded-[20px] sm:rounded-[28px] md:rounded-[32px] bg-[#1a1a1a]"
             >
               {project.links?.col1Bottom ? (
                 <a
                   href={project.links.col1Bottom}
-                  className="group block w-full h-full cursor-pointer overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]"
+                  className="group block w-full h-full cursor-pointer overflow-hidden rounded-[20px] sm:rounded-[28px] md:rounded-[32px]"
                   title={project.alts?.col1Bottom || `${project.name} preview bottom`}
                 >
                   <img
                     src={project.images.col1Bottom}
                     alt={project.alts?.col1Bottom || `${project.name} preview bottom`}
                     loading="lazy"
-                    className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 group-hover:scale-105 select-none"
+                    className="w-full h-full object-cover rounded-[20px] sm:rounded-[28px] md:rounded-[32px] transition-transform duration-500 group-hover:scale-105 select-none"
                   />
                 </a>
               ) : (
@@ -171,25 +164,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   src={project.images.col1Bottom}
                   alt={project.alts?.col1Bottom || `${project.name} preview bottom`}
                   loading="lazy"
-                  className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
+                  className="w-full h-full object-cover rounded-[20px] sm:rounded-[28px] md:rounded-[32px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
                 />
               )}
             </div>
           </div>
 
-          {/* Right column (60% width): 1 tall image */}
-          <div className="md:col-span-7 h-full min-h-[260px] sm:min-h-[320px] md:min-h-0 overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px] bg-[#1a1a1a]">
+          {/* Right column (col-span-8 on md, col-span-9 on lg): 1 tall visual image */}
+          <div className="md:col-span-8 lg:col-span-9 h-[220px] sm:h-[260px] md:h-full overflow-hidden rounded-[20px] sm:rounded-[28px] md:rounded-[32px] bg-[#1a1a1a]">
             {project.links?.col2 ? (
               <a
                 href={project.links.col2}
-                className="group block w-full h-full cursor-pointer overflow-hidden rounded-[40px] sm:rounded-[50px] md:rounded-[60px]"
+                className="group block w-full h-full cursor-pointer overflow-hidden rounded-[20px] sm:rounded-[28px] md:rounded-[32px]"
                 title={project.alts?.col2 || `${project.name} main visual`}
               >
                 <img
                   src={project.images.col2}
                   alt={project.alts?.col2 || `${project.name} main visual`}
                   loading="lazy"
-                  className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 group-hover:scale-105 select-none"
+                  className="w-full h-full object-cover rounded-[20px] sm:rounded-[28px] md:rounded-[32px] transition-transform duration-500 group-hover:scale-105 select-none"
                 />
               </a>
             ) : (
@@ -197,7 +190,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 src={project.images.col2}
                 alt={project.alts?.col2 || `${project.name} main visual`}
                 loading="lazy"
-                className="w-full h-full object-cover rounded-[40px] sm:rounded-[50px] md:rounded-[60px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
+                className="w-full h-full object-cover rounded-[20px] sm:rounded-[28px] md:rounded-[32px] transition-transform duration-500 hover:scale-105 pointer-events-none select-none"
               />
             )}
           </div>
