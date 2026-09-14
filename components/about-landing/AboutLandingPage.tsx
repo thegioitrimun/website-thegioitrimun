@@ -110,15 +110,15 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
           1. HeroSection
           2. MarqueeSection
           3. AboutSection
-          4. ServicesSection
-          5. ProjectsSection
+          4. ProjectsSection
+          5. ServicesSection
       */}
       <div className="relative z-10">
         <HeroSection onContactClick={handleContact} />
         <MarqueeSection />
         <AboutSection onContactClick={handleContact} />
-        <ServicesSection />
         <ProjectsSection />
+        <ServicesSection />
       </div>
 
       {/* Optional Contact / Inquiry Modal */}
