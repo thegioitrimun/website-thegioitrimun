@@ -4,6 +4,7 @@ import MarqueeSection from './MarqueeSection';
 import AboutSection from './AboutSection';
 import ServicesSection from './ServicesSection';
 import ProjectsSection from './ProjectsSection';
+import BrandInciSection from './BrandInciSection';
 
 export interface AboutLandingProps {
   onBackToClinic?: () => void;
@@ -112,6 +113,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
           3. AboutSection
           4. ProjectsSection
           5. ServicesSection
+          6. BrandInciSection
       */}
       <div className="relative z-10">
         <HeroSection onContactClick={handleContact} />
@@ -119,6 +121,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
         <AboutSection onContactClick={handleContact} />
         <ProjectsSection />
         <ServicesSection />
+        <BrandInciSection />
       </div>
 
       {/* Optional Contact / Inquiry Modal */}
