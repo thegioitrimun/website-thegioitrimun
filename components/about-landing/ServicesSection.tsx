@@ -44,7 +44,7 @@ export const ServicesSection: React.FC = () => {
   return (
     <section
       id="services"
-      className="relative w-full bg-[#FFFFFF] text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 pt-20 sm:pt-24 md:pt-32 pb-16 sm:pb-20 md:pb-24 z-0"
+      className="relative w-full bg-[#FFFFFF] text-[#0C0C0C] rounded-[40px] sm:rounded-[50px] md:rounded-[60px] px-5 sm:px-8 md:px-10 py-20 sm:py-24 md:py-32 z-0"
     >
       <div className="max-w-5xl mx-auto">
         {/* Heading */}

@@ -116,7 +116,7 @@ export const BrandInciSection: React.FC = () => {
   return (
     <section
       id="brand-inci"
-      className="relative w-full bg-[#FFFFFF] text-[#0C0C0C] px-4 sm:px-6 md:px-10 pt-4 pb-20 sm:pb-28 md:pb-32 z-0 select-none"
+      className="relative w-full bg-[#FFFFFF] text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-32 z-0 select-none"
     >
       {/* 1. Main Hero Video Container */}
       <div className="relative w-full max-w-6xl mx-auto h-[480px] sm:h-[520px] md:h-[560px] rounded-[28px] sm:rounded-[36px] md:rounded-[44px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-slate-200/80 bg-slate-100 flex flex-col justify-between select-none">

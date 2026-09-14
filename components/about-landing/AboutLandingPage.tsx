@@ -110,17 +110,17 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
       {/* SECTION ORDER:
           1. HeroSection
           2. MarqueeSection
-          3. AboutSection
-          4. ProjectsSection
-          5. ServicesSection
-          6. BrandInciSection
+          3. AboutSection (Sứ mệnh)
+          4. ServicesSection (Dịch vụ - nằm giữa Sứ mệnh và Sản phẩm)
+          5. ProjectsSection (Sản phẩm)
+          6. BrandInciSection (Thương hiệu & Phân tích INCI)
       */}
       <div className="relative z-10">
         <HeroSection onContactClick={handleContact} />
         <MarqueeSection />
         <AboutSection onContactClick={handleContact} />
-        <ProjectsSection />
         <ServicesSection />
+        <ProjectsSection />
         <BrandInciSection />
       </div>
 
