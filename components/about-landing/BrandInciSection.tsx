@@ -224,7 +224,7 @@ export const BrandInciSection: React.FC = () => {
 
       {/* 5. Seamless Marquee Logo Scroller Component */}
       <div
-        className="mt-10 w-full overflow-hidden"
+        className="mt-6 sm:mt-10 w-full overflow-hidden"
         style={{
           maskImage:
             'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
@@ -232,11 +232,11 @@ export const BrandInciSection: React.FC = () => {
             'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
         }}
       >
-        <div className="flex w-max gap-4 py-4 animate-marquee-infinite">
+        <div className="flex w-max gap-2.5 sm:gap-4 py-2.5 sm:py-4 animate-marquee-infinite">
           {duplicatedLogos.map((logo, idx) => (
             <div
               key={`${logo.name}-${idx}`}
-              className="group relative h-24 w-40 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 hover:-translate-y-0.5 cursor-pointer select-none"
+              className="group relative h-16 w-28 sm:h-20 sm:w-36 md:h-24 md:w-40 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 hover:-translate-y-0.5 cursor-pointer select-none"
             >
               {/* Subtle colored glow strictly contained within marquee bounds */}
               <div
@@ -249,11 +249,11 @@ export const BrandInciSection: React.FC = () => {
               {/* White card container base with softer, gentle shadow */}
               <div className="absolute inset-0 rounded-full bg-white border border-slate-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.03)] group-hover:border-slate-200/80 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300" />
 
-              {/* Brand Logo - maximized size within bounds, original colors */}
+              {/* Brand Logo - maximized size within bounds, scaled down proportionally on mobile */}
               <img
                 src={logo.src}
                 alt={logo.alt}
-                className="relative z-10 max-h-[66px] max-w-[128px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 select-none"
+                className="relative z-10 max-h-[44px] max-w-[88px] sm:max-h-[54px] sm:max-w-[110px] md:max-h-[66px] md:max-w-[128px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 select-none"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.currentTarget;
