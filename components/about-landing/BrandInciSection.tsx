@@ -207,22 +207,30 @@ export const BrandInciSection: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full rounded-[20px] sm:rounded-[26px] bg-white/90 backdrop-blur-2xl p-1 sm:p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.08)] border border-slate-200/50"
+            className="relative w-full rounded-[22px] sm:rounded-[28px] bg-[rgba(15,23,34,0.78)] lg:bg-[rgba(15,23,34,0.74)] backdrop-blur-md shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)] border border-white/10 p-1 sm:p-1.5 overflow-hidden"
           >
-            <textarea
-              id="hero-inci-textarea"
-              rows={2}
-              value={inciText}
-              onChange={(e) => setInciText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && inciText.trim()) {
-                  e.preventDefault();
-                  handleAnalyze();
-                }
-              }}
-              placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI) tại đây... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate..."
-              className="w-full resize-none rounded-[16px] sm:rounded-[22px] border-0 bg-black/[0.03] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-inner backdrop-blur-md focus:bg-white/95 focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.05] dark:text-white dark:focus:bg-white/[0.08]"
-            />
+            {/* Ambient glow matching ProjectsSection */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px] sm:rounded-[28px]">
+              <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#ff7f5d]/12 blur-3xl" />
+              <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-[#35b7a5]/15 blur-3xl" />
+            </div>
+
+            <div className="relative z-10 w-full">
+              <textarea
+                id="hero-inci-textarea"
+                rows={2}
+                value={inciText}
+                onChange={(e) => setInciText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && inciText.trim()) {
+                    e.preventDefault();
+                    handleAnalyze();
+                  }
+                }}
+                placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI) tại đây... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate..."
+                className="w-full resize-none rounded-[18px] sm:rounded-[24px] border border-white/10 bg-white/[0.06] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-[#D7E2EA] placeholder:text-[#D7E2EA]/50 shadow-inner backdrop-blur-md focus:bg-white/[0.1] focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#35b7a5]/30 transition-all"
+              />
+            </div>
           </motion.div>
         </div>
       </div>
