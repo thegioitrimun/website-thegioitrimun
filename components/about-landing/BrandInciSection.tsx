@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { IngredientAnalysisResults, type AnalyzerResponse } from '../IngredientAnalyzerPage';
 
 interface BrandLogoItem {
   name: string;
@@ -104,17 +105,41 @@ const DEMO_INCI =
 
 export const BrandInciSection: React.FC = () => {
   const [inciText, setInciText] = useState('');
+  const [analysis, setAnalysis] = useState<AnalyzerResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Duplicate the logos array so marquee can scroll infinitely seamlessly
   const duplicatedLogos = [...BRAND_LOGOS, ...BRAND_LOGOS];
 
-  const handleAnalyze = () => {
-    if (!inciText.trim()) return;
-    const searchParams = new URLSearchParams({
-      ingredients: inciText.trim(),
-    });
-    window.location.href = `/phan-tich-thanh-phan?${searchParams.toString()}`;
+  const handleAnalyze = async () => {
+    const trimmed = inciText.trim();
+    if (!trimmed || isLoading) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/ingredient-analyzer/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inciText: trimmed, lang: 'vi' }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Không thể phân tích bảng thành phần lúc này. Vui lòng thử lại sau.');
+      }
+      setAnalysis(payload);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể phân tích bảng thành phần lúc này. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -127,6 +152,7 @@ export const BrandInciSection: React.FC = () => {
 
   const handleApplySample = () => {
     setInciText(DEMO_INCI);
+    setError('');
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -217,9 +243,9 @@ export const BrandInciSection: React.FC = () => {
                 value={inciText}
                 onChange={handleTextChange}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && inciText.trim()) {
+                  if (e.key === 'Enter' && !e.shiftKey && inciText.trim() && !isLoading) {
                     e.preventDefault();
-                    handleAnalyze();
+                    void handleAnalyze();
                   }
                 }}
                 placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI)... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Retinol..."
@@ -252,6 +278,7 @@ export const BrandInciSection: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setInciText('');
+                        setError('');
                         if (textareaRef.current) {
                           textareaRef.current.style.height = 'auto';
                           textareaRef.current.focus();
@@ -265,18 +292,30 @@ export const BrandInciSection: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={handleAnalyze}
-                    disabled={!inciText.trim()}
+                    onClick={() => void handleAnalyze()}
+                    disabled={!inciText.trim() || isLoading}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 sm:px-4 sm:py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
-                      inciText.trim()
+                      inciText.trim() && !isLoading
                         ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 hover:scale-105 active:scale-95'
                         : 'bg-slate-200/80 dark:bg-white/10 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-80'
                     }`}
                   >
-                    <span>Phân tích</span>
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+                    {isLoading ? (
+                      <>
+                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                        </svg>
+                        <span>Đang đọc...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Phân tích</span>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -284,6 +323,86 @@ export const BrandInciSection: React.FC = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* 4.5. In-Place INCI Analysis Results */}
+      <AnimatePresence>
+        {isLoading && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mt-8 max-w-xl mx-auto flex items-center justify-center gap-3 p-5 rounded-2xl bg-white/80 dark:bg-[#0c1626]/90 border border-slate-200/80 dark:border-white/10 shadow-lg backdrop-blur-md"
+          >
+            <svg className="w-5 h-5 text-primary animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+            </svg>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Đang phân tích bảng thành phần INCI theo chuẩn y khoa...
+            </span>
+          </motion.div>
+        )}
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="mt-6 max-w-xl mx-auto p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold text-center flex items-center justify-between"
+          >
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => setError('')}
+              className="text-xs underline hover:no-underline ml-3 cursor-pointer"
+            >
+              Đóng
+            </button>
+          </motion.div>
+        )}
+
+        {analysis && (
+          <motion.div
+            ref={resultsRef}
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-12 sm:mt-16 max-w-6xl mx-auto select-text scroll-mt-20"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-white/10">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-3 w-3 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                </span>
+                <div>
+                  <h3 className="font-heading font-bold text-xl sm:text-2xl text-slate-900 dark:text-white">
+                    Kết quả phân tích bảng thành phần INCI
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    Đánh giá mức độ an toàn EWG, nguy cơ kích ứng & độ phù hợp loại da
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setAnalysis(null);
+                  const el = document.getElementById('hero-inci-textarea');
+                  el?.focus();
+                }}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white bg-slate-100 hover:bg-slate-200/80 dark:bg-white/10 dark:hover:bg-white/15 border border-slate-200/60 dark:border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>✕</span>
+                <span>Thu gọn kết quả</span>
+              </button>
+            </div>
+
+            <IngredientAnalysisResults analysis={analysis} lang="vi" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 5. Seamless Marquee Logo Scroller Component */}
       <div
