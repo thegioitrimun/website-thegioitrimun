@@ -191,32 +191,6 @@ export const BrandInciSection: React.FC = () => {
                 Tra cứu độ an toàn, cảnh báo rủi ro kích ứng và kiểm tra mức độ phù hợp với làn da của bạn dựa trên cơ sở khoa học.
               </span>
             </p>
-
-            <motion.button
-              type="button"
-              onClick={() => {
-                if (inciText.trim()) {
-                  handleAnalyze();
-                } else {
-                  const el = document.getElementById('hero-inci-textarea');
-                  if (el) {
-                    el.focus();
-                  } else {
-                    window.location.href = '/phan-tich-thanh-phan';
-                  }
-                }
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="inline-flex items-center gap-1.5 bg-[#0a152d] text-white hover:bg-[#13274f] dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full px-5 py-2.5 sm:px-7 sm:py-3 text-[12px] sm:text-[14px] font-medium transition-colors shadow-md cursor-pointer"
-            >
-              <span className="sm:hidden">Tra cứu ngay</span>
-              <span className="hidden sm:inline">Phân tích thành phần</span>
-              <svg className="w-3.5 h-3.5 sm:hidden opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-              </svg>
-            </motion.button>
           </motion.div>
         </div>
 
