@@ -111,7 +111,7 @@ test('new order creates atomic delivery, replay/import does not alert; read curs
     assert.equal((await response.json()).unread, 1);
     const sent = [];
     const transport = async (url, options) => {
-        assert.equal(options.redirect, 'error');
+        assert.equal(options.redirect, 'manual');
         sent.push(JSON.parse(ece.decrypt(Buffer.from(options.body), { version: 'aes128gcm', privateKey: clientKey, authSecret: auth }).toString()));
         return new Response(null, { status: 201 });
     };
@@ -167,4 +167,32 @@ test('service worker shows visible notifications offline, applies badge, and cli
     events.push({ data: { json: () => { throw new Error('invalid'); } }, waitUntil: p => { done = p; } });
     await done;
     assert.equal(shown.length, 2);
+});
+
+
+test('redirect responses are terminal and never followed', async () => {
+    const f = await fixture();
+    await f.route('subscription', 'PUT', sub); f.order('redirect');
+    let calls = 0;
+    await dispatchAdminPush(f.env, async (url, options) => {
+        calls++;
+        assert.equal(url, sub.endpoint);
+        assert.equal(options.redirect, 'manual');
+        return new Response(null, { status: 307, headers: { Location: 'https://attacker.test/' } });
+    });
+    assert.equal(calls, 1);
+    const delivery = f.sql.prepare('SELECT status, last_status FROM admin_push_deliveries').get();
+    assert.equal(delivery.status, 'failed');
+    assert.equal(delivery.last_status, 307);
+});
+
+test('exhausted leases left by outages become terminal instead of pending forever', async () => {
+    const f = await fixture();
+    await f.route('subscription', 'PUT', sub); f.order('exhausted');
+    f.sql.exec("UPDATE admin_push_deliveries SET attempts=8, next_attempt_at='2000-01-01'");
+    await dispatchAdminPush(f.env, async () => { assert.fail('Exhausted delivery must not send'); });
+    assert.equal(f.sql.prepare('SELECT status FROM admin_push_deliveries').get().status, 'failed');
+    f.sql.exec("UPDATE admin_push_deliveries SET status='pending'; UPDATE admin_push_events SET created_at='2020-01-01'");
+    await dispatchAdminPush(f.env, async () => { assert.fail('Expired delivery must not send'); });
+    assert.equal(f.sql.prepare('SELECT status FROM admin_push_deliveries').get().status, 'cancelled');
 });

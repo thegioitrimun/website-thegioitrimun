@@ -26,3 +26,9 @@ SELECT COUNT(*) AS active_devices FROM admin_push_subscriptions WHERE active = 1
 ```
 
 Local tests decrypt payloads independently, exercise the actual SQLite trigger/routes and delivery retries, validate access control and confirm the service worker always shows a visible notification. Browser mocks verify UI behavior but cannot prove APNs/iPhone delivery.
+
+## Transport fix (2026-09-18)
+
+Production logs from September 11 identified `redirect: 'error'` as unsupported by Workers' native fetch; requests failed before reaching the push provider. Use `redirect: 'manual'` and treat 3xx as terminal failures, without following Location. A simultaneous D1 daily-read quota error prevented delivery-state updates and left exhausted leases pending. Expired/exhausted leases are now finalized automatically. Database quota availability remains an account-wide dependency.
+
+Run `node --test tests/admin-web-push.test.mjs tests/admin-web-push-runtime.test.mjs` for regression coverage. The runtime test uses native Workers fetch and intercepts only the outbound network response, so unsupported fetch options cannot be hidden by a JavaScript transport mock. Successful provider acceptance and actual iPhone presentation remain distinct checks; the final Lock Screen check requires a new order and the subscribed iPhone.

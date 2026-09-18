@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 interface BrandLogoItem {
@@ -99,8 +99,12 @@ const BRAND_LOGOS: BrandLogoItem[] = [
   },
 ];
 
+const DEMO_INCI =
+  'Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate';
+
 export const BrandInciSection: React.FC = () => {
   const [inciText, setInciText] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Duplicate the logos array so marquee can scroll infinitely seamlessly
   const duplicatedLogos = [...BRAND_LOGOS, ...BRAND_LOGOS];
@@ -113,13 +117,32 @@ export const BrandInciSection: React.FC = () => {
     window.location.href = `/phan-tich-thanh-phan?${searchParams.toString()}`;
   };
 
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInciText(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  };
+
+  const handleApplySample = () => {
+    setInciText(DEMO_INCI);
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+        textareaRef.current.focus();
+      }
+    }, 0);
+  };
+
   return (
     <section
       id="brand-inci"
-      className="relative w-full bg-[#FFFFFF] text-[#0C0C0C] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-32 z-0 select-none"
+      className="relative w-full bg-[#FFFFFF] dark:bg-[#070e1b] text-[#0C0C0C] dark:text-[#F1F5F9] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-32 z-0 select-none transition-colors duration-300"
     >
       {/* 1. Main Hero Video Container */}
-      <div className="relative w-full max-w-6xl mx-auto h-[480px] sm:h-[520px] md:h-[560px] rounded-[28px] sm:rounded-[36px] md:rounded-[44px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.12)] border border-slate-200/80 bg-slate-100 flex flex-col justify-between select-none">
+      <div className="relative w-full max-w-6xl mx-auto h-[480px] sm:h-[520px] md:h-[560px] rounded-[28px] sm:rounded-[36px] md:rounded-[44px] overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.08)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.65)] border border-slate-200/90 dark:border-white/10 bg-slate-100 dark:bg-[#0b1424] flex flex-col justify-between select-none transition-colors duration-300">
         {/* Background Video */}
         <video
           autoPlay
@@ -130,13 +153,9 @@ export const BrandInciSection: React.FC = () => {
           src="/videos/about/hero-epoch.mp4"
         />
 
-        {/* Subtle Gradient Overlays for High Text Contrast */}
+        {/* Subtle Gradient Overlays for High Text Contrast in both Light & Dark Mode */}
         <div
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            background:
-              'linear-gradient(to bottom, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.78) 32%, rgba(255, 255, 255, 0.2) 65%, rgba(255, 255, 255, 0.7) 100%)',
-          }}
+          className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-b from-white/94 via-white/78 via-40% to-white/60 dark:from-[#070e1b]/95 dark:via-[#070e1b]/80 dark:via-40% dark:to-[#070e1b]/70 transition-colors duration-300"
         />
 
         {/* 3. Hero Content */}
@@ -148,13 +167,13 @@ export const BrandInciSection: React.FC = () => {
             className="flex flex-col items-start max-w-2xl"
           >
             {/* Small pill tag for high-end polish on mobile */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold mb-2 sm:mb-3 backdrop-blur-md">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-primary/10 border border-primary/20 text-primary dark:bg-primary/20 dark:border-primary/30 dark:text-teal-300 text-[11px] sm:text-xs font-semibold mb-2 sm:mb-3 backdrop-blur-md">
               <span className="text-[10px]">✦</span>
               <span>Chuẩn y khoa da liễu</span>
             </div>
 
             {/* Headline: Concise on mobile, full on desktop */}
-            <h2 className="font-heading font-bold text-[22px] sm:text-[34px] md:text-[50px] leading-[1.2] sm:leading-[1.08] tracking-tight text-[#0a1b33] mb-2 sm:mb-3">
+            <h2 className="font-heading font-bold text-[22px] sm:text-[34px] md:text-[50px] leading-[1.2] sm:leading-[1.08] tracking-tight text-[#0a1b33] dark:text-white mb-2 sm:mb-3">
               <span className="sm:hidden">
                 Phân tích thành phần INCI
               </span>
@@ -164,7 +183,7 @@ export const BrandInciSection: React.FC = () => {
             </h2>
 
             {/* Subheadline: Clear contrast and legible font on mobile */}
-            <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed text-slate-600 sm:text-[#64748b] max-w-xl mb-3.5 sm:mb-6">
+            <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed text-slate-600 dark:text-slate-300 max-w-xl mb-3.5 sm:mb-6">
               <span className="sm:hidden">
                 Kiểm tra độ an toàn & mức độ phù hợp theo từng loại da.
               </span>
@@ -190,7 +209,7 @@ export const BrandInciSection: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="inline-flex items-center gap-1.5 bg-[#0a152d] text-white rounded-full px-5 py-2.5 sm:px-7 sm:py-3 text-[12px] sm:text-[14px] font-medium transition-colors shadow-md hover:bg-[#13274f] cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-[#0a152d] text-white hover:bg-[#13274f] dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full px-5 py-2.5 sm:px-7 sm:py-3 text-[12px] sm:text-[14px] font-medium transition-colors shadow-md cursor-pointer"
             >
               <span className="sm:hidden">Tra cứu ngay</span>
               <span className="hidden sm:inline">Phân tích thành phần</span>
@@ -201,35 +220,92 @@ export const BrandInciSection: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* 4. Bottom Floating INCI Textarea */}
-        <div className="absolute bottom-3 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 w-[92%] sm:w-[500px] md:w-[560px] max-w-[580px]">
+        {/* 4. Bottom Floating INCI Input Box */}
+        <div className="absolute bottom-4 sm:bottom-7 md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-[93%] sm:w-[540px] md:w-[620px] max-w-[650px]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full rounded-[22px] sm:rounded-[28px] bg-[rgba(15,23,34,0.78)] lg:bg-[rgba(15,23,34,0.74)] backdrop-blur-md shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)] border border-white/10 p-1 sm:p-1.5 overflow-hidden"
+            className="relative w-full rounded-[24px] sm:rounded-[30px] bg-white/85 sm:bg-white/80 dark:bg-[rgba(15,23,34,0.85)] backdrop-blur-xl border border-slate-200/90 dark:border-white/15 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.14)] dark:shadow-[0_28px_60px_-25px_rgba(0,0,0,0.7)] p-2.5 sm:p-3 md:p-3.5 transition-all duration-300 focus-within:border-primary/50 dark:focus-within:border-primary/60 focus-within:ring-4 focus-within:ring-primary/10 dark:focus-within:ring-primary/20 overflow-hidden"
           >
-            {/* Ambient glow matching ProjectsSection */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px] sm:rounded-[28px]">
-              <div className="absolute -left-10 top-0 h-44 w-44 rounded-full bg-[#ff7f5d]/12 blur-3xl" />
-              <div className="absolute right-0 top-0 h-44 w-44 rounded-full bg-[#35b7a5]/15 blur-3xl" />
+            {/* Ambient subtle glow */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[24px] sm:rounded-[30px]">
+              <div className="absolute -left-10 top-0 h-40 w-40 rounded-full bg-[#ff7f5d]/10 dark:bg-[#ff7f5d]/15 blur-3xl" />
+              <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-[#35b7a5]/12 dark:bg-[#35b7a5]/22 blur-3xl" />
             </div>
 
-            <div className="relative z-10 w-full">
+            <div className="relative z-10 flex flex-col w-full">
+              {/* Textarea without scrollbar & auto-expanding */}
               <textarea
                 id="hero-inci-textarea"
+                ref={textareaRef}
                 rows={2}
                 value={inciText}
-                onChange={(e) => setInciText(e.target.value)}
+                onChange={handleTextChange}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && inciText.trim()) {
                     e.preventDefault();
                     handleAnalyze();
                   }
                 }}
-                placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI) tại đây... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate..."
-                className="w-full resize-none rounded-[18px] sm:rounded-[24px] border border-white/10 bg-white/[0.06] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-[#D7E2EA] placeholder:text-[#D7E2EA]/50 shadow-inner backdrop-blur-md focus:bg-white/[0.1] focus:border-white/20 focus:outline-none focus:ring-2 focus:ring-[#35b7a5]/30 transition-all"
+                placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI)... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Retinol..."
+                className="w-full resize-none bg-transparent border-0 outline-none ring-0 p-1.5 sm:p-2 text-xs sm:text-sm font-medium leading-relaxed text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400/60 overflow-y-auto scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden min-h-[46px] sm:min-h-[52px] max-h-[120px] transition-all"
               />
+
+              {/* Bottom Balanced Action Row */}
+              <div className="flex items-center justify-between pt-2 px-1 sm:px-1.5 border-t border-slate-100 dark:border-white/[0.08]">
+                {/* Left side: Sample button & Desktop hint */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleApplySample}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-teal-300 bg-slate-100/80 hover:bg-slate-200/80 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] border border-slate-200/60 dark:border-white/10 transition-all cursor-pointer select-none"
+                    title="Điền bảng thành phần mẫu thử"
+                  >
+                    <span className="text-[10px] text-primary dark:text-teal-300">✦</span>
+                    <span>Mẫu thử</span>
+                  </button>
+
+                  <span className="hidden sm:inline-flex items-center text-[11px] text-slate-400 dark:text-slate-500 font-normal">
+                    Enter ↵ để phân tích
+                  </span>
+                </div>
+
+                {/* Right side: Clear button & Primary CTA */}
+                <div className="flex items-center gap-2">
+                  {inciText.trim() && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInciText('');
+                        if (textareaRef.current) {
+                          textareaRef.current.style.height = 'auto';
+                          textareaRef.current.focus();
+                        }
+                      }}
+                      className="px-2 py-1 text-[11px] font-medium text-slate-400 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors cursor-pointer"
+                    >
+                      Xóa
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleAnalyze}
+                    disabled={!inciText.trim()}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 sm:px-4 sm:py-1.5 text-xs font-semibold transition-all duration-200 cursor-pointer ${
+                      inciText.trim()
+                        ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 hover:scale-105 active:scale-95'
+                        : 'bg-slate-200/80 dark:bg-white/10 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-80'
+                    }`}
+                  >
+                    <span>Phân tích</span>
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
@@ -260,13 +336,13 @@ export const BrandInciSection: React.FC = () => {
               />
 
               {/* White card container base with softer, gentle shadow */}
-              <div className="absolute inset-0 rounded-full bg-white border border-slate-200/60 shadow-[0_2px_8px_rgba(0,0,0,0.03)] group-hover:border-slate-200/80 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300" />
+              <div className="absolute inset-0 rounded-full bg-white dark:bg-[#0f1b2d] border border-slate-200/60 dark:border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] group-hover:border-slate-200/80 dark:group-hover:border-white/20 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300" />
 
               {/* Brand Logo - maximized size within bounds, scaled down proportionally on mobile */}
               <img
                 src={logo.src}
                 alt={logo.alt}
-                className="relative z-10 max-h-[44px] max-w-[88px] sm:max-h-[54px] sm:max-w-[110px] md:max-h-[66px] md:max-w-[128px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 select-none"
+                className="relative z-10 max-h-[44px] max-w-[88px] sm:max-h-[54px] sm:max-w-[110px] md:max-h-[66px] md:max-w-[128px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 dark:brightness-105 select-none"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.currentTarget;

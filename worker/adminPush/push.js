@@ -39,11 +39,12 @@ export async function sendPush(env, subscription, payload, transport = fetch) {
     let details;
     try { details = await buildPushRequest(env, subscription, payload); }
     catch (error) { error.pushStage = 'encryption'; throw error; }
-    // fetch works on Workers; no Node HTTP transport or following redirects to other hosts.
+    // Workers rejects redirect: 'error'. Manual mode keeps capability URLs/keys on the original host.
+    // Return 3xx to the caller as a terminal failure; never follow Location.
     let response;
     try { response = await transport(details.endpoint, {
         method: details.method, headers: details.headers, body: details.body,
-        redirect: 'error', signal: AbortSignal.timeout(10000),
+        redirect: 'manual', signal: AbortSignal.timeout(10000),
     }); } catch (error) { error.pushStage = 'transport'; throw error; }
     if (response.body) await response.body.cancel();
     return response.status;

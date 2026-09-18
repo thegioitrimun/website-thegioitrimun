@@ -95,6 +95,7 @@
   "dependencies": {
     "@block65/webcrypto-web-push": "2.0.0",
     "@supabase/supabase-js": "^2.43.4",
+    "clsx": "^2.1.1",
     "dompurify": "3.4.13",
     "framer-motion": "^13.2.0",
     "i18next": "^25.8.13",
@@ -102,11 +103,13 @@
     "i18next-http-backend": "^4.0.0",
     "lucide-react": "^1.45.0",
     "marked": "^13.0.0",
+    "motion": "^13.2.0",
     "pdf-lib": "1.17.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^16.5.4",
     "swiper": "^14.0.6",
+    "tailwind-merge": "^3.7.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {

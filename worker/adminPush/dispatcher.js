@@ -16,6 +16,12 @@ export async function dispatchAdminPush(env, transport = fetch) {
     if (!pushConfigured(env) || !env.APP_DB) return;
     const db = env.APP_DB;
     const now = new Date().toISOString();
+    // Recover exhausted leases after a runtime/database outage. Never leave them pending forever.
+    await db.prepare(`UPDATE admin_push_deliveries SET status = CASE
+        WHEN event_seq IN (SELECT seq FROM admin_push_events WHERE created_at < ?) THEN 'cancelled'
+        ELSE 'failed' END
+        WHERE status = 'pending' AND attempts >= 8 AND next_attempt_at <= ?`)
+        .bind(new Date(Date.now() - 86400000).toISOString(), now).run();
     // Lease atomically, so checkout and cron cannot normally send the same delivery concurrently.
     const claimed = await db.prepare(`UPDATE admin_push_deliveries SET attempts = attempts + 1, next_attempt_at = ?
         WHERE (event_seq, subscription_id) IN (
@@ -49,7 +55,7 @@ export async function dispatchAdminPush(env, transport = fetch) {
                 else if ([404, 410].includes(httpStatus)) {
                     await db.prepare('UPDATE admin_push_subscriptions SET active = 0 WHERE id = ?').bind(row.id).run();
                     status = 'expired';
-                } else if (httpStatus >= 400 && httpStatus < 500 && ![408, 429].includes(httpStatus)) status = 'failed';
+                } else if (httpStatus >= 300 && httpStatus < 500 && ![408, 429].includes(httpStatus)) status = 'failed';
             }
         } catch (error) {
             // Redact capability URLs and long key/token-like strings from provider/runtime errors.
@@ -70,5 +76,9 @@ export async function dispatchAdminPush(env, transport = fetch) {
 
 export async function dispatchAdminPushBestEffort(env) {
     try { await dispatchAdminPush(env); }
-    catch { console.warn('[admin-push] Dispatch unavailable; scheduled retry will follow.'); }
+    catch (error) {
+        const detail = String(error?.message || '').replace(/https?:\/\/\S+/g, '[url]')
+            .replace(/[A-Za-z0-9_+=/-]{24,}/g, '[redacted]').slice(0, 250);
+        console.warn('[admin-push] Dispatch unavailable; scheduled retry will follow.', { error: error?.name, detail });
+    }
 }
