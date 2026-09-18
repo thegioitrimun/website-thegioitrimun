@@ -176,11 +176,15 @@ export const BrandInciSection: React.FC = () => {
             <motion.button
               type="button"
               onClick={() => {
-                const el = document.getElementById('hero-inci-textarea');
-                if (el) {
-                  el.focus();
+                if (inciText.trim()) {
+                  handleAnalyze();
                 } else {
-                  window.location.href = '/phan-tich-thanh-phan';
+                  const el = document.getElementById('hero-inci-textarea');
+                  if (el) {
+                    el.focus();
+                  } else {
+                    window.location.href = '/phan-tich-thanh-phan';
+                  }
                 }
               }}
               whileHover={{ scale: 1.05 }}
@@ -217,23 +221,8 @@ export const BrandInciSection: React.FC = () => {
                 }
               }}
               placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI) tại đây... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate..."
-              className={`w-full resize-none rounded-[16px] sm:rounded-[22px] border-0 bg-black/[0.03] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-inner backdrop-blur-md focus:bg-white/95 focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.05] dark:text-white dark:focus:bg-white/[0.08] ${
-                inciText.trim() ? 'pr-32 sm:pr-48 pb-9 sm:pb-3' : ''
-              }`}
+              className="w-full resize-none rounded-[16px] sm:rounded-[22px] border-0 bg-black/[0.03] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-inner backdrop-blur-md focus:bg-white/95 focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.05] dark:text-white dark:focus:bg-white/[0.08]"
             />
-            {inciText.trim() && (
-              <button
-                type="button"
-                onClick={handleAnalyze}
-                className="absolute bottom-2.5 right-2.5 sm:bottom-3.5 sm:right-3.5 inline-flex items-center gap-1.5 bg-[#0a152d] text-white rounded-full px-4 py-2 sm:px-6 sm:py-2.5 text-[12px] sm:text-[14px] font-medium transition-colors shadow-md hover:bg-[#13274f] active:scale-95 cursor-pointer z-10"
-              >
-                <span className="sm:hidden">Tra cứu ngay</span>
-                <span className="hidden sm:inline">Phân tích thành phần</span>
-                <svg className="w-3.5 h-3.5 sm:hidden opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </button>
-            )}
           </motion.div>
         </div>
       </div>
