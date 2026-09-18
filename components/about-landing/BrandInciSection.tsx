@@ -140,15 +140,21 @@ export const BrandInciSection: React.FC = () => {
         />
 
         {/* 3. Hero Content */}
-        <div className="relative z-20 flex-1 px-5 sm:px-8 md:px-16 pt-8 sm:pt-12 md:pt-16 flex flex-col items-start">
+        <div className="relative z-20 flex-1 px-5 sm:px-8 md:px-16 pt-7 sm:pt-12 md:pt-16 flex flex-col items-start">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-start max-w-2xl"
           >
+            {/* Small pill tag for high-end polish on mobile */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] sm:text-xs font-semibold mb-2 sm:mb-3 backdrop-blur-md">
+              <span className="text-[10px]">✦</span>
+              <span>Chuẩn y khoa da liễu</span>
+            </div>
+
             {/* Headline: Concise on mobile, full on desktop */}
-            <h2 className="font-heading font-bold text-[24px] sm:text-[34px] md:text-[50px] leading-[1.12] sm:leading-[1.08] tracking-tight text-[#0a1b33] mb-2 sm:mb-3">
+            <h2 className="font-heading font-bold text-[22px] sm:text-[34px] md:text-[50px] leading-[1.2] sm:leading-[1.08] tracking-tight text-[#0a1b33] mb-2 sm:mb-3">
               <span className="sm:hidden">
                 Phân tích thành phần INCI
               </span>
@@ -157,10 +163,10 @@ export const BrandInciSection: React.FC = () => {
               </span>
             </h2>
 
-            {/* Subheadline: Short on mobile to prevent collision with textarea */}
-            <p className="font-sans text-[12px] sm:text-[14px] md:text-[15px] leading-relaxed text-[#64748b] max-w-xl mb-3 sm:mb-6">
+            {/* Subheadline: Clear contrast and legible font on mobile */}
+            <p className="font-sans text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed text-slate-600 sm:text-[#64748b] max-w-xl mb-3.5 sm:mb-6">
               <span className="sm:hidden">
-                Kiểm tra độ an toàn & mức phù hợp theo từng loại da.
+                Kiểm tra độ an toàn & mức độ phù hợp theo từng loại da.
               </span>
               <span className="hidden sm:inline">
                 Tra cứu độ an toàn, cảnh báo rủi ro kích ứng và kiểm tra mức độ phù hợp với làn da của bạn dựa trên cơ sở khoa học.
@@ -180,24 +186,28 @@ export const BrandInciSection: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="bg-[#0a152d] text-white rounded-full px-5 py-2 sm:px-7 sm:py-3 text-[12px] sm:text-[14px] font-medium transition-colors shadow-md hover:bg-[#13274f] cursor-pointer mb-2 sm:mb-0"
+              className="inline-flex items-center gap-1.5 bg-[#0a152d] text-white rounded-full px-5 py-2.5 sm:px-7 sm:py-3 text-[12px] sm:text-[14px] font-medium transition-colors shadow-md hover:bg-[#13274f] cursor-pointer"
             >
-              Phân tích thành phần
+              <span className="sm:hidden">Tra cứu ngay</span>
+              <span className="hidden sm:inline">Phân tích thành phần</span>
+              <svg className="w-3.5 h-3.5 sm:hidden opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
             </motion.button>
           </motion.div>
         </div>
 
         {/* 4. Bottom Floating INCI Textarea */}
-        <div className="absolute bottom-3 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 w-[94%] sm:w-[500px] md:w-[560px] max-w-[580px]">
+        <div className="absolute bottom-3 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 w-[92%] sm:w-[500px] md:w-[560px] max-w-[580px]">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full rounded-[22px] sm:rounded-[26px] bg-white/90 backdrop-blur-2xl p-1 sm:p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.08)] border border-slate-200/50"
+            className="relative w-full rounded-[20px] sm:rounded-[26px] bg-white/90 backdrop-blur-2xl p-1 sm:p-1.5 shadow-[0_16px_40px_rgba(0,0,0,0.08)] border border-slate-200/50"
           >
             <textarea
               id="hero-inci-textarea"
-              rows={3}
+              rows={2}
               value={inciText}
               onChange={(e) => setInciText(e.target.value)}
               onKeyDown={(e) => {
@@ -207,7 +217,7 @@ export const BrandInciSection: React.FC = () => {
                 }
               }}
               placeholder="Dán hoặc gõ bảng thành phần mỹ phẩm (INCI) tại đây... Ví dụ: Water, Niacinamide, Glycerin, Salicylic Acid, Centella Asiatica Extract, Retinol, Sodium Hyaluronate..."
-              className="w-full resize-none rounded-[18px] sm:rounded-[22px] border-0 bg-black/[0.03] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-inner backdrop-blur-md focus:bg-white/95 focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.05] dark:text-white dark:focus:bg-white/[0.08]"
+              className="w-full resize-none rounded-[16px] sm:rounded-[22px] border-0 bg-black/[0.03] p-3 sm:p-4 text-xs sm:text-sm font-medium leading-relaxed text-foreground placeholder:text-muted-foreground/70 shadow-inner backdrop-blur-md focus:bg-white/95 focus:outline-none focus:ring-2 focus:ring-primary/25 dark:bg-white/[0.05] dark:text-white dark:focus:bg-white/[0.08]"
             />
             {inciText.trim() && (
               <button
