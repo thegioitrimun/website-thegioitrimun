@@ -430,13 +430,13 @@ export const BrandInciSection: React.FC = () => {
               />
 
               {/* White card container base with softer, gentle shadow */}
-              <div className="absolute inset-0 rounded-full bg-white dark:bg-[#0f1b2d] border border-slate-200/60 dark:border-white/10 shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.4)] group-hover:border-slate-200/80 dark:group-hover:border-white/20 group-hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300" />
+              <div className="absolute inset-0 rounded-full bg-white dark:bg-white border border-slate-200/80 dark:border-white/30 shadow-[0_2px_8px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.25)] group-hover:border-slate-300 dark:group-hover:border-white/50 group-hover:shadow-[0_4px_14px_rgba(0,0,0,0.08)] transition-all duration-300" />
 
               {/* Brand Logo - maximized size within bounds, scaled down proportionally on mobile */}
               <img
                 src={logo.src}
                 alt={logo.alt}
-                className="relative z-10 max-h-[44px] max-w-[88px] sm:max-h-[54px] sm:max-w-[110px] md:max-h-[66px] md:max-w-[128px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 dark:brightness-105 select-none"
+                className="relative z-10 max-h-[44px] max-w-[88px] sm:max-h-[54px] sm:max-w-[110px] md:max-h-[66px] md:max-w-[128px] w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 select-none"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.currentTarget;
