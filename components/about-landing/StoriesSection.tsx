@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import FadeIn from './FadeIn';
 
 export interface StoryArticle {
   id: string;
@@ -168,51 +169,23 @@ export const StoriesSection: React.FC = () => {
       {/* Pinned Sticky Frame (Desktop: sticks to viewport while user scrolls down; Mobile: natural section) */}
       <div className="relative w-full lg:sticky lg:top-0 lg:h-screen lg:flex lg:flex-col lg:justify-center overflow-hidden py-20 sm:py-28 lg:py-0 px-4 sm:px-8 lg:px-12">
         
-        {/* 1. Header with Noho-style Title Mask Reveal (blog-title-appearance) */}
-        <div className="max-w-7xl mx-auto w-full mb-8 sm:mb-12 lg:mb-14 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary dark:bg-primary/20 dark:border-primary/30 dark:text-teal-300 text-xs font-semibold mb-3 backdrop-blur-md"
+        {/* 1. Heading: "Kiến Thức" centered like "Sản Phẩm" */}
+        <div className="max-w-6xl mx-auto mb-10 sm:mb-14 lg:mb-16 flex flex-col items-center justify-center w-full">
+          <FadeIn delay={0}>
+            <h2
+              style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
+              className="text-primary font-heading font-black uppercase leading-tight tracking-tight text-center py-2"
             >
-              <span>✦</span>
-              <span>Khoa học da liễu & Đời sống</span>
-            </motion.div>
-
-            {/* Title Parent with overflow: hidden for the 100% mask slide-up reveal */}
-            <div className="title-parent overflow-hidden">
-              <motion.h2
-                initial={{ y: '110%', opacity: 0 }}
-                whileInView={{ y: '0%', opacity: 1 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
-                style={{ fontSize: 'clamp(2.5rem, 6.5vw, 86px)' }}
-                className="font-heading font-black text-white dark:text-[#D7E2EA] leading-[1.02] tracking-tight uppercase"
-              >
-                TGTM stories
-              </motion.h2>
-            </div>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-3 font-sans text-sm sm:text-base text-slate-300/80 max-w-xl leading-relaxed"
-            >
-              Góc nhìn chuyên môn, nghiên cứu lâm sàng và những câu chuyện chuyển hóa làn da dựa trên nền tảng y học chứng cứ.
-            </motion.p>
-          </div>
+              Kiến Thức
+            </h2>
+          </FadeIn>
 
           {/* Desktop scroll cue / progress indicator */}
-          <div className="hidden lg:flex flex-col items-end gap-2 text-right">
+          <div className="hidden lg:flex items-center gap-3 mt-3">
             <span className="text-xs uppercase tracking-widest text-slate-400/80 font-medium">
               Cuộn để khám phá
             </span>
-            <div className="w-36 h-1 bg-white/10 rounded-full overflow-hidden">
+            <div className="w-32 h-1 bg-white/10 rounded-full overflow-hidden">
               <motion.div
                 style={{ scaleX: scrollYProgress }}
                 className="w-full h-full bg-primary origin-left"
@@ -221,7 +194,7 @@ export const StoriesSection: React.FC = () => {
           </div>
 
           {/* Mobile/Tablet Prev/Next buttons */}
-          <div className="flex lg:hidden items-center gap-3 self-end">
+          <div className="flex lg:hidden items-center justify-center gap-3 mt-4">
             <button
               type="button"
               onClick={() => handleMobileScroll('left')}
