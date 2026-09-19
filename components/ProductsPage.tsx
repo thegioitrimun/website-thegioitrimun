@@ -1,3 +1,4 @@
+import useOverlayMotion from './motion/useOverlayMotion';
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
@@ -119,6 +120,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
   const [concernFilters, setConcernFilters] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const filtersOverlay = useOverlayMotion(isMobileFiltersOpen, () => setIsMobileFiltersOpen(false));
 
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const { addToast } = useToast();
@@ -201,15 +203,6 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
   useEffect(() => {
     setCurrentPage(1);
   }, [brandFilters, categoryFilter, concernFilters, deferredSearchTerm, priceFilter, quickFilter, skinTypeFilters, sortOrder]);
-
-  useEffect(() => {
-    if (!isMobileFiltersOpen) return undefined;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMobileFiltersOpen]);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -635,22 +628,23 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
   }
 
   const mobileFiltersModal =
-    isMobileFiltersOpen && typeof document !== 'undefined'
+    filtersOverlay.mounted && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className="fixed inset-0 z-[100]"
+            ref={filtersOverlay.ref} data-open={filtersOverlay.visible} aria-hidden={!isMobileFiltersOpen}
+            className="site-overlay fixed inset-0 z-[100]"
             aria-labelledby="mobile-filters-title"
             role="dialog"
             aria-modal="true"
           >
             {/* Backdrop with frosted blur */}
             <div
-              className="absolute inset-0 bg-black/35 backdrop-blur-sm transition-opacity duration-300 animate-fade-in"
+              className="site-overlay-backdrop absolute inset-0"
               onClick={() => setIsMobileFiltersOpen(false)}
             />
 
             {/* Apple Frosted Glass Bottom Sheet */}
-            <div className="fixed inset-x-0 bottom-0 z-[101] max-h-[88vh] flex flex-col overflow-hidden rounded-t-[32px] border-t border-white/65 bg-[rgba(255,255,255,0.68)] shadow-[0_-24px_70px_-20px_rgba(0,0,0,0.25)] backdrop-blur-2xl dark:border-white/15 dark:bg-[rgba(15,23,34,0.72)] dark:shadow-[0_-24px_70px_-20px_rgba(0,0,0,0.75)] sheet-slide-up sm:max-w-xl sm:mx-auto">
+            <div data-side="bottom" className="site-overlay-panel fixed inset-x-0 bottom-0 z-[101] max-h-[88vh] flex flex-col overflow-hidden rounded-t-[32px] border-t border-white/65 bg-[rgba(255,255,255,0.68)] shadow-[0_-24px_70px_-20px_rgba(0,0,0,0.25)] backdrop-blur-2xl dark:border-white/15 dark:bg-[rgba(15,23,34,0.72)] dark:shadow-[0_-24px_70px_-20px_rgba(0,0,0,0.75)] sm:max-w-xl sm:mx-auto">
               
               {/* Ambient Glow Bubbles (Matching Navbar) */}
               <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-[32px]">

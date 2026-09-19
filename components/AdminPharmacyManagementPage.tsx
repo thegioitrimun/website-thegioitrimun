@@ -1,3 +1,4 @@
+import AdminPresence from '../admin/motion/AdminPresence';
 import React, { useState, useEffect, useMemo, useRef, lazy } from 'react';
 import { createPortal } from 'react-dom';
 import { printProductOrder, getOrderChannelLabel } from '../src/orderReceipt';
@@ -3352,7 +3353,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                         </svg>
                                     </button>
 
-                                    {showProductActionsMenu && (
+                                    <AdminPresence kind="dropdown">{showProductActionsMenu && (
                                         <>
                                             {/* Transparent Backdrop Click Catcher */}
                                             <div
@@ -3362,7 +3363,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                     setShowProductActionsMenu(false);
                                                 }}
                                             />
-                                            <div className="absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-0.5 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
+                                            <div className="t-dropdown absolute right-0 top-full mt-1.5 w-56 rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-50 p-1.5 space-y-0.5 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100" data-motion-surface="true">
                                             <button
                                                 type="button"
                                                 onClick={() => {
@@ -3425,7 +3426,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                             </button>
                                             </div>
                                         </>
-                                    )}
+                                    )}</AdminPresence>
                                 </div>
 
                                 <button
@@ -3688,10 +3689,10 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                         </button>
 
                                                                         {/* Popover Action Menu */}
-                                                                        {isMenuOpen && (
-                                                                            <div className={`absolute right-0 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95 ${
+                                                                        <AdminPresence kind="dropdown">{isMenuOpen && (
+                                                                            <div className={`t-dropdown absolute right-0 z-50 w-52 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95 ${
                                                                                 isNearBottom ? 'bottom-10 origin-bottom-right' : 'top-10 origin-top-right'
-                                                                            }`}>
+                                                                            }`} data-origin={isNearBottom ? 'bottom-right' : 'top-right'} data-motion-surface="true">
                                                                                 <div className="space-y-0.5">
                                                                                     <button
                                                                                         type="button"
@@ -3769,7 +3770,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                                     </button>
                                                                                 </div>
                                                                             </div>
-                                                                        )}
+                                                                        )}</AdminPresence>
                                                                     </div>
                                                                 </div>
 
@@ -4307,10 +4308,10 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 </svg>
                                             </button>
 
-                                            {showCategoryActionsMenu && (
+                                            <AdminPresence kind="dropdown">{showCategoryActionsMenu && (
                                                 <>
                                                     <div className="fixed inset-0 z-40" onClick={() => setShowCategoryActionsMenu(false)} />
-                                                    <div className="absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-white/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 z-50 animate-in fade-in zoom-in-95">
+                                                    <div className="t-dropdown absolute right-0 top-full mt-1.5 w-48 rounded-2xl border border-white/80 bg-popover/95 p-1.5 shadow-xl backdrop-blur-2xl dark:border-white/10 z-50 animate-in fade-in zoom-in-95" data-motion-surface="true">
                                                         <button
                                                             type="button"
                                                             onClick={() => {
@@ -4341,7 +4342,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                         </button>
                                                     </div>
                                                 </>
-                                            )}
+                                            )}</AdminPresence>
                                         </div>
 
                                         <button
@@ -5812,7 +5813,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                 </button>
 
                                                                 {/* Popover Action Menu */}
-                                                                {isMenuOpen && (
+                                                                <AdminPresence kind="dropdown">{isMenuOpen && (
                                                                     <>
                                                                         {/* Transparent Backdrop Click Catcher - Completely Invisible, NO Blur, NO Darkening */}
                                                                         <div
@@ -5825,8 +5826,8 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
 
                                                                         {/* Crisp Solid Popover (Matching Sidebar bg-card) */}
                                                                         <div
-                                                                            className="absolute right-0 top-9 z-50 w-56 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95"
-                                                                            onClick={(e) => e.stopPropagation()}
+                                                                            className="t-dropdown absolute right-0 top-9 z-50 w-56 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95"
+                                                                            onClick={(e) => e.stopPropagation()} data-motion-surface="true"
                                                                         >
                                                                             <div className="space-y-0.5">
                                                                                 {/* 1. Mở chi tiết đơn */}
@@ -5923,7 +5924,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                                             </div>
                                                                         </div>
                                                                     </>
-                                                                )}
+                                                                )}</AdminPresence>
                                                             </div>
                                                         </div>
 
@@ -7170,7 +7171,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                 </div>
 
                                                 {/* Collapsible Refund Form */}
-                                                {showRefundForm && (
+                                                <AdminPresence kind="panel">{showRefundForm && (
                                                     <div className="rounded-xl border border-rose-500/25 bg-rose-500/5 p-3 space-y-2.5 animate-in fade-in">
                                                         <p className="text-xs font-bold text-rose-700 dark:text-rose-400">Tạo yêu cầu hoàn tiền</p>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -7211,7 +7212,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                                                             </button>
                                                         </div>
                                                     </div>
-                                                )}
+                                                )}</AdminPresence>
 
                                                 {/* Refund History list */}
                                                 <div className="space-y-2">
@@ -7247,9 +7248,9 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                 {renderContent()}
             </AnimatedSection>
 
-            {selectedAddressDetail && (
-                <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedAddressDetail(null)}>
-                    <div className="bg-card rounded-lg shadow-xl w-full max-w-lg m-auto animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <AdminPresence kind="modal">{selectedAddressDetail && (
+                <div className="admin-backdrop fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 animate-fade-in" onClick={() => setSelectedAddressDetail(null)} data-motion-surface="true">
+                    <div className="t-modal bg-card rounded-lg shadow-xl w-full max-w-lg m-auto animate-scale-in" onClick={(e) => e.stopPropagation()} data-motion-surface="true" role="dialog" aria-modal="true" aria-label="Chi tiết">
                         <div className="flex justify-between items-center p-4 border-b border-border">
                             <h3 className="text-lg font-bold">Chi tiết địa chỉ lấy hàng</h3>
                             <button onClick={() => setSelectedAddressDetail(null)} className="p-1 rounded-full hover:bg-accent"><CloseIcon className="w-5 h-5" /></button>
@@ -7285,7 +7286,7 @@ const AdminPharmacyManagementPage: React.FC<AdminPharmacyManagementPageProps> = 
                         </div>
                     </div>
                 </div>
-            )}
+            )}</AdminPresence>
         </>
     );
 };

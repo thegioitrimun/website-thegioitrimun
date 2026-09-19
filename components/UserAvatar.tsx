@@ -1,3 +1,4 @@
+import SurfacePresence from './motion/SurfacePresence';
 
 
 
@@ -27,6 +28,10 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
 
   useEffect(() => {
     if (!isOpen) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setIsOpen(false); dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); }
+    };
+    document.addEventListener('keydown', onEscape);
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         closeDropdown();
@@ -38,6 +43,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
     }, 0);
     return () => {
       clearTimeout(timer);
+            document.removeEventListener('keydown', onEscape);
       document.removeEventListener('click', handleClickOutside);
     };
   }, [isOpen]);
@@ -164,14 +170,13 @@ const UserAvatar: React.FC<UserAvatarProps> = ({ user, onGoToAuth, onLogout, onN
       </button>
 
       {/* --- Desktop Popover --- */}
-      <div
-        className={`utility-popover absolute right-0 mt-2 w-72 text-popover-foreground z-[90] transition-all duration-200 ease-custom-bezier transform-origin-top-right ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-          }`}
+      <SurfacePresence>{isOpen && <div
+                data-motion-surface="true" data-origin="top-right" className="t-dropdown utility-popover absolute right-0 mt-2 w-72 text-popover-foreground z-[90]"
         role="menu"
         aria-orientation="vertical"
       >
         <MenuContent />
-      </div>
+      </div>}</SurfacePresence>
     </div>
   );
 };

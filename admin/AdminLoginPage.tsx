@@ -44,7 +44,7 @@ export const AdminLoginPage: React.FC<AdminLoginPageProps> = ({ error: propError
       <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[420px] w-[560px] rounded-full bg-primary/15 blur-[120px] dark:bg-primary/20" />
       <div className="pointer-events-none absolute -bottom-32 right-10 h-72 w-72 rounded-full bg-secondary/10 blur-[100px] dark:bg-teal-500/10" />
 
-      <div className="relative w-full max-w-md">
+      <div className="admin-editor-enter relative w-full max-w-md">
         {/* Top brand icon */}
         <div className="mb-6 flex justify-center">
           <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-border/80 bg-card/90 p-2.5 shadow-xl backdrop-blur-xl dark:border-white/10 dark:bg-[#151f30] dark:shadow-[0_12px_36px_rgba(0,0,0,0.5)]">

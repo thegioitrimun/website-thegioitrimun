@@ -1,3 +1,4 @@
+import useSlidingTabs from './motion/useSlidingTabs';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Product, ProductCategory, ProductReview, UserData, ProductContentBlock, BlogPost, Service, ProductBrand } from '../types';
@@ -814,6 +815,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     const { t, i18n } = useTranslation();
     const [quantity, setQuantity] = useState(1);
     const [activeTab, setActiveTab] = useState('usage');
+    const detailTabsRef = useSlidingTabs(activeTab, String(product.id));
     const [reviews, setReviews] = useState<ProductReview[]>([]);
     const [isLoadingReviews, setIsLoadingReviews] = useState(true);
     const [canReview, setCanReview] = useState<boolean | null>(null);
@@ -1899,11 +1901,13 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                             </div>
 
                             <div className="mt-8">
-                                <nav className="-mb-px flex gap-2 overflow-x-auto pb-1 sm:gap-4" aria-label="Tabs">
+                                <nav ref={detailTabsRef} role="tablist" className="site-tabs -mb-px flex gap-2 overflow-x-auto pb-1 sm:gap-4" aria-label="Thông tin sản phẩm">
+                                    <span className="t-tabs-pill" aria-hidden="true" />
                                     {tabs.map(tab => (
                                         <button
                                             key={tab.key}
                                             onClick={() => setActiveTab(tab.key)}
+                                            role="tab" aria-selected={activeTab === tab.key} tabIndex={activeTab === tab.key ? 0 : -1}
                                             className={`${activeTab === tab.key
                                                 ? 'border-primary bg-primary/5 text-primary'
                                                 : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground'
@@ -1914,7 +1918,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                                     ))}
                                 </nav>
                             </div>
-                            <div className="py-8 md:py-10">
+                            <div key={activeTab} role="tabpanel" className="site-page-enter py-8 md:py-10">
                                 {renderSectionContent(activeTab)}
                             </div>
                         </section>

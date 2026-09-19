@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useBiDirectionalSticky } from '../hooks/useBiDirectionalSticky';
 import type { BlogPost, Product, Service } from '../types';
@@ -33,6 +33,24 @@ const buildSeoUrl = (path: string, lang: string) => {
 type DetailFaqItem = {
     question: string;
     answer: string;
+};
+
+const ServiceFaq: React.FC<{ item: DetailFaqItem; initiallyOpen: boolean }> = ({ item, initiallyOpen }) => {
+    const [open, setOpen] = useState(initiallyOpen);
+    const panelId = useId();
+    return (
+        <div className="t-acc rounded-[22px] border border-border bg-white px-5 py-4 shadow-sm dark:border-white/10 dark:bg-card" data-open={open}>
+            <button type="button" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen(value => !value)} className="flex w-full items-center justify-between gap-4 text-left">
+                <span className="text-sm font-black text-foreground md:text-base">{item.question}</span>
+                <span className="action-icon-chip t-acc-chevron h-10 w-10 shrink-0"><ChevronDownIcon className="h-4 w-4" /></span>
+            </button>
+            <div id={panelId} className="t-acc-panel" aria-hidden={!open} ref={node => { if (node) node.inert = !open; }}>
+                <div className="t-acc-panel-inner min-h-0">
+                    <p className="pt-4 pr-2 text-sm leading-7 text-muted-foreground md:text-base">{item.answer}</p>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 const splitHighlights = (value: string | undefined | null, limit = 4) =>
@@ -584,19 +602,7 @@ const ServiceDetailPage: React.FC<ServiceDetailPageProps> = ({
                                     <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground md:text-base text-center md:text-left">{faqSubtitleText}</p>
                                     <div className="mt-6 space-y-3">
                                         {serviceFaqs.map((item, index) => (
-                                            <details
-                                                key={`${item.question}-${index}`}
-                                                open={index === 0}
-                                                className="group rounded-[22px] border border-border bg-white px-5 py-4 shadow-sm dark:border-white/10 dark:bg-card"
-                                            >
-                                                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-left">
-                                                    <span className="text-sm font-black text-foreground md:text-base">{item.question}</span>
-                                                    <span className="action-icon-chip h-10 w-10 shrink-0 transition-transform group-open:rotate-180">
-                                                        <ChevronDownIcon className="h-4 w-4" />
-                                                    </span>
-                                                </summary>
-                                                <p className="mt-4 pr-2 text-sm leading-7 text-muted-foreground md:text-base">{item.answer}</p>
-                                            </details>
+                                            <ServiceFaq key={`${service.id}-${item.question}-${index}`} item={item} initiallyOpen={index === 0} />
                                         ))}
                                     </div>
                                 </div>

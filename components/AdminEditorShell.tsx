@@ -74,7 +74,7 @@ const AdminEditorShell: React.FC<AdminEditorShellProps> = ({
   }, [isDirty]);
 
   return (
-    <div data-testid={testId} className="space-y-5 md:space-y-7">
+    <div data-testid={testId} className="admin-editor-enter space-y-5 md:space-y-7">
       {/* Top Hero Banner Card */}
       <div className="rounded-[1.7rem] bg-card/25 backdrop-blur-2xl px-5 py-6 shadow-[0_12px_32px_-10px_rgba(0,0,0,0.15),inset_0_1px_1px_rgba(255,255,255,0.15)] md:px-7">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">

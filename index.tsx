@@ -2,10 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './src/i18n';
 import './src/index.css';
+import './src/styles/site-motion.css';
 import App from './App';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { FontProvider } from './contexts/FontContext';
-import { ToastProvider } from './contexts/ToastContext';
+import ToastProvider from './components/motion/MotionToastProvider';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 

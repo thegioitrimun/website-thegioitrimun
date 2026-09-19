@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import useOverlayMotion from './motion/useOverlayMotion';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCart } from '../contexts/CartContext';
 import { CloseIcon, MinusIcon, PlusIcon, ShoppingBagIcon, TrashIcon } from './icons';
@@ -24,12 +25,7 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
         removeFromCart
     } = useCart();
 
-    const [isRendered, setIsRendered] = useState(isMiniCartOpen);
-    const previousBodyOverflowRef = useRef('');
-
-    const restoreBodyScroll = useCallback(() => {
-        document.body.style.overflow = previousBodyOverflowRef.current;
-    }, []);
+    const overlay = useOverlayMotion(isMiniCartOpen, closeMiniCart);
 
     const getLocalized = (obj: any, field: string): string => {
         if (!obj) return '';
@@ -41,44 +37,31 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
         return obj[field] || '';
     };
 
-    useEffect(() => {
-        if (isMiniCartOpen) {
-            setIsRendered(true);
-            previousBodyOverflowRef.current = document.body.style.overflow;
-            document.body.style.overflow = 'hidden';
-            return restoreBodyScroll;
-        } else {
-            restoreBodyScroll();
-            const timer = setTimeout(() => {
-                setIsRendered(false);
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-    }, [isMiniCartOpen, restoreBodyScroll]);
-
     const handleNavigate = (view: View) => {
         closeMiniCart();
-        restoreBodyScroll();
         onNavigate(view);
     };
 
-    if (!isRendered) {
+    if (!overlay.mounted) {
         return null;
     }
 
     return (
         <div
-            className={`fixed inset-0 z-[100] ${isMiniCartOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+            ref={overlay.ref}
+            data-open={overlay.visible}
+            aria-hidden={!isMiniCartOpen}
+            className="site-overlay fixed inset-0 z-[100]"
             aria-labelledby="mini-cart-title"
             role="dialog"
             aria-modal="true"
         >
             <div
-                className={`absolute inset-0 bg-transparent ${isMiniCartOpen ? 'drawer-overlay-enter pointer-events-auto' : 'drawer-overlay-exit pointer-events-none'}`}
+                className="site-overlay-backdrop absolute inset-0"
                 onClick={closeMiniCart}
             ></div>
 
-            <div className={`fixed inset-y-0 right-0 flex max-w-full pl-10 ${isMiniCartOpen ? 'drawer-slide-in-right' : 'drawer-slide-out-right'}`}>
+            <div className="site-overlay-panel fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <div className="relative w-screen max-w-md">
                     <div className="flex h-full flex-col overflow-hidden bg-[rgba(255,255,255,0.7)] text-foreground shadow-[24px_0_48px_-12px_rgba(0,0,0,0.1)] backdrop-blur-2xl border-l border-white/60 dark:bg-[rgba(15,23,34,0.65)] dark:border-white/10 dark:shadow-[24px_0_48px_-12px_rgba(0,0,0,0.5)]">
                         <div className="flex items-center px-4 pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4 sm:px-6 border-b border-border relative">

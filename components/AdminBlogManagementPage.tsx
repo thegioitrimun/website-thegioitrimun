@@ -1,3 +1,4 @@
+import AdminPresence from '../admin/motion/AdminPresence';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { AdminBlogSection, AdminNavigationView, BlogPost, BlogCategory, UserData } from '../types';
 import { CogIcon, PlusCircleIcon, SearchIcon, SparklesIcon, XCircleIcon } from './icons';
@@ -656,15 +657,15 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
                   <img src={OUTPUT_EXCEL_ICON} alt="Excel" className="h-4.5 w-4.5 object-contain" />
                 </button>
 
-                {showExcelMenu && (
+                <AdminPresence kind="dropdown">{showExcelMenu && (
                   <>
                     <div
                       className="fixed inset-0 z-40 bg-transparent"
                       onClick={() => setShowExcelMenu(false)}
                     />
                     <div
-                      className="absolute right-0 top-full mt-1.5 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-2xl p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100"
-                      onClick={(e) => e.stopPropagation()}
+                      className="t-dropdown absolute right-0 top-full mt-1.5 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-2xl p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100"
+                      onClick={(e) => e.stopPropagation()} data-motion-surface="true"
                     >
                       <div className="space-y-0.5">
                         <button
@@ -697,7 +698,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
                       </div>
                     </div>
                   </>
-                )}
+                )}</AdminPresence>
               </div>
 
               <input
@@ -1010,15 +1011,15 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
               <img src={OUTPUT_EXCEL_ICON} alt="Excel" className="h-4.5 w-4.5 object-contain" />
             </button>
 
-            {showExcelMenu && (
+            <AdminPresence kind="dropdown">{showExcelMenu && (
               <>
                 <div
                   className="fixed inset-0 z-40 bg-transparent"
                   onClick={() => setShowExcelMenu(false)}
                 />
                 <div
-                  className="absolute right-0 top-full mt-1.5 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-2xl p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100"
-                  onClick={(e) => e.stopPropagation()}
+                  className="t-dropdown absolute right-0 top-full mt-1.5 z-50 w-52 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-2xl p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100"
+                  onClick={(e) => e.stopPropagation()} data-motion-surface="true"
                 >
                   <div className="space-y-0.5">
                     <button
@@ -1051,7 +1052,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
                   </div>
                 </div>
               </>
-            )}
+            )}</AdminPresence>
           </div>
 
           <input
@@ -1075,7 +1076,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
         </div>
 
         {/* Mobile Filter Expandable Dropdown Row */}
-        {showMobileFilter && (
+        <AdminPresence kind="panel">{showMobileFilter && (
           <div className="sm:hidden mt-2 pt-2 border-t border-border/20 flex items-center gap-2">
             <select
               value={categoryFilter}
@@ -1101,7 +1102,7 @@ const AdminBlogManagementPage: React.FC<AdminBlogManagementPageProps> = ({
               </button>
             )}
           </div>
-        )}
+        )}</AdminPresence>
       </div>
 
       {/* Desktop Table View */}

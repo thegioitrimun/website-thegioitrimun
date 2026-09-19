@@ -1,3 +1,4 @@
+import AdminPresence from '../admin/motion/AdminPresence';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import type {
     AdminNavigationView,
@@ -213,8 +214,8 @@ const AutocompletePostSelector: React.FC<{
                 />
             </div>
 
-            {isDropdownOpen && suggestions.length > 0 && (
-                <div className="absolute z-20 w-full mt-1 bg-popover/95 backdrop-blur-xl border border-border/80 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-scale-in origin-top">
+            <AdminPresence kind="dropdown">{isDropdownOpen && suggestions.length > 0 && (
+                <div className="t-dropdown absolute z-20 w-full mt-1 bg-popover/95 backdrop-blur-xl border border-border/80 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-scale-in origin-top" data-motion-surface="true">
                     <ul className="divide-y divide-border/40">
                         {suggestions.map(post => (
                             <li
@@ -228,7 +229,7 @@ const AutocompletePostSelector: React.FC<{
                         ))}
                     </ul>
                 </div>
-            )}
+            )}</AdminPresence>
         </div>
     );
 };

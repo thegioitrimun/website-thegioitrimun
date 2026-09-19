@@ -1,3 +1,4 @@
+import AdminPresence from '../admin/motion/AdminPresence';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAdminLayoutDispatch } from './AdminLayoutContext';
 import AnimatedSection from './AnimatedSection';
@@ -387,8 +388,8 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
           </div>
 
           {/* Collapsible Folder row */}
-          {showFolderFilter && (
-            <div className="mt-2.5 pt-2.5 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2">
+          <AdminPresence kind="panel">{showFolderFilter && (
+            <div className="t-panel-slide mt-2.5 pt-2.5 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2" data-motion-surface="true">
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                   <input
@@ -452,11 +453,11 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
                 </div>
               )}
             </div>
-          )}
+          )}</AdminPresence>
 
           {/* Collapsible Upload Dropzone */}
-          {showUploadDropzone && (
-            <div className="mt-2.5 pt-2.5 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-150">
+          <AdminPresence kind="panel">{showUploadDropzone && (
+            <div className="t-panel-slide mt-2.5 pt-2.5 border-t border-border/40 animate-in fade-in slide-in-from-top-2 duration-150" data-motion-surface="true">
               <div className="flex items-center justify-between pb-2">
                 <span className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground">
                   Tải ảnh lên {selectedBucket.label} {folder ? `(${folder})` : ''}
@@ -479,7 +480,7 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
                 className="min-h-[140px]"
               />
             </div>
-          )}
+          )}</AdminPresence>
         </div>
 
         {/* CARD 2: Apple Glass Container for Image Library */}
@@ -890,14 +891,14 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
         )}
 
         {/* Image Preview Modal */}
-        {previewImage && (
+        <AdminPresence kind="modal">{previewImage && (
           <div
-            className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-150"
-            onClick={() => setPreviewImage(null)}
+            className="admin-backdrop fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-150"
+            onClick={() => setPreviewImage(null)} data-motion-surface="true"
           >
             <div
-              className="relative max-w-2xl w-full rounded-2xl sm:rounded-3xl border border-white/80 bg-card/95 shadow-2xl p-4 sm:p-6 backdrop-blur-2xl dark:border-white/10 overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+              className="t-modal relative max-w-2xl w-full rounded-2xl sm:rounded-3xl border border-white/80 bg-card/95 shadow-2xl p-4 sm:p-6 backdrop-blur-2xl dark:border-white/10 overflow-hidden"
+              onClick={(e) => e.stopPropagation()} data-motion-surface="true" role="dialog" aria-modal="true" aria-label="Chi tiết"
             >
               <div className="flex items-center justify-between border-b border-border/50 pb-3">
                 <div className="min-w-0 flex-1 pr-2">
@@ -950,7 +951,7 @@ const AdminImageLibraryPage: React.FC<AdminImageLibraryPageProps> = ({ onNavigat
               </div>
             </div>
           </div>
-        )}
+        )}</AdminPresence>
       </div>
     </AnimatedSection>
   );

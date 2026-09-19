@@ -48,7 +48,7 @@ export const ServicesSection: React.FC = () => {
     >
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
-        <FadeIn delay={0} y={40}>
+        <FadeIn delay={0}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
             className="text-primary font-heading font-black uppercase text-center leading-tight tracking-tight py-2 mb-16 sm:mb-20 md:mb-28"
@@ -60,7 +60,7 @@ export const ServicesSection: React.FC = () => {
         {/* 5 Service Items */}
         <div className="flex flex-col divide-y divide-[rgba(12,12,12,0.15)] border-t border-b border-[rgba(12,12,12,0.15)]">
           {SERVICES.map((service, i) => (
-            <FadeIn key={service.id} delay={i * 0.1} y={30}>
+            <FadeIn key={service.id} delay={i * 0.1}>
               <div className="flex flex-col md:flex-row md:items-baseline justify-between gap-4 md:gap-14 py-8 sm:py-10 md:py-12">
                 {/* Number on left */}
                 <span

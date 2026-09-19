@@ -1,3 +1,4 @@
+import SurfacePresence from './motion/SurfacePresence';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
@@ -16,6 +17,10 @@ const SettingsDropdown: React.FC = () => {
 
     useEffect(() => {
         if (!isOpen) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setIsOpen(false); dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); }
+    };
+    document.addEventListener('keydown', onEscape);
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
@@ -26,6 +31,7 @@ const SettingsDropdown: React.FC = () => {
         }, 0);
         return () => {
             clearTimeout(timer);
+            document.removeEventListener('keydown', onEscape);
             document.removeEventListener('click', handleClickOutside);
         };
     }, [isOpen]);
@@ -46,9 +52,8 @@ const SettingsDropdown: React.FC = () => {
                 <CogIcon className="utility-trigger-icon pointer-events-none" />
             </button>
 
-            <div
-                className={`utility-popover absolute right-0 mt-2 w-72 text-popover-foreground py-1 z-[90] transition-all duration-200 ease-custom-bezier transform-origin-top-right ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                    }`}
+            <SurfacePresence>{isOpen && <div
+                data-motion-surface="true" data-origin="top-right" className="t-dropdown utility-popover absolute right-0 mt-2 w-72 text-popover-foreground py-1 z-[90]"
                 role="menu"
                 aria-orientation="vertical"
             >
@@ -107,7 +112,7 @@ const SettingsDropdown: React.FC = () => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div>}</SurfacePresence>
         </div>
     );
 };

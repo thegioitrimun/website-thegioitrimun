@@ -1,3 +1,4 @@
+import useOverlayMotion from './motion/useOverlayMotion';
 import React, { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { BlogCategory, BlogPost } from '../types';
@@ -41,6 +42,7 @@ const BlogPage: React.FC<BlogPageProps> = ({
   const [filter, setFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const filtersOverlay = useOverlayMotion(isFilterOpen, () => setIsFilterOpen(false));
   const [currentPage, setCurrentPage] = useState(1);
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
@@ -685,10 +687,11 @@ const BlogPage: React.FC<BlogPageProps> = ({
         </div>
 
         {/* Mobile Frosted Glass Filter Drawer */}
-        {isFilterOpen ? (
-          <div className="fixed inset-0 z-[110] bg-black/40 backdrop-blur-sm md:hidden" onClick={() => setIsFilterOpen(false)}>
+        {filtersOverlay.mounted ? (
+          <div ref={filtersOverlay.ref} data-open={filtersOverlay.visible} aria-hidden={!isFilterOpen} role="dialog" aria-modal="true" aria-label={t('blog.choose_topic', 'Chọn chủ đề')} className="site-overlay fixed inset-0 z-[110]" onClick={() => setIsFilterOpen(false)}>
+            <div className="site-overlay-backdrop absolute inset-0" />
             <div
-              className="absolute inset-x-0 bottom-0 rounded-t-[32px] border-t border-white/60 bg-white/90 p-5 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#0f172a]/95"
+              data-side="bottom" className="site-overlay-panel absolute inset-x-0 bottom-0 rounded-t-[32px] border-t border-white/60 bg-white/90 p-5 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#0f172a]/95"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-center justify-between">

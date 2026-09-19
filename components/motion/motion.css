@@ -1,0 +1,9 @@
+@import './tokens.css';
+@import './transitions.css';
+
+.motion-presence { display: contents; }
+.motion-presence[aria-hidden="true"] { pointer-events: none; }
+.motion-toast { animation: none; }
+.motion-backdrop { opacity: 0; transition: opacity var(--modal-close-dur) var(--ease-smooth-out); }
+.motion-backdrop.is-open { opacity: 1; transition-duration: var(--modal-open-dur); }
+@media (prefers-reduced-motion: reduce) { .motion-backdrop { transition: none !important; } }

@@ -2,10 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../src/i18n';
 import '../src/index.css';
+import './motion/admin-motion.css';
 import AdminApp from './AdminApp';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { FontProvider } from '../contexts/FontContext';
-import { ToastProvider } from '../contexts/ToastContext';
+import ToastProvider from './motion/AdminToastProvider';
 
 window.addEventListener('vite:preloadError', () => {
   const reloadKey = 'vite_preload_admin_reload_ts';

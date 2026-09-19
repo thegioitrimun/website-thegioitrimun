@@ -246,7 +246,7 @@ export const ProjectsSection: React.FC = () => {
     >
       {/* Heading: "Project" (singular) */}
       <div className="max-w-6xl mx-auto mb-16 sm:mb-20 md:mb-24 flex justify-center">
-        <FadeIn delay={0} y={40}>
+        <FadeIn delay={0}>
           <h2
             style={{ fontSize: 'clamp(3rem, 12vw, 160px)' }}
             className="text-primary font-heading font-black uppercase leading-tight tracking-tight text-center py-2"

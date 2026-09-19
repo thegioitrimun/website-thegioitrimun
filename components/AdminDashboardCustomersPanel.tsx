@@ -1,3 +1,4 @@
+import AdminPresence from '../admin/motion/AdminPresence';
 import React, { useEffect, useMemo, useState } from 'react';
 import type { AdminCustomerMetric, ProductOrder } from '../types';
 import * as api from '../services/api';
@@ -418,9 +419,10 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
         </div>
 
         {/* Collapsible / Desktop Grid Filters */}
-        <div className={`mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4 transition-all ${
-          showFilters ? 'grid' : 'hidden xl:grid'
-        }`}>
+        <div className="t-acc admin-responsive-filter" data-open={showFilters}>
+          <div className="t-acc-panel">
+            <div className="t-acc-panel-inner">
+        <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {activeFilterCount > 0 && (
             <div className="col-span-2 sm:col-span-2 lg:col-span-4 flex items-center justify-between pb-1 border-b border-border/20">
               <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -553,6 +555,9 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
             </div>
           </div>
         </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 4. Main Body: Split View on Desktop, Drill-down on Mobile */}
@@ -678,7 +683,7 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
                         </button>
 
                         {/* Popover Menu */}
-                        {isMenuOpen && (
+                        <AdminPresence kind="dropdown">{isMenuOpen && (
                           <>
                             {/* Transparent Backdrop Click-catcher (NO dark blur overlay) */}
                             <div
@@ -691,8 +696,8 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
 
                             {/* Dropdown Card (Matching Sidebar bg-card) */}
                             <div
-                              className="absolute right-0 top-9 z-50 w-56 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95"
-                              onClick={(e) => e.stopPropagation()}
+                              className="t-dropdown absolute right-0 top-9 z-50 w-56 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xl transition-all animate-in fade-in zoom-in-95"
+                              onClick={(e) => e.stopPropagation()} data-motion-surface="true"
                             >
                               <div className="space-y-0.5">
                                 {/* 1. Xem chi tiết hồ sơ */}
@@ -778,7 +783,7 @@ const AdminDashboardCustomersPanel: React.FC<AdminDashboardCustomersPanelProps> 
                               </div>
                             </div>
                           </>
-                        )}
+                        )}</AdminPresence>
                       </div>
                     </div>
                   </div>

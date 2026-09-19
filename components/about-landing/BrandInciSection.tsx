@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { IngredientAnalysisResults, type AnalyzerResponse } from '../IngredientAnalyzerPage';
 
 interface BrandLogoItem {
@@ -163,6 +163,7 @@ export const BrandInciSection: React.FC = () => {
   };
 
   return (
+    <MotionConfig reducedMotion="user" transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}>
     <section
       id="brand-inci"
       className="relative w-full bg-[#FFFFFF] dark:bg-[#070e1b] text-[#0C0C0C] dark:text-[#F1F5F9] rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-4 sm:px-6 md:px-10 pt-16 sm:pt-20 md:pt-24 pb-20 sm:pb-28 md:pb-32 z-0 select-none transition-colors duration-300"
@@ -187,9 +188,9 @@ export const BrandInciSection: React.FC = () => {
         {/* 3. Hero Content */}
         <div className="relative z-20 flex-1 px-5 sm:px-8 md:px-16 pt-7 sm:pt-12 md:pt-16 flex flex-col items-start">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-start max-w-2xl"
           >
             {/* Small pill tag for high-end polish on mobile */}
@@ -223,9 +224,9 @@ export const BrandInciSection: React.FC = () => {
         {/* 4. Bottom Floating INCI Input Box */}
         <div className="absolute bottom-4 sm:bottom-7 md:bottom-8 left-1/2 -translate-x-1/2 z-30 w-[93%] sm:w-[540px] md:w-[620px] max-w-[650px]">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.4, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full rounded-[24px] sm:rounded-[30px] bg-white/85 sm:bg-white/80 dark:bg-[rgba(15,23,34,0.85)] backdrop-blur-xl border border-slate-200/90 dark:border-white/15 shadow-[0_20px_50px_-20px_rgba(15,23,42,0.14)] dark:shadow-[0_28px_60px_-25px_rgba(0,0,0,0.7)] p-2.5 sm:p-3 md:p-3.5 transition-all duration-300 focus-within:border-primary/50 dark:focus-within:border-primary/60 focus-within:ring-4 focus-within:ring-primary/10 dark:focus-within:ring-primary/20 overflow-hidden"
           >
             {/* Ambient subtle glow */}
@@ -328,7 +329,7 @@ export const BrandInciSection: React.FC = () => {
       <AnimatePresence>
         {isLoading && (
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             className="mt-8 max-w-xl mx-auto flex items-center justify-center gap-3 p-5 rounded-2xl bg-white/80 dark:bg-[#0c1626]/90 border border-slate-200/80 dark:border-white/10 shadow-lg backdrop-blur-md"
@@ -364,10 +365,10 @@ export const BrandInciSection: React.FC = () => {
         {analysis && (
           <motion.div
             ref={resultsRef}
-            initial={{ opacity: 0, y: 25 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="mt-12 sm:mt-16 max-w-6xl mx-auto select-text scroll-mt-20"
           >
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-200/80 dark:border-white/10">
@@ -449,6 +450,7 @@ export const BrandInciSection: React.FC = () => {
         </div>
       </div>
     </section>
+    </MotionConfig>
   );
 };
 

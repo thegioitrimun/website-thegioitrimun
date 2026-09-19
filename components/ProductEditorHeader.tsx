@@ -1,3 +1,4 @@
+import AdminPresence from '../admin/motion/AdminPresence';
 import React, { useState, useEffect } from 'react';
 import Spinner from './Spinner';
 import type { Product } from '../types';
@@ -379,7 +380,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                   </svg>
                 </button>
 
-                {showMobileMenu && (
+                <AdminPresence kind="dropdown">{showMobileMenu && (
                   <>
                     {/* Invisible Backdrop click catcher */}
                     <div
@@ -391,7 +392,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                     />
 
                     {/* Dropdown Popover */}
-                    <div className="absolute right-0 top-full mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-[60] p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="t-dropdown absolute right-0 top-full mt-1.5 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-white/80 bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.3)] z-[60] p-1.5 space-y-1 dark:border-white/10 animate-in fade-in zoom-in-95 duration-100" data-motion-surface="true">
                       {/* Toggle Hiển thị web */}
                       {onTogglePublished && (
                         <button
@@ -497,7 +498,7 @@ const ProductEditorHeader: React.FC<ProductEditorHeaderProps> = ({
                       )}
                     </div>
                   </>
-                )}
+                )}</AdminPresence>
               </div>
             </div>
           </div>

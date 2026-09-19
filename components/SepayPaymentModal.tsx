@@ -1,3 +1,4 @@
+import SurfacePresence from './motion/SurfacePresence';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ProductOrder, SepayPaymentStatus } from '../types';
@@ -99,20 +100,19 @@ const SepayPaymentModal: React.FC<SepayPaymentModalProps> = ({ isOpen, onClose, 
         };
     }, [checkPayment, isOpen, order, payment]);
 
-    if (!isOpen || !order || !payment) return null;
 
     const expired = secondsLeft <= 0;
 
     return (
-        <div
-            className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/65 p-4 animate-fade-in"
+        <SurfacePresence kind="modal">{isOpen && order && payment && <div
+            data-motion-surface="true" className="motion-backdrop fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/65 p-4"
             onClick={onClose}
             role="dialog"
             aria-modal="true"
             aria-labelledby="sepay-payment-title"
         >
             <div
-                className="my-auto flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl animate-scale-in"
+                data-motion-surface="true" className="t-modal my-auto flex w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-2xl"
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -206,7 +206,7 @@ const SepayPaymentModal: React.FC<SepayPaymentModalProps> = ({ isOpen, onClose, 
                     </p>
                 </div>
             </div>
-        </div>
+        </div>}</SurfacePresence>
     );
 };
 

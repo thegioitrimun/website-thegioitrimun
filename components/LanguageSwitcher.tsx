@@ -1,3 +1,4 @@
+import SurfacePresence from './motion/SurfacePresence';
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDownIcon } from './icons';
@@ -18,6 +19,10 @@ const LanguageSwitcher: React.FC = () => {
 
     useEffect(() => {
         if (!isOpen) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') { setIsOpen(false); dropdownRef.current?.querySelector<HTMLButtonElement>('button')?.focus(); }
+    };
+    document.addEventListener('keydown', onEscape);
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
@@ -28,6 +33,7 @@ const LanguageSwitcher: React.FC = () => {
         }, 0);
         return () => {
             clearTimeout(timer);
+            document.removeEventListener('keydown', onEscape);
             document.removeEventListener('click', handleClickOutside);
         };
     }, [isOpen]);
@@ -53,9 +59,8 @@ const LanguageSwitcher: React.FC = () => {
                 <ChevronDownIcon className={`h-4 w-4 pointer-events-none transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
-            <div
-                className={`utility-popover absolute right-0 mt-2 w-40 text-popover-foreground z-[90] transition-all duration-200 ease-custom-bezier transform-origin-top-right ${isOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
-                    }`}
+            <SurfacePresence>{isOpen && <div
+                data-motion-surface="true" data-origin="top-right" className="t-dropdown utility-popover absolute right-0 mt-2 w-40 text-popover-foreground z-[90]"
                 role="menu"
             >
                 <div className="flex flex-col p-1.5">
@@ -73,7 +78,7 @@ const LanguageSwitcher: React.FC = () => {
                         </button>
                     ))}
                 </div>
-            </div>
+            </div>}</SurfacePresence>
         </div>
     );
 };

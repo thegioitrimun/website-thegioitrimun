@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import useOverlayMotion from './motion/useOverlayMotion';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CloseIcon, ArrowLeftIcon } from './icons';
 import type { UserData, Appointment, Service, Doctor } from '../types';
@@ -45,29 +46,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const { t } = useTranslation();
     const { theme, setTheme } = useTheme();
-    const [isRendered, setIsRendered] = useState(isOpen);
     const [mode, setMode] = useState<'nav' | 'booking'>('nav');
-    const previousBodyOverflowRef = useRef('');
-
-    const restoreBodyScroll = useCallback(() => {
-        document.body.style.overflow = previousBodyOverflowRef.current;
-    }, []);
-
-    useEffect(() => {
-        if (isOpen) {
-            setIsRendered(true);
-            previousBodyOverflowRef.current = document.body.style.overflow;
-            document.body.style.overflow = 'hidden';
-            return restoreBodyScroll;
-        } else {
-            restoreBodyScroll();
-            const timer = setTimeout(() => {
-                setIsRendered(false);
-                setMode('nav'); // Reset mode when sidebar is fully closed
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen, restoreBodyScroll]);
+    const overlay = useOverlayMotion(isOpen, onClose);
+    useEffect(() => { if (!overlay.mounted) setMode('nav'); }, [overlay.mounted]);
 
     const handleLinkClick = (link: NavLink) => {
         onNavLinkClick(link.action, link.href);
@@ -88,27 +69,30 @@ const Sidebar: React.FC<SidebarProps> = ({
         onClose();
     }
 
-    if (!isRendered) {
+    if (!overlay.mounted) {
         return null;
     }
 
     return (
         <div
-            className={`fixed inset-0 z-[100] ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+            ref={overlay.ref}
+            data-open={overlay.visible}
+            aria-hidden={!isOpen}
+            className="site-overlay fixed inset-0 z-[100]"
             aria-labelledby="slide-over-title"
             role="dialog"
             aria-modal="true"
         >
             <div
-                className={`absolute inset-0 bg-transparent ${isOpen ? 'drawer-overlay-enter pointer-events-auto' : 'drawer-overlay-exit pointer-events-none'}`}
+                className="site-overlay-backdrop absolute inset-0"
                 onClick={onClose}
             ></div>
 
-            <div className={`fixed inset-y-0 left-0 flex max-w-full pr-10 ${isOpen ? 'drawer-slide-in-left pointer-events-auto' : 'drawer-slide-out-left pointer-events-none'}`}>
+            <div data-side="left" className="site-overlay-panel fixed inset-y-0 left-0 flex max-w-full pr-10">
                 <div className="relative w-screen max-w-sm">
                     <button
                         type="button"
-                        className={`absolute top-[max(env(safe-area-inset-top,0px),1rem)] right-0 -mr-12 p-2 rounded-md text-gray-300 hover:text-white focus:outline-none transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+                        className={`absolute top-[max(env(safe-area-inset-top,0px),1rem)] right-0 -mr-12 p-2 rounded-full bg-card/90 text-foreground shadow-sm hover:bg-card focus:outline-none transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
                         onClick={onClose}
                     >
                         <span className="sr-only">{t('common.close')}</span>
@@ -144,7 +128,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                                             key={link.name}
                                             onClick={() => handleLinkClick(link)}
                                             className="flex items-center text-lg text-left hover:bg-accent p-3 rounded-md transition-all-smooth font-medium"
-                                            style={{ transitionDelay: `${index * 50}ms` }}
                                         >
                                             {link.icon && <span className="mr-4 shrink-0 text-primary">{link.icon}</span>}
                                             <span>{link.name}</span>
@@ -180,7 +163,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                                             onClose();
                                         }}
                                         className="flex items-center text-lg text-left hover:bg-accent p-3 rounded-md transition-all-smooth font-medium"
-                                        style={{ transitionDelay: `${navLinks.length * 50}ms` }}
                                     >
                                         <span className="mr-4 shrink-0 text-primary"><UserIcon className="w-6 h-6" /></span>
                                         <span>{currentUser ? t('nav.account', 'Tài Khoản') : t('auth.login', 'Đăng nhập')}</span>
@@ -192,7 +174,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                                                 onClose();
                                             }}
                                             className="flex items-center text-lg text-left hover:bg-accent p-3 rounded-md transition-all-smooth font-medium text-destructive"
-                                            style={{ transitionDelay: `${(navLinks.length + 1) * 50}ms` }}
                                         >
                                             <span className="mr-4 shrink-0"><LogoutIcon className="w-6 h-6" /></span>
                                             <span>{t('auth.logout', 'Đăng xuất')}</span>
@@ -201,7 +182,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     <button
                                         onClick={handleBookingClick}
                                         className="mt-4 w-full text-center bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-5 rounded-full transition-all-smooth shadow-md hover:shadow-lg btn-press"
-                                        style={{ transitionDelay: `${(navLinks.length + 2) * 50}ms` }}
                                     >
                                         {t('nav.book_appointment')}
                                     </button>

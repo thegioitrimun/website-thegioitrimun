@@ -1,3 +1,4 @@
+import useOverlayMotion from './motion/useOverlayMotion';
 import React, { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Product, Service, View, BlogPost } from '../types';
@@ -56,29 +57,8 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
         return obj[field] || '';
     };
 
-    const [isRendered, setIsRendered] = useState(isOpen);
-
-    useEffect(() => {
-        if (isOpen) {
-            setIsRendered(true);
-            document.body.style.overflow = 'hidden';
-            setTimeout(() => inputRef.current?.focus(), 100);
-        } else {
-            document.body.style.overflow = '';
-            const timer = setTimeout(() => {
-                setIsRendered(false);
-                setSearchTerm('');
-            }, 500);
-            return () => clearTimeout(timer);
-        }
-    }, [isOpen]);
-
-    // Cleanup on completely unmount
-    useEffect(() => {
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, []);
+    const overlay = useOverlayMotion(isOpen, onClose);
+    useEffect(() => { if (!overlay.mounted) setSearchTerm(''); }, [overlay.mounted]);
 
     useEffect(() => {
         if (!isOpen || hasFullProductCatalog || searchCatalog.length > 0) return;
@@ -304,18 +284,19 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
         return null;
     };
 
-    if (!isRendered) return null;
+    if (!overlay.mounted) return null;
 
     return (
-        <div className={`fixed inset-0 z-[100] bg-transparent ${isOpen ? 'drawer-overlay-enter pointer-events-auto' : 'drawer-overlay-exit pointer-events-none'}`} role="dialog" aria-modal="true">
-            <div className={`absolute inset-0 bg-background/95 ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`} onClick={onClose}></div>
-            <div className={`container relative z-10 mx-auto px-4 h-full flex flex-col ${isOpen ? 'search-slide-in pointer-events-auto' : 'search-slide-out pointer-events-none'}`}>
+        <div ref={overlay.ref} data-open={overlay.visible} aria-hidden={!isOpen} aria-label={t('common.search_placeholder')} className="site-overlay fixed inset-0 z-[100]" role="dialog" aria-modal="true">
+            <div className="site-overlay-backdrop absolute inset-0 !bg-background/95" onClick={onClose}></div>
+            <div className="site-search-panel container relative z-10 mx-auto px-4 h-full flex flex-col">
                 {/* Header */}
                 <header className="flex-shrink-0 flex items-center justify-between pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4">
                     <div className="relative w-full">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
                             ref={inputRef}
+                            data-overlay-autofocus="true"
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -323,7 +304,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                             className="w-full bg-transparent border-0 pl-12 pr-4 py-3 text-lg outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
                         />
                     </div>
-                    <button onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground">
+                    <button aria-label={t('common.close')} onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground">
                         <CloseIcon className="w-6 h-6" />
                     </button>
                 </header>

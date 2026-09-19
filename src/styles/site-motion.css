@@ -1,0 +1,92 @@
+@import '../../components/motion/motion.css';
+
+/* A single restrained motion language: quick feedback, soft deceleration, short travel. */
+:root {
+  --panel-open-dur: var(--duration-slow);
+  --panel-close-dur: var(--duration-fast);
+  --panel-translate-y: var(--distance-base);
+  --site-reveal-distance: var(--distance-medium);
+  --site-reveal-duration: var(--duration-slow);
+}
+html:not([data-admin-app="true"]) :is(button, a, input, select, textarea, summary) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, scale;
+  transition-duration: var(--duration-quick);
+  transition-timing-function: var(--ease-smooth-out);
+}
+html:not([data-admin-app="true"]) :is(.transition-all, .transition-all-smooth) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-smooth-out);
+}
+html:not([data-admin-app="true"]) :is(.transition-transform, .transition-opacity) {
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-smooth-out);
+}
+html:not([data-admin-app="true"]) .btn-press:active:not(:disabled) { transform: scale(.98); }
+/* Route roots never transform: fixed dialogs and sticky navigation keep their containing block. */
+html:not([data-admin-app="true"]) :is(.site-page-enter, .animate-fade-in-page, .animate-page-enter) {
+  animation: site-page-enter var(--page-fade-dur) var(--ease-smooth-out);
+}
+@keyframes site-page-enter { from { opacity: .3; } to { opacity: 1; } }
+html:not([data-admin-app="true"]) .animate-card-enter {
+  animation: site-card-enter var(--site-reveal-duration) var(--ease-smooth-out) backwards;
+  animation-delay: min(var(--card-delay, 0ms), 120ms);
+  will-change: auto;
+}
+@keyframes site-card-enter {
+  from { opacity: 0; transform: translateY(var(--distance-base)); }
+  to { opacity: 1; transform: none; }
+}
+.site-reveal[data-reveal="pending"], .public-scroll-reveal-scope .scroll-reveal-pending {
+  opacity: 0;
+  transform: translateY(var(--site-reveal-distance));
+}
+.site-reveal[data-reveal="visible"], .public-scroll-reveal-scope .scroll-reveal-pending.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--site-reveal-duration) var(--ease-smooth-out), transform var(--site-reveal-duration) var(--ease-smooth-out);
+  transition-delay: var(--scroll-reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.site-reveal[data-reveal="complete"] { transform: none; opacity: 1; will-change: auto; }
+.site-overlay { pointer-events: none; }
+.site-overlay[data-open="true"] { pointer-events: auto; }
+.site-overlay-backdrop {
+  opacity: 0;
+  background: rgb(12 20 29 / .24);
+  transition: opacity var(--panel-close-dur) var(--ease-smooth-out);
+}
+.site-overlay-panel {
+  transform: translateX(var(--drawer-from, 100%));
+  transition: transform var(--panel-close-dur) var(--ease-smooth-out);
+  will-change: transform;
+}
+.site-overlay[data-open="true"] .site-overlay-backdrop { opacity: 1; transition-duration: var(--panel-open-dur); }
+.site-overlay[data-open="true"] .site-overlay-panel { transform: none; transition-duration: var(--panel-open-dur); }
+.site-overlay-panel[data-side="left"] { --drawer-from: -100%; }
+.site-overlay .site-search-panel {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--distance-base)));
+  transition: opacity var(--panel-close-dur) var(--ease-smooth-out), transform var(--panel-close-dur) var(--ease-smooth-out);
+}
+.site-overlay[data-open="true"] .site-search-panel { opacity: 1; transform: none; transition-duration: var(--panel-open-dur); }
+.site-overlay[data-kind="modal"] .site-overlay-backdrop { transition-duration: var(--modal-close-dur); }
+.site-overlay[data-kind="modal"][data-open="true"] .site-overlay-backdrop { transition-duration: var(--modal-open-dur); }
+html:not([data-admin-app="true"]) .t-dropdown { transition: transform var(--dropdown-open-dur) var(--dropdown-ease), opacity var(--dropdown-open-dur) var(--dropdown-ease); }
+html:not([data-admin-app="true"]) .t-dropdown.is-closing { transition-duration: var(--dropdown-close-dur); }
+/* Do not keep decorative lettering moving while the visitor reads. */
+html:not([data-admin-app="true"]) .animate-doll-jump { animation: none !important; will-change: auto !important; }
+@media (max-width: 640px) { :root { --site-reveal-distance: var(--distance-base); } }
+@media (prefers-reduced-motion: reduce) {
+  html, html *, html *::before, html *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .site-reveal, .public-scroll-reveal-scope .scroll-reveal-pending { opacity: 1 !important; transform: none !important; will-change: auto !important; }
+}
+.site-overlay-panel[data-side="bottom"] { transform: translateY(100%); }
+.site-overlay[data-open="true"] .site-overlay-panel[data-side="bottom"] { transform: none; }
+.site-overlay-panel[data-side="bottom"] { padding-bottom: env(safe-area-inset-bottom, 0px); max-height: 88dvh; overflow-y: auto; overscroll-behavior: contain; }
+.site-tabs { position: relative; isolation: isolate; }
+.site-tabs > button { position: relative; z-index: 1; }
+.site-tabs > button[aria-selected="true"] { background: transparent; border-color: transparent; }
+.site-tabs .t-tabs-pill { top: 0; border-radius: 1rem 1rem 0 0; background: hsl(var(--primary) / .05); border-bottom: 2px solid hsl(var(--primary)); }
+html:not([data-admin-app="true"]) .animate-pulse { animation: t-skel-pulse var(--pulse-dur) var(--ease-in-out) infinite; }
+@media (prefers-reduced-motion: reduce) { html:not([data-admin-app="true"]) .animate-pulse { animation: none; } }

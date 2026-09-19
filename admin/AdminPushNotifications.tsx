@@ -1,3 +1,4 @@
+import AdminPresence from './motion/AdminPresence';
 import React, { useCallback, useEffect, useState } from 'react';
 import { adminPushRegistration, applicationServerKey, disableAdminPush, isAdminStandalone, pushApi,
   supportsAdminPush, updateAdminBadge, type AdminPushState } from './pushClient';
@@ -160,15 +161,16 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
         className="fixed bottom-4 right-4 z-[99] flex max-w-[calc(100vw-2rem)] flex-col gap-2.5 pointer-events-none sm:bottom-6 sm:right-6 sm:max-w-sm"
       >
         {/* POPUP 1: ĐƠN HÀNG MỚI (có thể tắt, cái đánh dấu đã đọc là cái icon) */}
-        {shouldShowOrderAlert && (
+        <AdminPresence kind="toast">{shouldShowOrderAlert && (
           <div
+            data-motion-surface="true"
             role="alert"
             onClick={handleOpenOrders}
-            className="pointer-events-auto group relative flex items-center gap-3 rounded-2xl border border-primary/25 bg-background/95 p-3 shadow-xl backdrop-blur-xl transition-all duration-300 hover:shadow-2xl dark:bg-slate-900/95 cursor-pointer ring-1 ring-primary/15"
+            className="t-toast pointer-events-auto group relative flex items-center gap-3 rounded-2xl border border-primary/25 bg-background/95 p-3 shadow-xl backdrop-blur-xl transition-all duration-300 hover:shadow-2xl dark:bg-slate-900/95 cursor-pointer ring-1 ring-primary/15"
           >
             <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
               <ShoppingBagIcon className="h-5 w-5" />
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground animate-pulse">
+              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground admin-notification-badge">
                 {state?.unread}
               </span>
             </div>
@@ -210,14 +212,15 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
               </button>
             </div>
           </div>
-        )}
+        )}</AdminPresence>
 
         {/* POPUP 2: BẬT THÔNG BÁO IPHONE (chỉ hiện khi iPhone chưa bật, tắt được, thiết kế chuẩn theo mẫu) */}
-        {shouldShowIPhonePrompt && (
+        <AdminPresence kind="toast">{shouldShowIPhonePrompt && (
           <div
+            data-motion-surface="true"
             role="region"
             aria-label="Cài đặt thông báo đơn hàng trên iPhone"
-            className="pointer-events-auto relative rounded-2xl border border-slate-700/60 bg-[#161c28]/95 p-3.5 shadow-2xl backdrop-blur-xl text-slate-100 ring-1 ring-white/10"
+            className="t-toast pointer-events-auto relative rounded-2xl border border-slate-700/60 bg-[#161c28]/95 p-3.5 shadow-2xl backdrop-blur-xl text-slate-100 ring-1 ring-white/10"
           >
             {/* Nút đóng popup */}
             <button
@@ -258,7 +261,7 @@ export default function AdminPushNotifications({ onNavigate }: AdminPushNotifica
               )}
             </div>
           </div>
-        )}
+        )}</AdminPresence>
       </aside>
     </>
   );

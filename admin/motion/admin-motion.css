@@ -1,0 +1,96 @@
+@import '../../components/motion/motion.css';
+
+html[data-admin-app="true"] {
+  --dropdown-open-dur: var(--duration-fast);
+  --dropdown-close-dur: var(--duration-quick);
+  --modal-open-dur: var(--duration-fast);
+  --modal-close-dur: var(--duration-quick);
+  --panel-open-dur: var(--duration-slow);
+  --panel-close-dur: var(--duration-fast);
+  --panel-translate-y: var(--distance-base);
+  --tabs-pill-bg: hsl(var(--primary));
+  --tabs-text-active: hsl(var(--primary-foreground));
+  --tabs-text-muted: hsl(var(--muted-foreground));
+  --tabs-bar-bg: transparent;
+}
+.motion-presence { display: contents; }
+.motion-presence[aria-hidden="true"] { pointer-events: none; }
+.admin-backdrop {
+  opacity: 0;
+  transition: opacity var(--modal-close-dur) var(--ease-smooth-out);
+}
+.admin-backdrop.is-open {
+  opacity: 1;
+  transition-duration: var(--modal-open-dur);
+}
+/* The mobile drawer remains mounted, but closed controls are inert. */
+.admin-drawer {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity var(--panel-close-dur) var(--panel-ease), visibility 0s var(--panel-close-dur);
+}
+.admin-drawer[data-open="true"] { visibility: visible; opacity: 1; transition-delay: 0s; }
+.admin-drawer-panel {
+  transform: translateX(100%);
+  transition: transform var(--panel-close-dur) var(--panel-ease);
+}
+.admin-drawer[data-open="true"] .admin-drawer-panel {
+  transform: translateX(0);
+  transition-duration: var(--panel-open-dur);
+}
+.admin-tabs { position: relative; isolation: isolate; }
+.admin-tabs > .t-tabs-pill { top: 0; opacity: 0; border-radius: inherit; }
+.admin-tabs > button { position: relative; z-index: 1; }
+.admin-tabs > button[aria-selected="true"] { background: transparent; border-color: transparent; }
+.admin-tabs > .t-tabs-pill { border-radius: 999px; }
+.admin-tabs-grid > .t-tabs-pill { border-radius: 1rem; }
+/* Restore normal containing blocks after reveal; fixed menus must not become scroll-bound. */
+html[data-admin-app="true"] [data-scroll-reveal-item] {
+  transform: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+  animation: admin-content-in var(--page-fade-dur) var(--page-fade-ease);
+}
+html[data-admin-app="true"] .admin-editor-enter,
+html[data-admin-app="true"] .animate-fade-in-page {
+  animation: admin-content-in var(--page-fade-dur) var(--page-fade-ease);
+}
+@keyframes admin-content-in { from { opacity: 0.35; } to { opacity: 1; } }
+/* Refine existing admin feedback using the shared scale, including all module forms. */
+html[data-admin-app="true"] :is(button, a, input, textarea, select) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: var(--duration-quick);
+  transition-timing-function: var(--ease-smooth-out);
+}
+html[data-admin-app="true"] :is(button, a):active:not(:disabled) { scale: .98; }
+html[data-admin-app="true"] :is(button, a) { transition-property: color, background-color, border-color, box-shadow, opacity, transform, scale; }
+html[data-admin-app="true"] :is(tbody tr, article) {
+  transition: background-color var(--duration-quick) var(--ease-smooth-out), border-color var(--duration-quick) var(--ease-smooth-out);
+}
+html[data-admin-app="true"] [class~="transition-all"]:not([data-motion-surface]) {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform, grid-template-rows, width;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-smooth-out);
+}
+html[data-admin-app="true"] aside[class*="transition-"] { transition-timing-function: var(--resize-ease); transition-duration: var(--resize-dur); }
+html[data-admin-app="true"] .animate-pulse { animation: t-skel-pulse var(--pulse-dur) var(--ease-in-out) infinite; }
+html[data-admin-app="true"] [data-motion-surface] { animation: none; }
+html[data-admin-app="true"] .t-modal { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 2rem); overflow-y: auto; }
+html[data-admin-app="true"] .t-dropdown { transform-origin: top right; }
+html[data-admin-app="true"] .t-dropdown[data-origin="bottom-right"] { transform-origin: bottom right; }
+html[data-admin-app="true"] .motion-toast { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-admin-app="true"], html[data-admin-app="true"] *, html[data-admin-app="true"] *::before, html[data-admin-app="true"] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  html[data-admin-app="true"] :is(button, a):active { scale: none; }
+}
+html[data-admin-app="true"] .admin-notification-badge { animation: admin-badge-in var(--duration-very-slow) var(--ease-bounce); }
+@keyframes admin-badge-in { from { opacity: 0; scale: .6; } to { opacity: 1; scale: 1; } }
+.admin-responsive-filter:not([data-open="true"]) .t-acc-panel-inner { visibility: hidden; }
+@media (min-width: 1280px) {
+  .admin-responsive-filter .t-acc-panel { grid-template-rows: 1fr; }
+  .admin-responsive-filter .t-acc-panel-inner { visibility: visible !important; opacity: 1; filter: none; }
+}

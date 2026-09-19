@@ -94,7 +94,7 @@ export const AdminApp: React.FC = () => {
     if (window.location.pathname !== targetUrl) {
       window.history.pushState({}, '', targetUrl);
     }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   useEffect(() => {
@@ -896,8 +896,13 @@ export const AdminApp: React.FC = () => {
       >
         {['admin', 'master_admin'].includes(currentRole) && <AdminPushNotifications onNavigate={setView} />}
         <Suspense fallback={
-          <div className="flex min-h-[50vh] items-center justify-center" role="status">
-            <span className="text-sm text-muted-foreground">Đang tải phân hệ...</span>
+          <div className="t-skel min-h-[50vh]" role="status" aria-label="Đang tải phân hệ">
+            <div className="t-skel-skeleton is-pulsing space-y-4 p-2" aria-hidden="true">
+              <div className="h-10 w-2/5 rounded-xl bg-muted" />
+              <div className="h-28 rounded-2xl bg-muted" />
+              <div className="h-40 rounded-2xl bg-muted" />
+            </div>
+            <span className="sr-only">Đang tải phân hệ...</span>
           </div>
         }>
           {renderActiveModule()}

@@ -1739,7 +1739,7 @@ const App: React.FC = () => {
     const isHomePage = view.page === 'main';
     const isAboutLandingPage = view.page === 'about';
     const isHomeInvertedHeader = (isHomePage || isAboutLandingPage) && isAtTop;
-    const contentTransitionClass = ['blog', 'blogCategory', 'productDetail'].includes(view.page) ? '' : 'animate-fade-in-page';
+    const contentTransitionClass = isAdminView ? 'animate-fade-in-page' : 'site-page-enter';
     const contentKey = isAdminView
         ? 'admin-workspace'
         : view.page + ((view as any).id || (view as any).slug || '');

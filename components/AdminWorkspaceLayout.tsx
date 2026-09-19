@@ -1,3 +1,5 @@
+import AdminPageTransition from '../admin/motion/AdminPageTransition';
+import useSlidingTabs from '../admin/motion/useSlidingTabs';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useAdminLayoutConfig, useAdminLayoutDispatch } from './AdminLayoutContext';
@@ -119,9 +121,11 @@ export const AdminWorkspaceTabs = <T extends string>({
   onChange: (key: T) => void;
   className?: string;
 }) => {
+  const tabsRef = useSlidingTabs(activeKey, items.map(item => item.key).join('|'));
   return (
     <div className={`rounded-[1.15rem] border border-border bg-card/95 p-1.5 shadow-sm ${className}`.trim()}>
-      <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 xl:flex xl:min-w-max xl:flex-wrap">
+      <div ref={tabsRef} role="tablist" aria-label="Phân mục" className="admin-tabs admin-tabs-grid grid grid-cols-2 gap-1.5 sm:grid-cols-3 xl:flex xl:min-w-max xl:flex-wrap">
+        <span className="t-tabs-pill" aria-hidden="true" />
         {items.map((item) => {
           const isActive = item.key === activeKey;
           return (
@@ -129,6 +133,7 @@ export const AdminWorkspaceTabs = <T extends string>({
               key={item.key}
               type="button"
               onClick={() => onChange(item.key)}
+              role="tab" aria-selected={isActive} tabIndex={isActive ? 0 : -1}
               className={`w-full rounded-2xl border px-3.5 py-2.5 text-left text-sm font-semibold transition-all md:px-4 xl:w-auto xl:rounded-full xl:text-center ${
                 isActive
                   ? 'border-primary bg-primary text-primary-foreground shadow-sm'
@@ -199,8 +204,27 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
     hideHeader = false,
     unwrappedContent = false,
   } = config;
+  const mobileTabsRef = useSlidingTabs(activeTaskKey, taskItems.map(item => item.key).join('|'));
+  const drawerRef = useRef<HTMLDivElement>(null);
   const [isTemporarilyCollapsed, setIsTemporarilyCollapsed] = useState(false);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    if (drawerRef.current) drawerRef.current.inert = !isMobileDrawerOpen;
+    if (!isMobileDrawerOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    drawerRef.current?.querySelector<HTMLElement>('button, a')?.focus();
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMobileDrawerOpen(false);
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(drawerRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]') || []).filter(el => el.getClientRects().length);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('keydown', onKey); previousFocus?.focus({ preventScroll: true }); };
+  }, [isMobileDrawerOpen]);
 
   // Auto-hide mobile header on scroll down, reveal on scroll up (matching thegioitrimun.vn navbar behavior)
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
@@ -486,7 +510,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen animate-fade-in bg-slate-50/80 dark:bg-[#0b0f17] text-foreground transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50/80 dark:bg-[#0b0f17] text-foreground transition-colors duration-300">
       <div className="mx-auto max-w-[1680px] px-3 sm:px-4 md:px-6 lg:py-6 xl:px-8 pt-0 sm:pt-3 pb-[calc(env(safe-area-inset-bottom,0px)+2.5rem)]">
         {/* FLOATING GLASS MOBILE NAVBAR (MATCHING THEGIOITRIMUN.VN NAVBAR) */}
         <div className={`sticky top-0 z-30 mb-3 pt-[max(env(safe-area-inset-top,0px),0.5rem)] lg:hidden will-change-transform transition-transform duration-300 motion-reduce:transition-none ${
@@ -584,9 +608,13 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
         {/* MOBILE DRAWER */}
         {typeof document !== 'undefined' && createPortal(
           <div
-            className={`fixed inset-0 z-[100] transition-opacity duration-300 lg:hidden ${
-              isMobileDrawerOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-            }`}
+            ref={drawerRef}
+            className="admin-drawer fixed inset-0 z-[100] lg:hidden"
+            data-open={isMobileDrawerOpen}
+            aria-hidden={!isMobileDrawerOpen}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Điều hướng quản trị"
           >
             {/* Backdrop */}
             <div
@@ -598,9 +626,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
 
             {/* Drawer Content */}
             <div
-              className={`absolute bottom-0 right-0 top-0 w-[280px] max-w-[80vw] overflow-y-auto bg-card p-4 pt-[max(env(safe-area-inset-top,0px),1rem)] pb-[max(env(safe-area-inset-bottom,0px),1rem)] shadow-2xl transition-transform duration-300 ease-in-out ${
-                isMobileDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-              }`}
+              className="admin-drawer-panel absolute bottom-0 right-0 top-0 w-[280px] max-w-[80vw] overflow-y-auto bg-card p-4 pt-[max(env(safe-area-inset-top,0px),1rem)] pb-[max(env(safe-area-inset-bottom,0px),1rem)] shadow-2xl"
             >
               {/* Compact User Header replacing Menu */}
               <div className="mb-4 flex items-center justify-between gap-2 border-b border-border/60 pb-3">
@@ -631,6 +657,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                 )}
 
                 <div className="flex items-center gap-1 shrink-0">
+                  <button type="button" onClick={() => setIsMobileDrawerOpen(false)} aria-label="Đóng menu" className="inline-flex h-8 w-8 items-center justify-center rounded-xl hover:bg-muted"><CloseIcon className="h-4 w-4" /></button>
                   <a
                     href="/"
                     target="_blank"
@@ -754,8 +781,11 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                   <div className="lg:hidden bg-transparent mb-3.5">
                     <div
                       data-admin-tab-bar="true"
-                      className="flex items-center overflow-x-auto hide-scrollbar gap-1.5 px-0.5 pb-1 -mx-0.5 overscroll-x-contain"
+                      ref={mobileTabsRef}
+                      role="tablist" aria-label="Phân mục quản trị"
+                      className="admin-tabs flex items-center overflow-x-auto hide-scrollbar gap-1.5 px-0.5 pb-1 -mx-0.5 overscroll-x-contain"
                     >
+                      <span className="t-tabs-pill" aria-hidden="true" />
                       {taskItems.map((item) => {
                         const isActive = item.key === activeTaskKey;
                         return (
@@ -764,6 +794,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
                             ref={isActive ? activeTabRef : undefined}
                             type="button"
                             onClick={() => selectTab(item)}
+                            role="tab" aria-selected={isActive} tabIndex={isActive ? 0 : -1}
                             className={`shrink-0 rounded-full border px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                               isActive
                                 ? 'border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20'
@@ -781,7 +812,9 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               </AnimatedSection>
             ) : null}
 
-            {children}
+            <AdminPageTransition identity={`${currentPage}:${activeTaskKey}:${title}`}>
+              {children}
+            </AdminPageTransition>
           </div>
         </div>
       </div>

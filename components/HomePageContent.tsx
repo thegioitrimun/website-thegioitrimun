@@ -1577,10 +1577,11 @@ const HomepageIngredientAnalyzerSection: React.FC<{
 
                                 <div className="space-y-3">
                                     {faqItems.slice(0, 5).map((faq) => (
-                                        <div key={faq.id} className="overflow-hidden rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl shadow-xs dark:border-white/10 dark:bg-[rgba(15,23,42,0.6)]">
+                                        <div key={faq.id} data-open={openFaqId === faq.id} className="t-acc overflow-hidden rounded-[24px] border border-white/60 bg-white/70 backdrop-blur-xl shadow-xs dark:border-white/10 dark:bg-[rgba(15,23,42,0.6)]">
                                             <button
                                                 type="button"
                                                 onClick={() => onToggleFaq(openFaqId === faq.id ? null : faq.id)}
+                                                aria-expanded={openFaqId === faq.id}
                                                 className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left"
                                             >
                                                 <span className="font-hero-body text-sm font-black leading-6 text-foreground md:text-base">
@@ -1591,11 +1592,9 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                                                 </span>
                                             </button>
                                             <div
-                                                className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-                                                    openFaqId === faq.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-                                                }`}
+                                                className="t-acc-panel" aria-hidden={openFaqId !== faq.id}
                                             >
-                                                <div className="overflow-hidden">
+                                                <div className="t-acc-panel-inner min-h-0">
                                                     <div className="border-t border-border/60 px-5 py-4 font-hero-body text-sm leading-7 text-muted-foreground">
                                                         {getLocalized(faq, 'answer')}
                                                     </div>

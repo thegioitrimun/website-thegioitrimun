@@ -47,17 +47,17 @@ const FilterSection: React.FC<{ title: string; defaultOpen?: boolean; contentCla
   const [isOpen, setIsOpen] = React.useState(defaultOpen);
 
   return (
-    <details
-      open={isOpen}
-      onToggle={(event) => setIsOpen(event.currentTarget.open)}
-      className="group border-b border-border/70 py-4 last:border-b-0"
-    >
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 py-1">
+    <div className="t-acc border-b border-border/70 py-4 last:border-b-0" data-open={isOpen}>
+      <button type="button" aria-expanded={isOpen} onClick={() => setIsOpen(open => !open)} className="flex w-full items-center justify-between gap-3 py-1 text-left">
         <span className="text-sm font-black text-foreground">{title}</span>
-        <ChevronDownIcon className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
-      </summary>
-      <div className={`mt-4 space-y-2 ${contentClassName}`.trim()}>{children}</div>
-    </details>
+        <span className="t-acc-chevron"><ChevronDownIcon className="h-4 w-4 text-muted-foreground" /></span>
+      </button>
+      <div className="t-acc-panel" aria-hidden={!isOpen} ref={node => { if (node) node.inert = !isOpen; }}>
+        <div className="t-acc-panel-inner min-h-0">
+          <div className={`mt-4 space-y-2 ${contentClassName}`.trim()}>{children}</div>
+        </div>
+      </div>
+    </div>
   );
 };
 

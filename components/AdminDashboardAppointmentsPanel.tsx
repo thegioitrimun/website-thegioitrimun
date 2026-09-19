@@ -703,10 +703,11 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
         </div>
 
         {/* Collapsible / Desktop Grid Filters */}
+        <div className="t-acc admin-responsive-filter" data-open={showFilters}>
+          <div className="t-acc-panel">
+            <div className="t-acc-panel-inner">
         <div
-          className={`mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4 transition-all ${
-            showFilters ? 'grid' : 'hidden xl:grid'
-          }`}
+          className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-2 lg:grid-cols-4"
         >
           {activeFilterCount > 0 && (
             <div className="col-span-2 sm:col-span-2 lg:col-span-4 flex items-center justify-between pb-1 border-b border-border/20">
@@ -803,6 +804,9 @@ const AdminDashboardAppointmentsPanel: React.FC<AdminDashboardAppointmentsPanelP
                   className="w-full h-8 rounded-lg border-0 bg-background/30 backdrop-blur-xl shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),0_1px_0_rgba(255,255,255,0.1)] pl-9 pr-1 text-xs text-foreground focus:ring-1 focus:ring-primary/50 outline-none transition-all cursor-pointer min-w-0"
                 />
               </div>
+            </div>
+          </div>
+        </div>
             </div>
           </div>
         </div>

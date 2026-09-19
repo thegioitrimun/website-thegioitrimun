@@ -1,9 +1,11 @@
+import SurfacePresence from '../motion/SurfacePresence';
 import React, { useEffect, useState } from 'react';
 import HeroSection from './HeroSection';
 import MarqueeSection from './MarqueeSection';
 import AboutSection from './AboutSection';
 import ServicesSection from './ServicesSection';
 import ProjectsSection from './ProjectsSection';
+import StoriesSection from './StoriesSection';
 import BrandInciSection from './BrandInciSection';
 
 export interface AboutLandingProps {
@@ -113,7 +115,8 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
           3. AboutSection (Sứ mệnh)
           4. ServicesSection (Dịch vụ - nằm giữa Sứ mệnh và Sản phẩm)
           5. ProjectsSection (Sản phẩm)
-          6. BrandInciSection (Thương hiệu & Phân tích INCI)
+          6. StoriesSection (TGTM stories - Noho style)
+          7. BrandInciSection (Thương hiệu & Phân tích INCI)
       */}
       <div className="relative z-10">
         <HeroSection onContactClick={handleContact} />
@@ -121,18 +124,19 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
         <AboutSection onContactClick={handleContact} />
         <ServicesSection />
         <ProjectsSection />
+        <StoriesSection />
         <BrandInciSection />
       </div>
 
       {/* Optional Contact / Inquiry Modal */}
-      {isContactModalOpen && (
+      <SurfacePresence kind="modal">{isContactModalOpen && (
         <div
           id="contact"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+          data-motion-surface="true" className="motion-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
           onClick={() => setIsContactModalOpen(false)}
         >
           <div
-            className="relative w-full max-w-lg rounded-[32px] border-2 border-[#D7E2EA] bg-[#121212] p-8 sm:p-10 shadow-2xl flex flex-col gap-6"
+            data-motion-surface="true" role="dialog" aria-modal="true" aria-label="Liên hệ tư vấn" className="t-modal relative w-full max-w-lg rounded-[32px] border-2 border-[#D7E2EA] bg-[#121212] p-8 sm:p-10 shadow-2xl flex flex-col gap-6"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between">
@@ -189,7 +193,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
             </div>
           </div>
         </div>
-      )}
+      )}</SurfacePresence>
 
       {/* Floating subtle badge to return to clinic homepage if user arrived from TGTM */}
       {onBackToClinic && (
