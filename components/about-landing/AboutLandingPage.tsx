@@ -115,8 +115,8 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
           3. AboutSection (Sứ mệnh)
           4. ServicesSection (Dịch vụ - nằm giữa Sứ mệnh và Sản phẩm)
           5. ProjectsSection (Sản phẩm)
-          6. StoriesSection (TGTM stories - Noho style)
-          7. BrandInciSection (Thương hiệu & Phân tích INCI)
+          6. BrandInciSection (Thương hiệu & Phân tích INCI)
+          7. StoriesSection (TGTM stories - Section cuối cùng)
       */}
       <div className="relative z-10">
         <HeroSection onContactClick={handleContact} />
@@ -124,8 +124,8 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
         <AboutSection onContactClick={handleContact} />
         <ServicesSection />
         <ProjectsSection />
-        <StoriesSection />
         <BrandInciSection />
+        <StoriesSection />
       </div>
 
       {/* Optional Contact / Inquiry Modal */}
