@@ -1579,6 +1579,9 @@ const App: React.FC = () => {
             case 'about':
                 return (
                     <AboutPage
+                        posts={blogPosts}
+                        categories={blogCategories}
+                        onSelectPost={openBlogPost}
                         onBack={() => setView({ page: 'main' })}
                         onGoToServices={() => setView({ page: 'services' })}
                         onGoToBlog={() => setView({ page: 'blog' })}

@@ -5,14 +5,14 @@ import MarqueeSection from './MarqueeSection';
 import AboutSection from './AboutSection';
 import ServicesSection from './ServicesSection';
 import ProjectsSection from './ProjectsSection';
-import StoriesSection from './StoriesSection';
+import StoriesSection, { type StoriesSectionProps } from './StoriesSection';
 import BrandInciSection from './BrandInciSection';
 
-export interface AboutLandingProps {
+export interface AboutLandingProps extends StoriesSectionProps {
   onBackToClinic?: () => void;
 }
 
-export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }) => {
+export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic, posts, categories, onSelectPost }) => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic }
         <ServicesSection />
         <ProjectsSection />
         <BrandInciSection />
-        <StoriesSection />
+        {posts.some(post => post.slug && post.title) && <StoriesSection posts={posts} categories={categories} onSelectPost={onSelectPost} />}
       </div>
 
       {/* Optional Contact / Inquiry Modal */}

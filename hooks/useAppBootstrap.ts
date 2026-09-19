@@ -903,6 +903,7 @@ export const useAppBootstrap = ({
 
     useEffect(() => {
         const needsFullBlogCatalog = [
+            'about',
             'blog',
             'blogCategory',
             'serviceDetail',

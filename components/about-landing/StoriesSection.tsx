@@ -1,104 +1,43 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion';
 import FadeIn from './FadeIn';
+import { useTranslation } from 'react-i18next';
+import type { BlogPost, BlogCategory } from '../../types';
+import { getBlogDetailPath } from '../../src/appRouting';
+import { getLocalizedValue } from '../../src/relatedContent';
 
-export interface StoryArticle {
-  id: string;
-  theme: string;
-  title: string;
-  excerpt: string;
-  content: string[];
-  date: string;
-  image?: string;
-  author: string;
-  readTime: string;
+export interface StoriesSectionProps {
+  posts: BlogPost[];
+  categories: BlogCategory[];
+  onSelectPost: (slug: string, categorySlug?: string) => void;
 }
 
-const STORIES_DATA: StoryArticle[] = [
-  {
-    id: 'story-1',
-    theme: 'Phác đồ điều trị',
-    title: 'Cá nhân hóa phác đồ: Hành trình chữa lành mụn nội tiết dai dẳng sau 5 năm',
-    excerpt:
-      'Mụn nội tiết không đơn thuần là vấn đề bề mặt. Tại Thế Giới Trị Mụn, chúng tôi kết hợp phân tích bảng thành phần INCI, kiểm soát hàng rào bảo vệ da và phác đồ can thiệp chứng cứ y khoa để phục hồi tận gốc.',
-    content: [
-      'Mụn nội tiết dai dẳng là một trong những thách thức phổ biến nhất đối với bệnh nhân da liễu. Sau nhiều năm thử nghiệm vô số sản phẩm không kiểm soát, hàng rào bảo vệ da thường bị tổn thương nặng nề, kèm theo tình trạng viêm đỏ kéo dài.',
-      'Tại Thế Giới Trị Mụn, quy trình tiếp cận bắt đầu bằng việc giải mã toàn diện thói quen chăm sóc da và phân tích bảng thành phần INCI của mọi sản phẩm bệnh nhân đang dùng. Loại bỏ các hoạt chất gây bít tắc tiềm ẩn (comedogenic) và cồn khô gây kích ứng là bước tiên quyết.',
-      'Phác đồ được xây dựng theo từng giai đoạn: Kháng viêm êm dịu, ổn định tiết bã nhờn, phục hồi hệ vi sinh trên da và tái thiết lập lớp màng lipid tự nhiên. Kết quả lâm sàng sau 12 tuần cho thấy tỷ lệ giảm thương tổn viêm đạt trên 85% mà không gây tái phát.',
-    ],
-    date: '18 Tháng 9, 2026',
-    image: '/images/about/serum-intelderm-top.webp',
-    author: 'Bác sĩ Chuyên khoa Da liễu TGTM',
-    readTime: '4 phút đọc',
-  },
-  {
-    id: 'story-2',
-    theme: 'Khoa học da liễu',
-    title: 'Giải mã nguy cơ EWG & Bảng thành phần: Sự thật đằng sau nhãn mác mỹ phẩm',
-    excerpt:
-      'Không phải mọi hoạt chất "hot trend" đều an toàn cho làn da dễ bùng mụn. Cùng đội ngũ chuyên gia da liễu bóc tách các nhóm chất cồn khô, hương liệu nhân tạo và chất bảo quản phổ biến.',
-    content: [
-      'Trong thời đại thông tin bùng nổ, người tiêu dùng dễ dàng bị choáng ngợp bởi những lời quảng cáo hoa mỹ. Tuy nhiên, dưới góc nhìn da liễu y khoa, bảng thành phần INCI mới là bằng chứng xác thực nhất về độ an toàn của một sản phẩm.',
-      'Thang đo EWG (Environmental Working Group) cùng tiêu chuẩn CIR (Cosmetic Ingredient Review) cung cấp cơ sở dữ liệu khách quan về mức độ rủi ro kích ứng, độc tính tế bào và khả năng gây bít tắc nang lông.',
-      'Công cụ tra cứu INCI trực tiếp của Thế Giới Trị Mụn ra đời với sứ mệnh mang khoa học đến gần hơn với người dùng: Giúp bạn tự tin hiểu rõ từng giọt dưỡng chất thoa lên gương mặt mình.',
-    ],
-    date: '10 Tháng 9, 2026',
-    image: '/images/about/sunscreen-day-cream-top.webp',
-    author: 'Dược sĩ Lâm sàng & Đội ngũ Nghiên cứu',
-    readTime: '5 phút đọc',
-  },
-  {
-    id: 'story-3',
-    theme: 'Nghiên cứu lâm sàng',
-    title: 'Tretinoin vs Retinol: Lựa chọn dẫn xuất Vitamin A tối ưu cho nền da nhạy cảm',
-    excerpt:
-      'Nghiên cứu so sánh hiệu quả cải thiện sừng hóa nang lông, giảm bã nhờn và mức độ dung nạp lâm sàng giữa các nồng độ Retinoids khác nhau trên làn da người Việt.',
-    content: [
-      'Vitamin A và các phái sinh (Retinoids) được mệnh danh là tiêu chuẩn vàng trong điều trị mụn và trẻ hóa da. Tuy nhiên, việc lựa chọn giữa Retinol, Retinal hay Tretinoin thường khiến nhiều người lúng túng.',
-      'Tretinoin tác động trực tiếp lên thụ thể tế bào da mà không cần qua các bước chuyển hóa enzyme, mang lại hiệu quả cao nhưng đi kèm nguy cơ bùng viêm và bong tróc nếu thiếu sự giám sát y khoa.',
-      'Ngược lại, Retinaldehyde và Retinol bọc vi nang (encapsulated) đem lại sự cân bằng lý tưởng giữa hiệu quả và độ êm dịu. Phác đồ cá nhân hóa tại TGTM luôn bắt đầu từ nồng độ sinh học phù hợp nhất với ngưỡng chịu đựng của từng bệnh nhân.',
-    ],
-    date: '28 Tháng 8, 2026',
-    image: '/images/about/serum-tretinoin-bottom.webp',
-    author: 'Hội đồng Y khoa Thế Giới Trị Mụn',
-    readTime: '6 phút đọc',
-  },
-  {
-    id: 'story-4',
-    theme: 'Phục hồi chuyên sâu',
-    title: 'Tái thiết hàng rào Ceramide: Chìa khóa vàng ngăn ngừa mụn tái phát',
-    excerpt:
-      'Một hàng rào lipid suy yếu là cánh cửa mở cho vi khuẩn C. acnes tấn công. Khám phá cơ chế phục hồi sinh học đa tầng giúp da khỏe mạnh tự nhiên từ gốc.',
-    content: [
-      'Nhiều bệnh nhân trị mụn thường mắc sai lầm: Quá tập trung vào việc "diệt khuẩn" và "tẩy tế bào chết" mà quên mất rằng hàng rào biểu bì đang bị bào mòn nghiêm trọng.',
-      'Khi tỷ lệ Ceramide, Cholesterol và Acid béo tự do bị mất cân bằng, độ ẩm thoát qua da (TEWL) tăng vọt, tạo điều kiện thuận lợi cho phản ứng viêm bùng phát.',
-      'Chiến lược điều trị mụn hiện đại luôn song hành giữa hoạt chất đặc trị và phức hợp phục hồi màng tế bào. Chỉ khi hàng rào da vững chắc, làn da mới sở hữu khả năng tự bảo vệ bền vững.',
-    ],
-    date: '15 Tháng 8, 2026',
-    image: '/images/about/serum-seasonly-col2.webp',
-    author: 'Chuyên gia Trị liệu Da liễu',
-    readTime: '4 phút đọc',
-  },
-  {
-    id: 'story-5',
-    theme: 'Câu chuyện khách hàng',
-    title: 'Từ tự ti vì sẹo thâm đến tự tin rạng rỡ: Trải nghiệm thực tế của Mai Anh (24 tuổi)',
-    excerpt:
-      'Hành trình 12 tuần kiên trì cùng bác sĩ da liễu tại Phú Quốc: Không kem trộn, không lời hứa cấp tốc, chỉ có sự tận tâm và khoa học chính xác.',
-    content: [
-      '"Trước khi đến với Thế Giới Trị Mụn, tôi đã từng thử qua không biết bao nhiêu loại kem bôi được giới thiệu trên mạng. Hậu quả là da mỏng dần, mao mạch lộ rõ và mụn bọc nổi dày đặc." — Mai Anh chia sẻ.',
-      'Sau buổi thăm khám chuyên sâu và nội soi da vi điểm, bác sĩ đã thiết lập một lộ trình phục hồi nghiêm ngặt: Dừng toàn bộ sản phẩm không rõ nguồn gốc, phục hồi dịu nhẹ 4 tuần đầu, sau đó mới bước vào giai đoạn kiểm soát ổ viêm.',
-      'Sau 3 tháng, không chỉ mụn được kiểm soát hoàn toàn mà vết thâm cũng mờ dần đến 90%. Sự tự tin và nụ cười rạng rỡ trở lại trên gương mặt là phần thưởng quý giá nhất của đội ngũ TGTM.',
-    ],
-    date: '02 Tháng 8, 2026',
-    image: '/images/about/sunscreen-segle-col2.webp',
-    author: 'Ghi nhận thực tế tại Phòng khám TGTM',
-    readTime: '5 phút đọc',
-  },
-];
-
-export const StoriesSection: React.FC = () => {
-  const [selectedStory, setSelectedStory] = useState<StoryArticle | null>(null);
+export const StoriesSection: React.FC<StoriesSectionProps> = ({ posts, categories, onSelectPost }) => {
+  const { i18n } = useTranslation();
+  const reduceMotion = useReducedMotion();
+  const stories = useMemo(() => [...posts]
+    .filter(post => post.slug && post.title)
+    .sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0) || a.slug.localeCompare(b.slug))
+    .slice(0, 5)
+    .map(post => {
+      const date = new Date(post.date);
+      const category = categories.find(item => item.slug === post.category_slug);
+      return {
+        id: post.slug,
+        post,
+        href: getBlogDetailPath(post, categories),
+        title: getLocalizedValue(post, 'title', i18n.language),
+        excerpt: getLocalizedValue(post, 'summary', i18n.language),
+        theme: getLocalizedValue(category, 'name', i18n.language) || 'Kiến thức',
+        date: Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString(i18n.language === 'cn' ? 'zh-CN' : i18n.language, { day: '2-digit', month: 'long', year: 'numeric' }),
+        author: post.author?.name || 'Thế Giới Trị Mụn',
+      };
+    }), [posts, categories, i18n.language]);
+  const openStory = (event: React.MouseEvent<HTMLAnchorElement>, post: BlogPost) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    onSelectPost(post.slug, post.category_slug);
+  };
 
   // Outer container ref for scroll-pinned tracking
   const containerRef = useRef<HTMLDivElement>(null);
@@ -106,14 +45,10 @@ export const StoriesSection: React.FC = () => {
   const mobileScrollRef = useRef<HTMLDivElement>(null);
 
   const [trackDistance, setTrackDistance] = useState(0);
-  const [isDesktop, setIsDesktop] = useState(false);
 
   // Measure desktop window and calculate precise horizontal scroll travel
   useEffect(() => {
     const handleResize = () => {
-      const desktop = window.innerWidth >= 1024;
-      setIsDesktop(desktop);
-
       if (trackRef.current) {
         // Calculate the exact amount needed to reveal all cards with comfortable end padding
         const scrollWidth = trackRef.current.scrollWidth;
@@ -126,7 +61,7 @@ export const StoriesSection: React.FC = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [stories]);
 
   // Framer-motion scroll-driven progress across the section's vertical height
   const { scrollYProgress } = useScroll({
@@ -137,18 +72,6 @@ export const StoriesSection: React.FC = () => {
   // Smooth horizontal translation tied 100% to vertical scroll on desktop
   const x = useTransform(scrollYProgress, [0, 1], [0, -trackDistance]);
 
-  // Lock body scroll when in-place article reader modal is open
-  useEffect(() => {
-    if (selectedStory) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [selectedStory]);
-
   // Mobile scroll buttons helper
   const handleMobileScroll = (direction: 'left' | 'right') => {
     const el = mobileScrollRef.current;
@@ -156,7 +79,7 @@ export const StoriesSection: React.FC = () => {
     const amount = el.clientWidth * 0.8;
     el.scrollBy({
       left: direction === 'left' ? -amount : amount,
-      behavior: 'smooth',
+      behavior: reduceMotion ? 'auto' : 'smooth',
     });
   };
 
@@ -225,7 +148,7 @@ export const StoriesSection: React.FC = () => {
             style={{ x }}
             className="flex gap-6 will-change-transform pb-4"
           >
-            {STORIES_DATA.map((story, index) => {
+            {stories.map((story, index) => {
               const colorVariant = index % 3;
               const bgClasses =
                 colorVariant === 0
@@ -246,8 +169,9 @@ export const StoriesSection: React.FC = () => {
                   key={story.id}
                   className="shrink-0 w-[420px] max-w-[440px]"
                 >
-                  <div
-                    onClick={() => setSelectedStory(story)}
+                  <a
+                    href={story.href}
+                    onClick={event => openStory(event, story.post)}
                     className={`group relative h-full min-h-[440px] rounded-[36px] p-8 flex flex-col justify-between border shadow-lg transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer select-none ${bgClasses}`}
                   >
                     {/* Top Content */}
@@ -257,9 +181,6 @@ export const StoriesSection: React.FC = () => {
                           className={`inline-block px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${accentBadgeClasses}`}
                         >
                           {story.theme}
-                        </span>
-                        <span className="text-xs font-medium opacity-60">
-                          {story.readTime}
                         </span>
                       </div>
 
@@ -302,7 +223,7 @@ export const StoriesSection: React.FC = () => {
                         </svg>
                       </div>
                     </div>
-                  </div>
+                  </a>
                 </div>
               );
             })}
@@ -314,11 +235,11 @@ export const StoriesSection: React.FC = () => {
           ref={mobileScrollRef}
           className="lg:hidden w-full overflow-x-auto overflow-y-hidden scrollbar-none flex gap-4 sm:gap-6 pb-6 pt-2 snap-x snap-mandatory"
           style={{
-            scrollBehavior: 'smooth',
+            scrollBehavior: reduceMotion ? 'auto' : 'smooth',
             WebkitOverflowScrolling: 'touch',
           }}
         >
-          {STORIES_DATA.map((story, index) => {
+          {stories.map((story, index) => {
             const colorVariant = index % 3;
             const bgClasses =
               colorVariant === 0
@@ -339,8 +260,9 @@ export const StoriesSection: React.FC = () => {
                 key={story.id}
                 className="snap-start shrink-0 w-[85vw] sm:w-[380px]"
               >
-                <div
-                  onClick={() => setSelectedStory(story)}
+                <a
+                  href={story.href}
+                  onClick={event => openStory(event, story.post)}
                   className={`group relative h-full min-h-[420px] rounded-[32px] sm:rounded-[36px] p-6 sm:p-8 flex flex-col justify-between border shadow-lg cursor-pointer select-none ${bgClasses}`}
                 >
                   <div>
@@ -349,9 +271,6 @@ export const StoriesSection: React.FC = () => {
                         className={`inline-block px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold uppercase tracking-wider ${accentBadgeClasses}`}
                       >
                         {story.theme}
-                      </span>
-                      <span className="text-[11px] font-medium opacity-60">
-                        {story.readTime}
                       </span>
                     </div>
 
@@ -392,97 +311,13 @@ export const StoriesSection: React.FC = () => {
                       </svg>
                     </div>
                   </div>
-                </div>
+                </a>
               </div>
             );
           })}
         </div>
       </div>
 
-      {/* 4. Interactive Article Reader Modal (Noho.ink Inspired) */}
-      <AnimatePresence>
-        {selectedStory && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
-            onClick={() => setSelectedStory(null)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.94, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 20 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-[32px] sm:rounded-[40px] bg-white dark:bg-[#0c182a] text-slate-900 dark:text-[#E2E8F0] border border-slate-200 dark:border-white/10 shadow-2xl p-6 sm:p-10 select-text scrollbar-none"
-            >
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={() => setSelectedStory(null)}
-                className="absolute top-5 right-5 sm:top-7 sm:right-7 w-10 h-10 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-600 dark:text-white flex items-center justify-center transition-colors cursor-pointer"
-                aria-label="Đóng"
-              >
-                ✕
-              </button>
-
-              {/* Tag & Date */}
-              <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-teal-300 text-xs font-semibold uppercase tracking-wider">
-                  {selectedStory.theme}
-                </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">
-                  {selectedStory.date} · {selectedStory.readTime}
-                </span>
-              </div>
-
-              {/* Title */}
-              <h2 className="font-heading font-bold text-2xl sm:text-3xl md:text-4xl text-slate-950 dark:text-white leading-tight mb-4 pr-8">
-                {selectedStory.title}
-              </h2>
-
-              {/* Author */}
-              <div className="flex items-center gap-3 pb-6 mb-6 border-b border-slate-200 dark:border-white/10">
-                <div className="w-10 h-10 rounded-full bg-primary/20 dark:bg-teal-500/20 text-primary dark:text-teal-300 font-bold flex items-center justify-center text-sm">
-                  TG
-                </div>
-                <div>
-                  <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200">
-                    {selectedStory.author}
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Thế Giới Trị Mụn · Chăm sóc da chuẩn y khoa
-                  </p>
-                </div>
-              </div>
-
-              {/* Content Body */}
-              <div className="space-y-4 text-sm sm:text-base leading-relaxed text-slate-700 dark:text-slate-300 font-sans">
-                {selectedStory.content.map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
-                ))}
-              </div>
-
-              {/* Footer CTA */}
-              <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10 flex flex-wrap items-center justify-between gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedStory(null)}
-                  className="px-5 py-2.5 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-white/5 transition-colors cursor-pointer"
-                >
-                  Đóng bài viết
-                </button>
-
-                <a
-                  href="/kien-thuc"
-                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-all shadow-md cursor-pointer"
-                >
-                  <span>Khám phá thêm kiến thức</span>
-                  <span>→</span>
-                </a>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };
