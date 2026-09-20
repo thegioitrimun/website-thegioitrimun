@@ -233,10 +233,12 @@ export const StoriesSection: React.FC<StoriesSectionProps> = ({ posts, categorie
         {/* 3. Mobile / Tablet: Smooth Native Horizontal Scroll & Snap Track */}
         <div
           ref={mobileScrollRef}
-          className="lg:hidden w-full overflow-x-auto overflow-y-hidden scrollbar-none flex gap-4 sm:gap-6 pb-6 pt-2 snap-x snap-mandatory"
+          className="lg:hidden w-full overflow-x-auto overflow-y-hidden scrollbar-none [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden flex gap-4 sm:gap-6 pb-6 pt-2 snap-x snap-mandatory"
           style={{
             scrollBehavior: reduceMotion ? 'auto' : 'smooth',
             WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
           {stories.map((story, index) => {
