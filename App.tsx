@@ -1579,6 +1579,8 @@ const App: React.FC = () => {
             case 'about':
                 return (
                     <AboutPage
+                        services={services}
+                        onSelectService={(id) => setView({ page: 'serviceDetail', id })}
                         posts={blogPosts}
                         categories={blogCategories}
                         onSelectPost={openBlogPost}
@@ -1928,7 +1930,7 @@ const App: React.FC = () => {
                 )}
             </main>
 
-            {!isAdminView && !isAboutLandingPage ? (
+            {!isAdminView ? (
             <footer id="footer" className="relative overflow-hidden border-t border-border/70 bg-white text-foreground transition-colors duration-300 dark:border-white/10 dark:bg-[linear-gradient(180deg,#0a111b_0%,#0d1623_52%,#0d1e24_100%)]">
                 <div className="container relative mx-auto px-2 py-16 md:px-6 md:py-20">
                     <AnimatedSection className="overflow-hidden rounded-[36px] border-0 bg-transparent px-2 py-8 shadow-none md:p-10 lg:p-12">
