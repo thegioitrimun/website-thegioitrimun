@@ -221,7 +221,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                 </header>
 
                 {!isDesktop && (
-                    <div role="tablist" aria-label={t('common.search_placeholder')} className="mb-3 grid shrink-0 grid-cols-3 border-b border-border">
+                    <div role="tablist" aria-label={t('common.search_placeholder')} className="mb-2.5 grid shrink-0 grid-cols-3 border-b border-border">
                         {sections.map((section, index) => (
                             <button key={section.key} id={`${id}-tab-${section.key}`} type="button" role="tab" aria-selected={activeSection === section.key} aria-controls={`${id}-panel-${section.key}`} tabIndex={activeSection === section.key ? 0 : -1}
                                 onClick={() => setActiveSection(section.key)}
@@ -232,9 +232,13 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                                     setActiveSection(sections[next].key);
                                     document.getElementById(`${id}-tab-${sections[next].key}`)?.focus();
                                 }}
-                                className={`flex min-h-10 min-w-0 flex-col items-center justify-center gap-0.5 whitespace-nowrap border-b-2 px-1 py-1.5 text-xs sm:text-sm font-semibold ${activeSection === section.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-                                {section.label}
-                                {hasQuery && <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">{section.count}</span>}
+                                className={`flex items-center justify-center gap-1.5 whitespace-nowrap border-b-2 py-2 px-1 text-xs sm:text-sm font-semibold transition-colors ${activeSection === section.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+                                <span>{section.label}</span>
+                                {hasQuery && (
+                                    <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium tabular-nums leading-none ${activeSection === section.key ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                                        {section.count}
+                                    </span>
+                                )}
                             </button>
                         ))}
                     </div>
