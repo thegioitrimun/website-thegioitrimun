@@ -28,9 +28,14 @@ html.is-pwa #root #footer {
   padding-bottom: var(--pwa-safe-bottom);
 }
 
-html.is-pwa #root [aria-modal="true"] > .container {
+html.is-pwa #root [aria-modal="true"] > .container:not(.site-search-panel) {
   padding-left: max(1rem, var(--pwa-safe-left));
   padding-right: max(1rem, var(--pwa-safe-right));
+}
+
+html.is-pwa #root [aria-modal="true"] > .site-search-panel {
+  padding-left: max(0.5rem, var(--pwa-safe-left));
+  padding-right: max(0.5rem, var(--pwa-safe-right));
 }
 
 html.is-pwa #root [aria-modal="true"] > .container > header,

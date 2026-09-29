@@ -3,16 +3,16 @@ import React, { useEffect, useState } from 'react';
 import HeroSection from './HeroSection';
 import MarqueeSection from './MarqueeSection';
 import AboutSection from './AboutSection';
-import ServicesSection from './ServicesSection';
+import ServicesSection, { type ServicesSectionProps } from './ServicesSection';
 import ProjectsSection from './ProjectsSection';
 import StoriesSection, { type StoriesSectionProps } from './StoriesSection';
 import BrandInciSection from './BrandInciSection';
 
-export interface AboutLandingProps extends StoriesSectionProps {
+export interface AboutLandingProps extends StoriesSectionProps, ServicesSectionProps {
   onBackToClinic?: () => void;
 }
 
-export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic, posts, categories, onSelectPost }) => {
+export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic, posts, categories, onSelectPost, services, onSelectService }) => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     if (typeof document !== 'undefined') {
@@ -156,7 +156,7 @@ export const AboutLandingPage: React.FC<AboutLandingProps> = ({ onBackToClinic, 
         <HeroSection onContactClick={handleContact} />
         <MarqueeSection />
         <AboutSection onContactClick={handleContact} />
-        <ServicesSection />
+        <ServicesSection services={services} onSelectService={onSelectService} />
         <ProjectsSection />
         <BrandInciSection />
         {posts.some(post => post.slug && post.title) && <StoriesSection posts={posts} categories={categories} onSelectPost={onSelectPost} />}

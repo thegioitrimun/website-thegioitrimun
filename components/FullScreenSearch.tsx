@@ -1,5 +1,5 @@
 import useOverlayMotion from './motion/useOverlayMotion';
-import React, { useState, useEffect, useRef, useMemo, useDeferredValue } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useDeferredValue, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Product, Service, View, BlogPost } from '../types';
 import { SearchIcon, CloseIcon } from './icons';
@@ -14,6 +14,7 @@ interface FullScreenSearchProps {
     blogPosts: BlogPost[];
     hasFullProductCatalog?: boolean;
     isProductCatalogLoading?: boolean;
+    isBlogCatalogLoading?: boolean;
     onNavigate: (view: View) => void;
 }
 
@@ -37,6 +38,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
     blogPosts,
     hasFullProductCatalog = true,
     isProductCatalogLoading = false,
+    isBlogCatalogLoading = false,
     onNavigate,
 }) => {
     const { t, i18n } = useTranslation();
@@ -45,7 +47,10 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
     const [isSearchCatalogLoading, setIsSearchCatalogLoading] = useState(false);
     const deferredSearchTerm = useDeferredValue(searchTerm);
     const inputRef = useRef<HTMLInputElement>(null);
-    const isMobile = useMediaQuery('(max-width: 768px)');
+    const isDesktop = useMediaQuery('(min-width: 1024px)');
+    const [activeSection, setActiveSection] = useState<'products' | 'services' | 'blogPosts'>('products');
+    const [visibleLimit, setVisibleLimit] = useState(12);
+    const id = useId();
 
     const getLocalized = (obj: any, field: string): string => {
         if (!obj) return '';
@@ -58,7 +63,10 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
     };
 
     const overlay = useOverlayMotion(isOpen, onClose);
-    useEffect(() => { if (!overlay.mounted) setSearchTerm(''); }, [overlay.mounted]);
+    useEffect(() => {
+        if (!overlay.mounted) { setSearchTerm(''); setActiveSection('products'); }
+    }, [overlay.mounted]);
+    useEffect(() => { setVisibleLimit(8); }, [deferredSearchTerm]);
 
     useEffect(() => {
         if (!isOpen || hasFullProductCatalog || searchCatalog.length > 0) return;
@@ -69,6 +77,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
             .then((catalog) => {
                 if (isActive) setSearchCatalog(catalog);
             })
+            .catch(() => { /* Keep the available product results if the catalog request fails. */ })
             .finally(() => {
                 if (isActive) setIsSearchCatalogLoading(false);
             });
@@ -130,168 +139,70 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
 
         const filteredServices = serviceSearchIndex
             .filter(({ text }) => searchTokens.every((token) => text.includes(token)))
-            .slice(0, 3)
             .map(({ item }) => item);
 
         const filteredBlogPosts = blogSearchIndex
             .filter(({ text }) => searchTokens.every((token) => text.includes(token)))
-            .slice(0, 4)
             .map(({ item }) => item);
 
         return { products: filteredProducts, services: filteredServices, blogPosts: filteredBlogPosts };
     }, [blogSearchIndex, deferredSearchTerm, productSearchIndex, serviceSearchIndex]);
 
-    const visibleProducts = useMemo(
-        () => searchResults.products.slice(0, isMobile ? 8 : 12),
-        [isMobile, searchResults.products],
-    );
-
-    const topBrandSuggestions = useMemo(() => {
-        const counts = new Map<string, number>();
-        searchResults.products.forEach((product) => {
-            if (!product.brand) return;
-            counts.set(product.brand, (counts.get(product.brand) || 0) + 1);
-        });
-        return Array.from(counts.entries())
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-            .slice(0, 4);
-    }, [searchResults.products]);
-
-    const topConcernSuggestions = useMemo(() => {
-        const counts = new Map<string, number>();
-        searchResults.products.forEach((product) => {
-            (product.key_benefits || []).forEach((benefit) => {
-                counts.set(benefit, (counts.get(benefit) || 0) + 1);
-            });
-        });
-        return Array.from(counts.entries())
-            .map(([name, count]) => ({ name, count }))
-            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-            .slice(0, 4);
-    }, [searchResults.products]);
-
     const handleNavigate = (view: View) => {
         onNavigate(view);
         onClose();
     };
-
-    const resultSummary = isMobile
-        ? [
-            { key: 'products', label: t('nav.products').toLowerCase(), count: searchResults.products.length },
-            { key: 'blogPosts', label: t('nav.blog').toLowerCase(), count: searchResults.blogPosts.length },
-            { key: 'services', label: t('nav.services').toLowerCase(), count: searchResults.services.length },
-        ]
-        : [
-            { key: 'products', label: t('nav.products').toLowerCase(), count: searchResults.products.length },
-            { key: 'services', label: t('nav.services').toLowerCase(), count: searchResults.services.length },
-            { key: 'blogPosts', label: t('nav.blog').toLowerCase(), count: searchResults.blogPosts.length },
-        ];
-
-    const resultSectionOrder = isMobile
-        ? ['products', 'blogPosts', 'services'] as const
-        : ['products', 'services', 'blogPosts'] as const;
-
-    const renderResultSection = (section: typeof resultSectionOrder[number]) => {
-        if (section === 'products' && searchResults.products.length > 0) {
-            const shouldScrollProducts = searchResults.products.length > 6;
-            return (
-                <div key="products" className="mb-6">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h2 className="text-sm font-semibold uppercase text-muted-foreground">{t('nav.products')}</h2>
-                        <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-bold text-primary">
-                            {t('search.product_results_count', {
-                                count: searchResults.products.length,
-                                defaultValue: `${searchResults.products.length} sản phẩm`,
-                            })}
-                        </span>
+    const hasQuery = Boolean(searchTerm.trim());
+    const sections = [
+        { key: 'products', label: t('nav.products'), count: searchResults.products.length, loading: !hasFullProductCatalog && (isSearchCatalogLoading || isProductCatalogLoading) },
+        { key: 'services', label: t('nav.services'), count: searchResults.services.length, loading: false },
+        { key: 'blogPosts', label: t('nav.knowledge'), count: searchResults.blogPosts.length, loading: isBlogCatalogLoading },
+    ] as const;
+    const itemClass = 'flex w-full items-start gap-2.5 rounded-lg p-2 text-left transition-colors hover:bg-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary';
+    const renderItems = (section: typeof sections[number]['key']) => {
+        if (section === 'products') return searchResults.products.slice(0, visibleLimit).map(product => (
+            <li key={product.id}>
+                <button type="button" onClick={() => handleNavigate({ page: 'productDetail', id: product.slug || product.id, categorySlug: product.category?.slug || product.category_slug })} className={itemClass}>
+                    <img src={product.images?.[0]?.image_url} alt="" loading="lazy" className="h-11 w-11 shrink-0 rounded-md bg-muted object-cover" />
+                    <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2">{getLocalized(product, 'name')}</p>
+                        <p className="mt-0.5 text-xs font-semibold text-primary">{formatCurrency(product.price)}</p>
                     </div>
-                    <ul className={`space-y-2 ${shouldScrollProducts ? 'max-h-[52vh] overflow-y-auto overscroll-contain pr-1 md:max-h-[58vh] [-webkit-overflow-scrolling:touch]' : ''}`}>
-                        {visibleProducts.map(p => (
-                            <li key={`prod-${p.id}`}>
-                                <button onClick={() => handleNavigate({ page: 'productDetail', id: p.slug || p.id, categorySlug: p.category?.slug || p.category_slug })} className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-accent text-left">
-                                    <img src={p.images?.[0]?.image_url} alt={getLocalized(p, 'name')} className="w-12 h-12 object-cover rounded-md flex-shrink-0" />
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{getLocalized(p, 'name')}</p>
-                                        <p className="text-sm text-primary">{formatCurrency(p.price)}</p>
-                                    </div>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                    {searchResults.products.length > visibleProducts.length ? (
-                        <button
-                            type="button"
-                            onClick={() => handleNavigate({ page: 'products', searchQuery: searchTerm.trim() })}
-                            className="mt-3 w-full rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold text-primary transition hover:border-primary/40 hover:bg-primary/5"
-                        >
-                            {t('search.view_all_product_results', {
-                                count: searchResults.products.length,
-                                defaultValue: `Xem tất cả ${searchResults.products.length} sản phẩm`,
-                            })}
-                        </button>
-                    ) : shouldScrollProducts ? (
-                        <p className="mt-2 text-xs font-medium text-muted-foreground">
-                            {t('search.scroll_for_more_products', 'Cuộn trong danh sách để xem thêm sản phẩm phù hợp.')}
-                        </p>
-                    ) : null}
-                </div>
-            );
-        }
-
-        if (section === 'blogPosts' && searchResults.blogPosts.length > 0) {
-            return (
-                <div key="blogPosts" className="mb-6">
-                    <h2 className="text-sm font-semibold uppercase text-muted-foreground mb-3">{t('nav.blog')}</h2>
-                    <ul className="space-y-2">
-                        {searchResults.blogPosts.map(p => (
-                            <li key={`post-${p.slug}`}>
-                                <button onClick={() => handleNavigate({ page: 'blogDetail', slug: p.slug, categorySlug: p.category_slug })} className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-accent text-left">
-                                    <img src={p.image_url} alt={getLocalized(p, 'title')} className="w-12 h-12 object-cover rounded-md flex-shrink-0" />
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{getLocalized(p, 'title')}</p>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">{getLocalized(p, 'summary')}</p>
-                                    </div>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            );
-        }
-
-        if (section === 'services' && searchResults.services.length > 0) {
-            return (
-                <div key="services" className="mb-6">
-                    <h2 className="text-sm font-semibold uppercase text-muted-foreground mb-3">{t('nav.services')}</h2>
-                    <ul className="space-y-2">
-                        {searchResults.services.map(s => (
-                            <li key={`serv-${s.id}`}>
-                                <button onClick={() => handleNavigate({ page: 'serviceDetail', id: s.id })} className="w-full flex items-center gap-4 p-3 rounded-lg hover:bg-accent text-left">
-                                    <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-md flex items-center justify-center text-primary">{api.getIcon(s.icon, { className: 'w-6 h-6' })}</div>
-                                    <div className="flex-grow">
-                                        <p className="font-semibold">{getLocalized(s, 'name')}</p>
-                                        <p className="text-sm text-muted-foreground line-clamp-1">{getLocalized(s, 'description')}</p>
-                                    </div>
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            );
-        }
-
-        return null;
+                </button>
+            </li>
+        ));
+        if (section === 'services') return searchResults.services.slice(0, visibleLimit).map(service => (
+            <li key={service.id}>
+                <button type="button" onClick={() => handleNavigate({ page: 'serviceDetail', id: service.id })} className={itemClass}>
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">{api.getIcon(service.icon, { className: 'h-5 w-5' })}</div>
+                    <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2">{getLocalized(service, 'name')}</p>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{getLocalized(service, 'description')}</p>
+                    </div>
+                </button>
+            </li>
+        ));
+        return searchResults.blogPosts.slice(0, visibleLimit).map(post => (
+            <li key={post.slug}>
+                <button type="button" onClick={() => handleNavigate({ page: 'blogDetail', slug: post.slug, categorySlug: post.category_slug })} className={itemClass}>
+                    <img src={post.image_url} alt="" loading="lazy" className="h-11 w-11 shrink-0 rounded-md bg-muted object-cover" />
+                    <div className="min-w-0 flex-1">
+                        <p className="text-xs sm:text-sm font-semibold leading-snug line-clamp-2">{getLocalized(post, 'title')}</p>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{getLocalized(post, 'summary')}</p>
+                    </div>
+                </button>
+            </li>
+        ));
     };
 
     if (!overlay.mounted) return null;
 
     return (
         <div ref={overlay.ref} data-open={overlay.visible} aria-hidden={!isOpen} aria-label={t('common.search_placeholder')} className="site-overlay fixed inset-0 z-[100]" role="dialog" aria-modal="true">
-            <div className="site-overlay-backdrop absolute inset-0 !bg-background/95" onClick={onClose}></div>
-            <div className="site-search-panel container relative z-10 mx-auto px-4 h-full flex flex-col">
+            <div className="site-overlay-backdrop absolute inset-0 !bg-background" onClick={onClose}></div>
+            <div className="site-search-panel container relative z-10 mx-auto px-2 py-0 h-full flex flex-col">
                 {/* Header */}
-                <header className="flex-shrink-0 flex items-center justify-between pt-[max(env(safe-area-inset-top,0px),1rem)] pb-4">
+                <header className="flex-shrink-0 flex items-center justify-between pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-3">
                     <div className="relative w-full">
                         <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                         <input
@@ -301,7 +212,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder={t('common.search_placeholder')}
-                            className="w-full bg-transparent border-0 pl-12 pr-4 py-3 text-lg outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
+                            className="w-full bg-transparent border-0 pl-12 pr-4 py-2.5 text-base sm:text-lg outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
                         />
                     </div>
                     <button aria-label={t('common.close')} onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground">
@@ -309,101 +220,51 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                     </button>
                 </header>
 
-                {/* Results */}
-                <div className="flex-grow overflow-y-auto pb-8">
-                    {searchTerm.trim() ? (
-                        <div>
-                            {!isMobile && (
-                                <>
-                                    <div className="mb-6 rounded-2xl border border-border bg-card px-4 py-4">
-                                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{t('search.quick_overview', 'Tổng quan nhanh')}</p>
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {resultSummary.map((entry) => (
-                                                <span key={entry.key} className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground dark:border-white/10 dark:bg-card">
-                                                    {entry.count} {entry.label}
-                                                </span>
-                                            ))}
-                                        </div>
-
-                                        {(topBrandSuggestions.length > 0 || topConcernSuggestions.length > 0) && (
-                                            <div className="mt-4 space-y-3">
-                                                {topBrandSuggestions.length > 0 && (
-                                                    <div>
-                                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{t('search.trending_brands', 'Thương hiệu đang nổi lên')}</p>
-                                                        <div className="mt-2 flex flex-wrap gap-2">
-                                                            {topBrandSuggestions.map((brand) => (
-                                                                <button
-                                                                    key={brand.name}
-                                                                    type="button"
-                                                                    onClick={() => setSearchTerm(brand.name)}
-                                                                    className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/35 hover:text-primary dark:border-white/10 dark:bg-card"
-                                                                >
-                                                                    {brand.name}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {topConcernSuggestions.length > 0 && (
-                                                    <div>
-                                                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">{t('search.related_concerns', 'Vấn đề da liên quan')}</p>
-                                                        <div className="mt-2 flex flex-wrap gap-2">
-                                                            {topConcernSuggestions.map((concern) => (
-                                                                <button
-                                                                    key={concern.name}
-                                                                    type="button"
-                                                                    onClick={() => setSearchTerm(concern.name)}
-                                                                    className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary/35 hover:text-primary dark:border-white/10 dark:bg-card"
-                                                                >
-                                                                    {concern.name}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="mb-6 grid gap-3 sm:grid-cols-2">
-                                        <button
-                                            onClick={() => handleNavigate({ page: 'products', searchQuery: searchTerm.trim() })}
-                                            className="rounded-2xl border border-border bg-card px-4 py-4 text-left transition hover:border-primary/40 hover:bg-primary/5"
-                                        >
-                                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{t('search.quick_discovery', 'Khám phá nhanh')}</p>
-                                            <p className="mt-2 text-base font-bold text-foreground">{t('search.explore_products_title', 'Xem tất cả sản phẩm theo từ khóa')}</p>
-                                            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                                                {t('search.explore_products_desc', {
-                                                    keyword: searchTerm.trim(),
-                                                    defaultValue: `Mở danh sách sản phẩm đã lọc theo "${searchTerm.trim()}" để so sánh thêm sản phẩm cùng vấn đề da.`,
-                                                })}
-                                            </p>
-                                        </button>
-                                        <button
-                                            onClick={() => handleNavigate({ page: 'blog' })}
-                                            className="rounded-2xl border border-border bg-card px-4 py-4 text-left transition hover:border-primary/40 hover:bg-primary/5"
-                                        >
-                                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{t('search.related_knowledge', 'Kiến thức liên quan')}</p>
-                                            <p className="mt-2 text-base font-bold text-foreground">{t('search.open_blog_title', 'Mở thư viện bài viết')}</p>
-                                            <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                                                {t('search.open_blog_desc', 'Tiếp tục đọc các bài hướng dẫn, giải thích thành phần và bối cảnh điều trị liên quan đến từ khóa này.')}
-                                            </p>
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                            {!hasFullProductCatalog && (isSearchCatalogLoading || isProductCatalogLoading) ? (
-                                <div className="mb-6 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-semibold text-muted-foreground">
-                                    {t('search.loading_product_search_catalog', 'Đang cập nhật kết quả sản phẩm...')}
+                {!isDesktop && (
+                    <div role="tablist" aria-label={t('common.search_placeholder')} className="mb-3 grid shrink-0 grid-cols-3 border-b border-border">
+                        {sections.map((section, index) => (
+                            <button key={section.key} id={`${id}-tab-${section.key}`} type="button" role="tab" aria-selected={activeSection === section.key} aria-controls={`${id}-panel-${section.key}`} tabIndex={activeSection === section.key ? 0 : -1}
+                                onClick={() => setActiveSection(section.key)}
+                                onKeyDown={event => {
+                                    const next = event.key === 'ArrowRight' ? (index + 1) % 3 : event.key === 'ArrowLeft' ? (index + 2) % 3 : event.key === 'Home' ? 0 : event.key === 'End' ? 2 : -1;
+                                    if (next < 0) return;
+                                    event.preventDefault();
+                                    setActiveSection(sections[next].key);
+                                    document.getElementById(`${id}-tab-${sections[next].key}`)?.focus();
+                                }}
+                                className={`flex min-h-10 min-w-0 flex-col items-center justify-center gap-0.5 whitespace-nowrap border-b-2 px-1 py-1.5 text-xs sm:text-sm font-semibold ${activeSection === section.key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
+                                {section.label}
+                                {hasQuery && <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] tabular-nums">{section.count}</span>}
+                            </button>
+                        ))}
+                    </div>
+                )}
+                <div className="min-h-0 flex-1 overflow-y-auto pb-[max(env(safe-area-inset-bottom,0px),1rem)] lg:overflow-hidden">
+                    <div className="grid min-h-0 grid-cols-1 lg:h-full lg:grid-cols-3 lg:divide-x lg:divide-border" data-search-columns>
+                        {sections.map(section => (
+                            <section key={section.key} id={`${id}-panel-${section.key}`} data-search-section={section.key} hidden={!isDesktop && activeSection !== section.key}
+                                role={isDesktop ? 'region' : 'tabpanel'} aria-labelledby={isDesktop ? `${id}-heading-${section.key}` : `${id}-tab-${section.key}`} aria-busy={section.loading}
+                                className={`${!isDesktop && activeSection !== section.key ? 'hidden' : 'flex'} min-h-0 min-w-0 flex-col lg:px-3 lg:first:pl-0 lg:last:pr-0`}>
+                                <div className="mb-2 hidden shrink-0 items-center justify-between gap-2 border-b border-border pb-2 lg:flex">
+                                    <h2 id={`${id}-heading-${section.key}`} className="text-sm sm:text-base font-bold tracking-tight">{section.label}</h2>
+                                    {hasQuery && <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold tabular-nums text-primary">{section.count}</span>}
                                 </div>
-                            ) : null}
-                            {resultSectionOrder.map((section) => renderResultSection(section))}
-                            {searchResults.products.length === 0 && searchResults.services.length === 0 && searchResults.blogPosts.length === 0 && !isSearchCatalogLoading && !isProductCatalogLoading && (
-                                <p className="text-center text-muted-foreground py-10">{t('common.no_results')} "{searchTerm}".</p>
-                            )}
-                        </div>
-                    ) : (
-                        <p className="text-center text-muted-foreground py-10">{t('common.start_search')}</p>
-                    )}
+                                <div className="min-h-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain">
+                                    {section.loading && <p role="status" className="px-2 py-2 text-xs text-muted-foreground">{t('common.loading', 'Đang tải...')}</p>}
+                                    {!hasQuery ? <p className="px-2 py-6 text-center text-xs leading-relaxed text-muted-foreground">{t('common.start_search')}</p> : section.count === 0 && !section.loading ? <p className="px-2 py-6 text-center text-xs leading-relaxed text-muted-foreground">{t('common.no_results')} “{searchTerm.trim()}”.</p> : null}
+                                    <ul className="space-y-0.5">{renderItems(section.key)}</ul>
+                                    {section.count > visibleLimit && (
+                                        <button type="button" onClick={() => setVisibleLimit(limit => limit + 12)} className="mt-2 w-full rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/5">{t('common.load_more', 'Xem thêm')}</button>
+                                    )}
+                                    {section.key === 'products' && section.count > 0 && (
+                                        <button type="button" onClick={() => handleNavigate({ page: 'products', searchQuery: searchTerm.trim() })} className="mt-2 w-full rounded-lg border border-border px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/5">
+                                            {t('search.view_all_product_results', { count: section.count, defaultValue: `Xem tất cả ${section.count} sản phẩm` })}
+                                        </button>
+                                    )}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

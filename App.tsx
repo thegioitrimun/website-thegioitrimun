@@ -1753,7 +1753,7 @@ const App: React.FC = () => {
         <div className={`${isAboutLandingPage ? 'bg-[#0C0C0C]' : 'bg-background'} text-foreground transition-colors duration-300`}>
             {!isAdminView ? (
                 <Suspense fallback={null}>
-                    <FullScreenSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} products={products} services={services} blogPosts={blogPosts} hasFullProductCatalog={hasFullProductCatalog} isProductCatalogLoading={isProductCatalogLoading} onNavigate={handleNavigate} />
+                    <FullScreenSearch isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} products={products} services={services} blogPosts={blogPosts} isBlogCatalogLoading={isBlogCatalogLoading} hasFullProductCatalog={hasFullProductCatalog} isProductCatalogLoading={isProductCatalogLoading} onNavigate={handleNavigate} />
                     <MiniCart onNavigate={handleNavigate} />
                     <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} navLinks={navLinks} onNavLinkClick={handleNavLinkClick} currentUser={currentUser} services={services} doctors={doctors} isDoctorsLoading={isDoctorsHydrationLoading} onBookingComplete={handleBookingComplete} onGoToAuth={() => setView({ page: 'auth' })} onLogout={handleLogout} onGoToAccount={() => setView({ page: 'account' })} />
                 </Suspense>
