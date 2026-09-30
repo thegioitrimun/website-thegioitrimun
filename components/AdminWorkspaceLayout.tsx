@@ -210,7 +210,12 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   useEffect(() => {
-    if (drawerRef.current) drawerRef.current.inert = !isMobileDrawerOpen;
+    if (drawerRef.current) {
+      if (!isMobileDrawerOpen && drawerRef.current.contains(document.activeElement)) {
+        (document.activeElement as HTMLElement | null)?.blur();
+      }
+      drawerRef.current.inert = !isMobileDrawerOpen;
+    }
     if (!isMobileDrawerOpen) return;
     const previousFocus = document.activeElement as HTMLElement | null;
     drawerRef.current?.querySelector<HTMLElement>('button, a')?.focus();
@@ -611,7 +616,6 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
             ref={drawerRef}
             className="admin-drawer fixed inset-0 z-[100] lg:hidden"
             data-open={isMobileDrawerOpen}
-            aria-hidden={!isMobileDrawerOpen}
             role="dialog"
             aria-modal="true"
             aria-label="Điều hướng quản trị"
@@ -621,7 +625,7 @@ const AdminWorkspaceLayout: React.FC<AdminWorkspaceLayoutProps> = ({
               className={`absolute inset-0 bg-background/80 backdrop-blur-sm transition-opacity duration-300 ${
                 isMobileDrawerOpen ? 'opacity-100' : 'opacity-0'
               }`}
-              onClick={() => setIsMobileDrawerOpen(false)}
+              onClick={() => { (document.activeElement as HTMLElement | null)?.blur(); setIsMobileDrawerOpen(false); }}
             />
 
             {/* Drawer Content */}

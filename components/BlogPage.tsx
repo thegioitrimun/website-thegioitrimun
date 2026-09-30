@@ -688,7 +688,7 @@ const BlogPage: React.FC<BlogPageProps> = ({
 
         {/* Mobile Frosted Glass Filter Drawer */}
         {filtersOverlay.mounted ? (
-          <div ref={filtersOverlay.ref} data-open={filtersOverlay.visible} aria-hidden={!isFilterOpen} role="dialog" aria-modal="true" aria-label={t('blog.choose_topic', 'Chọn chủ đề')} className="site-overlay fixed inset-0 z-[110]" onClick={() => setIsFilterOpen(false)}>
+          <div ref={filtersOverlay.ref} data-open={filtersOverlay.visible} role="dialog" aria-modal="true" aria-label={t('blog.choose_topic', 'Chọn chủ đề')} className="site-overlay fixed inset-0 z-[110]" onClick={() => { (document.activeElement as HTMLElement | null)?.blur(); setIsFilterOpen(false); }}>
             <div className="site-overlay-backdrop absolute inset-0" />
             <div
               data-side="bottom" className="site-overlay-panel absolute inset-x-0 bottom-0 rounded-t-[32px] border-t border-white/60 bg-white/90 p-5 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-[#0f172a]/95"
@@ -701,7 +701,7 @@ const BlogPage: React.FC<BlogPageProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsFilterOpen(false)}
+                  onClick={() => { (document.activeElement as HTMLElement | null)?.blur(); setIsFilterOpen(false); }}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-muted-foreground shadow-xs dark:bg-white/5 dark:border-white/10"
                 >
                   <CloseIcon className="h-4 w-4" />

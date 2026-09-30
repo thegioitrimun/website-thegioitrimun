@@ -195,11 +195,16 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
         ));
     };
 
+    const handleClose = () => {
+        (document.activeElement as HTMLElement | null)?.blur();
+        onClose();
+    };
+
     if (!overlay.mounted) return null;
 
     return (
-        <div ref={overlay.ref} data-open={overlay.visible} aria-hidden={!isOpen} aria-label={t('common.search_placeholder')} className="site-overlay fixed inset-0 z-[100]" role="dialog" aria-modal="true">
-            <div className="site-overlay-backdrop absolute inset-0 !bg-background" onClick={onClose}></div>
+        <div ref={overlay.ref} data-open={overlay.visible} aria-label={t('common.search_placeholder')} className="site-overlay fixed inset-0 z-[100]" role="dialog" aria-modal="true">
+            <div className="site-overlay-backdrop absolute inset-0 !bg-background" onClick={handleClose}></div>
             <div className="site-search-panel container relative z-10 mx-auto px-2 py-0 h-full flex flex-col">
                 {/* Header */}
                 <header className="flex-shrink-0 flex items-center justify-between pt-[max(env(safe-area-inset-top,0px),0.75rem)] pb-3">
@@ -215,7 +220,7 @@ const FullScreenSearch: React.FC<FullScreenSearchProps> = ({
                             className="w-full bg-transparent border-0 pl-12 pr-4 py-2.5 text-base sm:text-lg outline-none focus:outline-none focus:ring-0 focus-visible:outline-none"
                         />
                     </div>
-                    <button aria-label={t('common.close')} onClick={onClose} className="p-2 text-muted-foreground hover:text-foreground">
+                    <button aria-label={t('common.close')} onClick={handleClose} className="p-2 text-muted-foreground hover:text-foreground">
                         <CloseIcon className="w-6 h-6" />
                     </button>
                 </header>

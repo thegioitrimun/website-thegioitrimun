@@ -631,7 +631,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
     filtersOverlay.mounted && typeof document !== 'undefined'
       ? createPortal(
           <div
-            ref={filtersOverlay.ref} data-open={filtersOverlay.visible} aria-hidden={!isMobileFiltersOpen}
+            ref={filtersOverlay.ref} data-open={filtersOverlay.visible}
             className="site-overlay fixed inset-0 z-[100]"
             aria-labelledby="mobile-filters-title"
             role="dialog"
@@ -640,7 +640,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
             {/* Backdrop with frosted blur */}
             <div
               className="site-overlay-backdrop absolute inset-0"
-              onClick={() => setIsMobileFiltersOpen(false)}
+              onClick={() => { (document.activeElement as HTMLElement | null)?.blur(); setIsMobileFiltersOpen(false); }}
             />
 
             {/* Apple Frosted Glass Bottom Sheet */}
@@ -674,7 +674,7 @@ const ProductsPage: React.FC<ProductsPageProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setIsMobileFiltersOpen(false)}
+                  onClick={() => { (document.activeElement as HTMLElement | null)?.blur(); setIsMobileFiltersOpen(false); }}
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-white/50 bg-white/50 text-muted-foreground backdrop-blur-md transition hover:bg-white hover:text-foreground dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/15"
                   aria-label="Đóng bộ lọc"
                 >

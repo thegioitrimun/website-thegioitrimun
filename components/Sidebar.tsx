@@ -50,7 +50,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     const overlay = useOverlayMotion(isOpen, onClose);
     useEffect(() => { if (!overlay.mounted) setMode('nav'); }, [overlay.mounted]);
 
+    const handleClose = () => {
+        (document.activeElement as HTMLElement | null)?.blur();
+        onClose();
+    };
+
     const handleLinkClick = (link: NavLink) => {
+        (document.activeElement as HTMLElement | null)?.blur();
         onNavLinkClick(link.action, link.href);
         onClose();
     };
@@ -59,12 +65,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         if (currentUser) {
             setMode('booking');
         } else {
+            (document.activeElement as HTMLElement | null)?.blur();
             onGoToAuth();
             onClose();
         }
     };
 
     const handleBookingComplete = (data: Omit<Appointment, 'id' | 'status'>) => {
+        (document.activeElement as HTMLElement | null)?.blur();
         onBookingComplete(data);
         onClose();
     }
@@ -77,7 +85,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div
             ref={overlay.ref}
             data-open={overlay.visible}
-            aria-hidden={!isOpen}
             className="site-overlay fixed inset-0 z-[100]"
             aria-labelledby="slide-over-title"
             role="dialog"
@@ -85,7 +92,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         >
             <div
                 className="site-overlay-backdrop absolute inset-0"
-                onClick={onClose}
+                onClick={handleClose}
             ></div>
 
             <div data-side="left" className="site-overlay-panel fixed inset-y-0 left-0 flex max-w-full pr-10">
@@ -93,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <button
                         type="button"
                         className={`absolute top-[max(env(safe-area-inset-top,0px),1rem)] right-0 -mr-12 p-2 rounded-full bg-card/90 text-foreground shadow-sm hover:bg-card focus:outline-none transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
-                        onClick={onClose}
+                        onClick={handleClose}
                     >
                         <span className="sr-only">{t('common.close')}</span>
                         <CloseIcon className="h-7 w-7" aria-hidden="true" />

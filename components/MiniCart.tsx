@@ -37,7 +37,13 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
         return obj[field] || '';
     };
 
+    const handleClose = () => {
+        (document.activeElement as HTMLElement | null)?.blur();
+        closeMiniCart();
+    };
+
     const handleNavigate = (view: View) => {
+        (document.activeElement as HTMLElement | null)?.blur();
         closeMiniCart();
         onNavigate(view);
     };
@@ -50,7 +56,6 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
         <div
             ref={overlay.ref}
             data-open={overlay.visible}
-            aria-hidden={!isMiniCartOpen}
             className="site-overlay fixed inset-0 z-[100]"
             aria-labelledby="mini-cart-title"
             role="dialog"
@@ -58,7 +63,7 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
         >
             <div
                 className="site-overlay-backdrop absolute inset-0"
-                onClick={closeMiniCart}
+                onClick={handleClose}
             ></div>
 
             <div className="site-overlay-panel fixed inset-y-0 right-0 flex max-w-full pl-10">
@@ -69,7 +74,7 @@ const MiniCart: React.FC<MiniCartProps> = ({ onNavigate }) => {
                             <button
                                 type="button"
                                 className="absolute right-4 sm:right-6 top-[max(env(safe-area-inset-top,0px),0.75rem)] p-2 rounded-md text-muted-foreground hover:text-foreground focus:outline-none transition-colors"
-                                onClick={closeMiniCart}
+                                onClick={handleClose}
                             >
                                 <span className="sr-only">{t('cart.close')}</span>
                                 <CloseIcon className="h-6 w-6" aria-hidden="true" />

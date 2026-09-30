@@ -16,7 +16,12 @@ export default function useOverlayMotion(open: boolean, onClose: () => void, kin
     let timer: ReturnType<typeof setTimeout>;
     if (!open) {
       setVisible(false);
-      if (node) node.inert = true;
+      if (node) {
+        if (node.contains(document.activeElement)) {
+          (document.activeElement as HTMLElement | null)?.blur();
+        }
+        node.inert = true;
+      }
       timer = setTimeout(() => setRetained(false), motionDuration(`--${kind}-close-dur`, 250));
       return () => clearTimeout(timer);
     }
