@@ -1766,8 +1766,8 @@ const App: React.FC = () => {
                         isAtTop
                             ? isHomeInvertedHeader
                                 ? 'border border-transparent bg-transparent shadow-none'
-                                : 'border border-[#45B3C9]/30 bg-white/70 shadow-[0_12px_32px_-20px_rgba(69,179,201,0.18)] backdrop-blur-md dark:border-transparent dark:bg-transparent dark:shadow-none'
-                            : 'border border-[#45B3C9]/35 bg-[rgba(255,255,255,0.78)] shadow-[0_20px_44px_-34px_rgba(69,179,201,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-[rgba(15,23,34,0.78)] dark:shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:bg-[rgba(255,255,255,0.72)] lg:shadow-[0_26px_56px_-34px_rgba(69,179,201,0.25)] lg:dark:bg-[rgba(15,23,34,0.74)] lg:dark:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)]'
+                                : 'border border-transparent bg-white/70 shadow-[0_12px_32px_-20px_rgba(69,179,201,0.18)] backdrop-blur-md dark:border-transparent dark:bg-transparent dark:shadow-none'
+                            : 'border border-transparent bg-[rgba(255,255,255,0.78)] shadow-[0_20px_44px_-34px_rgba(69,179,201,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-[rgba(15,23,34,0.78)] dark:shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:bg-[rgba(255,255,255,0.72)] lg:shadow-[0_26px_56px_-34px_rgba(69,179,201,0.25)] lg:dark:bg-[rgba(15,23,34,0.74)] lg:dark:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)]'
                     }`}>
                         <div className={`pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] transition-opacity duration-500 ease-in-out ${isAtTop ? 'opacity-0' : 'opacity-100'}`}>
                             <div className="absolute -left-6 top-0 h-24 w-24 rounded-full bg-[#ff7f5d]/12 blur-2xl"></div>
