@@ -1421,7 +1421,7 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                                             key={brand.id}
                                             type="button"
                                             onClick={() => onSetView({ page: 'brandLanding', brandSlug: brand.slug })}
-                                            className="group relative aspect-[1.45/1] w-[calc(25%-6px)] md:w-[calc(25%-9px)] lg:w-[calc(16.666%-10px)] 2xl:w-[calc(11.111%-10.6px)] overflow-hidden rounded-2xl md:rounded-[22px] border border-white/60 bg-white/80 backdrop-blur-xl shadow-xs transition duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/[0.08] dark:hover:bg-white/[0.15]"
+                                            className="group relative aspect-[1.45/1] w-[calc(25%-6px)] md:w-[calc(25%-9px)] lg:w-[calc(16.666%-10px)] 2xl:w-[calc(11.111%-10.6px)] overflow-hidden rounded-2xl md:rounded-[22px] border border-black/[0.04] bg-white shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.12),0_4px_10px_-2px_rgba(0,0,0,0.05)] dark:border-white/10 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] dark:hover:shadow-[0_12px_24px_-6px_rgba(0,0,0,0.5)] cursor-pointer touch-manipulation"
                                         >
                                             {brand.logo_url ? (
                                                 <HomepageMediaImage
@@ -1431,8 +1431,8 @@ const HomepageIngredientAnalyzerSection: React.FC<{
                                                     src={brand.logo_url}
                                                     fallbackSrc="/seo/og-default.jpg"
                                                     alt={brand.name}
-                                                    containerClassName="!absolute inset-0 flex items-center justify-center bg-white"
-                                                    imageClassName="h-full w-full object-contain transition duration-500 group-hover:scale-[1.025]"
+                                                    containerClassName="!absolute inset-0 flex items-center justify-center bg-white dark:bg-transparent p-2 sm:p-2.5"
+                                                    imageClassName="h-full w-full object-contain transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                                                     placeholderClassName="rounded-[23px]"
                                                 />
                                             ) : (
