@@ -1764,18 +1764,20 @@ const App: React.FC = () => {
                 <div className="container relative mx-auto px-3 pt-[max(env(safe-area-inset-top,0px),0.625rem)] sm:px-4 sm:pt-[max(env(safe-area-inset-top,0px),0.75rem)] lg:px-6 lg:pt-[max(env(safe-area-inset-top,0px),1rem)]">
                     <div className={`relative flex min-h-[64px] items-center justify-between gap-2 rounded-[30px] px-3 py-2.5 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-300 ease-in-out sm:min-h-[68px] sm:px-4 lg:min-h-[78px] lg:px-5 lg:py-4 ${
                         isAtTop
-                            ? 'border border-transparent bg-transparent shadow-none'
-                            : 'border border-white/65 bg-[rgba(255,255,255,0.72)] shadow-[0_20px_44px_-34px_rgba(36,46,57,0.16)] backdrop-blur-md dark:border-white/10 dark:bg-[rgba(15,23,34,0.78)] dark:shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:bg-[rgba(255,255,255,0.65)] lg:shadow-[0_26px_56px_-34px_rgba(36,46,57,0.18)] lg:dark:bg-[rgba(15,23,34,0.74)] lg:dark:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)]'
+                            ? isHomeInvertedHeader
+                                ? 'border border-transparent bg-transparent shadow-none'
+                                : 'border border-[#45B3C9]/30 bg-white/70 shadow-[0_12px_32px_-20px_rgba(69,179,201,0.18)] backdrop-blur-md dark:border-transparent dark:bg-transparent dark:shadow-none'
+                            : 'border border-[#45B3C9]/35 bg-[rgba(255,255,255,0.78)] shadow-[0_20px_44px_-34px_rgba(69,179,201,0.22)] backdrop-blur-md dark:border-white/10 dark:bg-[rgba(15,23,34,0.78)] dark:shadow-[0_24px_52px_-38px_rgba(4,10,24,0.58)] lg:bg-[rgba(255,255,255,0.72)] lg:shadow-[0_26px_56px_-34px_rgba(69,179,201,0.25)] lg:dark:bg-[rgba(15,23,34,0.74)] lg:dark:shadow-[0_30px_64px_-38px_rgba(4,10,24,0.64)]'
                     }`}>
                         <div className={`pointer-events-none absolute inset-0 overflow-hidden rounded-[30px] transition-opacity duration-500 ease-in-out ${isAtTop ? 'opacity-0' : 'opacity-100'}`}>
                             <div className="absolute -left-6 top-0 h-24 w-24 rounded-full bg-[#ff7f5d]/12 blur-2xl"></div>
-                            <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#35b7a5]/12 blur-2xl dark:bg-[#35b7a5]/15"></div>
+                            <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[#45B3C9]/25 blur-2xl dark:bg-[#35b7a5]/15"></div>
                         </div>
                         <div className="relative z-10 flex min-w-0 items-center gap-1.5 sm:gap-2.5 lg:gap-4">
                             <button
                                 type="button"
                                 onClick={() => setSidebarOpen(true)}
-                                className={`rounded-full p-2 transition-colors duration-200 hover:bg-accent hover:text-primary focus:outline-none btn-press lg:hidden cursor-pointer touch-manipulation select-none ${
+                                className={`rounded-full p-2 transition-colors duration-200 hover:bg-[#45B3C9]/10 hover:text-[#45B3C9] focus:outline-none btn-press lg:hidden cursor-pointer touch-manipulation select-none ${
                                     isHomeInvertedHeader
                                         ? 'text-slate-900 dark:text-slate-900'
                                         : 'text-foreground dark:text-white'
@@ -1826,7 +1828,7 @@ const App: React.FC = () => {
                                             ? 'text-slate-700 dark:text-slate-700'
                                             : 'text-foreground/80 dark:text-slate-300'
                                     }`}>
-                                        Da Liễu <span className="text-[#1b7a6d] dark:text-[#35b7a5] font-bold">Phú Quốc</span>
+                                        Da Liễu <span className="text-[#45B3C9] dark:text-[#35b7a5] font-bold">Phú Quốc</span>
                                     </span>
                                 </div>
                             </a>
@@ -1842,10 +1844,10 @@ const App: React.FC = () => {
                                         onClick={() => handleNavLinkClick(link.action, link.href)}
                                         className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-200 cursor-pointer touch-manipulation select-none ${
                                             isLinkActive
-                                                ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary'
+                                                ? 'bg-[#45B3C9]/15 text-[#1a8094] font-bold dark:bg-primary/20 dark:text-primary'
                                                 : isHomeInvertedHeader
-                                                ? 'text-slate-800 hover:text-primary dark:text-slate-800 dark:hover:text-primary'
-                                                : 'text-foreground/78 hover:text-primary dark:text-white/80 dark:hover:text-white'
+                                                ? 'text-slate-800 hover:text-[#45B3C9] dark:text-slate-800 dark:hover:text-primary'
+                                                : 'text-foreground/78 hover:text-[#45B3C9] dark:text-white/80 dark:hover:text-white'
                                         }`}
                                     >
                                         {link.name}
@@ -1861,31 +1863,31 @@ const App: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={handleOpenSearch}
-                                    className={`utility-trigger btn-press cursor-pointer touch-manipulation select-none ${isSearchOpen ? 'is-active' : ''}`}
+                                    className={`utility-trigger btn-press cursor-pointer touch-manipulation select-none hover:!text-[#45B3C9] hover:!border-[#45B3C9]/40 ${isSearchOpen ? 'is-active !text-[#45B3C9] !border-[#45B3C9]/60 !bg-[#45B3C9]/10' : ''}`}
                                     aria-label="Tìm kiếm"
                                 >
                                     <SearchIcon className="utility-trigger-icon pointer-events-none" />
                                 </button>
                                 <div className={`utility-divider hidden lg:block transition-colors duration-500 ${isHomeInvertedHeader ? 'bg-slate-300 dark:bg-slate-400' : ''}`} />
-                                <div className="hidden lg:block">
+                                <div className="hidden lg:block [&_.utility-trigger:hover]:!text-[#45B3C9] [&_.utility-trigger:hover]:!border-[#45B3C9]/40 [&_.utility-trigger.is-active]:!text-[#45B3C9]">
                                     <LanguageSwitcher />
                                 </div>
-                                <div className="hidden xl:block">
+                                <div className="hidden xl:block [&_.utility-trigger:hover]:!text-[#45B3C9] [&_.utility-trigger:hover]:!border-[#45B3C9]/40 [&_.utility-trigger.is-active]:!text-[#45B3C9]">
                                     <SettingsDropdown />
                                 </div>
                                 <div className={`utility-divider hidden lg:block transition-colors duration-500 ${isHomeInvertedHeader ? 'bg-slate-300 dark:bg-slate-400' : ''}`} />
-                                <div className="hidden lg:block">
+                                <div className="hidden lg:block [&_.utility-trigger:hover]:!text-[#45B3C9] [&_.utility-trigger:hover]:!border-[#45B3C9]/40">
                                     <UserAvatar user={currentUser} onGoToAuth={() => setView({ page: 'auth' })} onLogout={handleLogout} onNavigate={(page) => setView(page as any)} />
                                 </div>
                                 <button
                                     type="button"
                                     onClick={openMiniCart}
-                                    className={`utility-trigger relative btn-press cursor-pointer touch-manipulation select-none ${isMiniCartOpen ? 'is-active' : ''}`}
+                                    className={`utility-trigger relative btn-press cursor-pointer touch-manipulation select-none hover:!text-[#45B3C9] hover:!border-[#45B3C9]/40 ${isMiniCartOpen ? 'is-active !text-[#45B3C9] !border-[#45B3C9]/60 !bg-[#45B3C9]/10' : ''}`}
                                     aria-label="Giỏ hàng"
                                 >
                                     <ShoppingBagIcon className="utility-trigger-icon pointer-events-none" />
                                     {itemCount > 0 && (
-                                        <span className="pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+                                        <span className="pointer-events-none absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#45B3C9] px-1 text-[10px] font-bold text-white shadow-xs">
                                             {itemCount}
                                         </span>
                                     )}
