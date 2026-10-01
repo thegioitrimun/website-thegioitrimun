@@ -267,7 +267,7 @@ const BrandDirectoryPage: React.FC<BrandDirectoryPageProps> = ({
                               alt={brand.name}
                               loading="lazy"
                               decoding="async"
-                              className="max-h-full max-w-full object-contain"
+                              className="max-h-full max-w-full object-contain mix-blend-multiply dark:mix-blend-normal"
                             />
                           ) : (
                             <span className="font-hero-body text-base font-black tracking-wider text-primary">

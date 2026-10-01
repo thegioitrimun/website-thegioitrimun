@@ -211,7 +211,7 @@ const BrandLandingPage: React.FC<BrandLandingPageProps> = ({
                   <img
                     src={brand.logo_url}
                     alt={`${labels.logoLabel}: ${brand.name}`}
-                    className="max-h-full max-w-full object-contain"
+                    className="max-h-full max-w-full object-contain mix-blend-multiply dark:mix-blend-normal"
                     loading="eager"
                     decoding="async"
                   />
