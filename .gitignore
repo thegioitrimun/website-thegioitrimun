@@ -49,3 +49,9 @@ thegioitrimun-project-backup*
 # temporary scratch files
 tmp/
 
+# Social automation & Postiz scripts (stored in private repo: thegioitrimun/tgtm-social-automation)
+scripts/schedule_hemp_hsn_month.mjs
+scripts/sync_postiz.mjs
+scripts/update_week_posts.mjs
+
+
