@@ -304,7 +304,9 @@
         "hours": "Working Hours",
         "schedule": "Mon - Sat: 8:00 AM - 8:00 PM\nSunday: 8:00 AM - 5:00 PM",
         "copyright": "Copyright belongs to",
-        "all_rights_reserved": "All rights reserved."
+        "all_rights_reserved": "All rights reserved.",
+        "map": "Location Map",
+        "directions": "Directions"
     },
     "about": {
         "back_to_home": "Back to Home",

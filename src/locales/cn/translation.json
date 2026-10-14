@@ -304,7 +304,9 @@
         "hours": "营业时间",
         "schedule": "周一至周六：8:00 - 20:00\n周日：8:00 - 17:00",
         "copyright": "版权归属于",
-        "all_rights_reserved": "保留所有权利。"
+        "all_rights_reserved": "保留所有权利。",
+        "map": "地图位置",
+        "directions": "路线导航"
     },
     "about": {
         "back_to_home": "返回首页",

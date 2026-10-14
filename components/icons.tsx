@@ -526,3 +526,17 @@ export const AppleIcon: React.FC<{ className?: string }> = ({ className }) => (
     <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 24 184.9 8.1 247.3c-23.3 90.7 29.3 221 68 281.3 16.5 25.7 34.5 50.1 63.3 49.3 28.3-.8 41.5-17.6 77.4-17.6 35.8 0 47.9 17.6 77.4 17.6 29.8 0 46-23.6 62.5-49.3 19.4-31 29.8-61.1 30.3-62.5-1.5-.7-68-24.9-68.3-97.4zM242 84.8c20.1-25.1 33.5-54 28.5-84.8-24.5 1.4-55.6 15.6-75.8 41.1-16 20.4-31.5 49-25.6 78 26.6 2 52.8-10.4 72.9-34.3z" />
   </svg>
 );
+
+export const MapPinIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+  </svg>
+);
+
+export const ExternalLinkIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-4 h-4"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+  </svg>
+);
+

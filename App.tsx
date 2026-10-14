@@ -12,7 +12,7 @@ import {
     HomeIcon, ServiceListIcon, InformationCircleIcon, MailIcon,
     BlogIcon, ChevronDownIcon, MenuIcon, LoadingIcon, ShoppingBagIcon,
     TechnologyIcon, CheckIcon, FacebookIcon, InstagramIcon, YoutubeIcon, TiktokIcon, TwitterIcon,
-    SearchIcon, ArrowRightIcon
+    SearchIcon, ArrowRightIcon, MapPinIcon, ExternalLinkIcon
 } from './components/icons';
 import SettingsDropdown from './components/ThemeSwitcher';
 import UserAvatar from './components/UserAvatar';
@@ -1954,8 +1954,8 @@ const App: React.FC = () => {
                         </div>
                     </AnimatedSection>
 
-                    {footerContent ? <div id="contact" className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-4">
-                        <div>
+                    {footerContent ? <div id="contact" className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-12">
+                        <div className="lg:col-span-3">
                             <h3 className="text-xl font-bold text-foreground mb-4 font-heading">{siteInfo?.clinic_name || "Thế Giới Trị Mụn"}</h3>
                             <p className="text-muted-foreground">{getLocalized(footerContent, 'about_text')}</p>
                             <div className="flex flex-wrap items-center gap-2.5 mt-5">
@@ -2005,7 +2005,7 @@ const App: React.FC = () => {
                                 </AccessibleSocialLink>
                             </div>
                         </div>
-                        <div>
+                        <div className="lg:col-span-2">
                             <h3 className="font-semibold text-foreground mb-4">{t('footer.quick_links')}</h3>
                             <ul className="space-y-2 text-muted-foreground">
                                 {navLinks.filter(l => l.name !== t('nav.home')).map(link => (
@@ -2015,16 +2015,56 @@ const App: React.FC = () => {
                                 <li><button onClick={() => handleNavLinkClick(() => setView({ page: 'main' }), '#faq')} className="hover:text-primary transition-all-smooth">FAQ</button></li>
                             </ul>
                         </div>
-                        <div>
+                        <div className="lg:col-span-3">
                             <h3 className="font-semibold text-foreground mb-4">{t('footer.contact')}</h3>
                             <p className="mb-2 text-muted-foreground">{footerContent.address}</p>
                             <p className="mb-2 text-muted-foreground">Email: {footerContent.email}</p>
                             <p className="text-muted-foreground">Phone: {footerContent.phone}</p>
                         </div>
-                        <div>
+                        <div className="lg:col-span-2">
                             <h3 className="font-semibold text-foreground mb-4">{t('footer.hours')}</h3>
                             <p className="mb-2 text-muted-foreground">{footerContent.working_hours_weekday}</p>
                             <p className="text-muted-foreground">{footerContent.working_hours_weekend}</p>
+                        </div>
+                        <div className="lg:col-span-2 md:col-span-2">
+                            <div className="space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-semibold text-foreground flex items-center gap-1.5 text-sm sm:text-base">
+                                        <MapPinIcon className="h-4 w-4 text-primary shrink-0" />
+                                        <span>{t('footer.map', 'Bản đồ')}</span>
+                                    </h3>
+                                    <a 
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(footerContent.address || '106 Lê Đình Thám, Tân Sơn Nhì, Tân Phú, TP HCM')}`}
+                                        target="_blank" 
+                                        rel="noopener noreferrer" 
+                                        className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-0.5 group/maplink"
+                                        title={t('footer.directions', 'Chỉ đường')}
+                                    >
+                                        <span>{t('footer.directions', 'Chỉ đường')}</span>
+                                        <ExternalLinkIcon className="h-3 w-3 transition-transform group-hover/maplink:translate-x-0.5 group-hover/maplink:-translate-y-0.5" />
+                                    </a>
+                                </div>
+
+                                <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-card/60 shadow-xs backdrop-blur-md transition-all duration-300 hover:border-primary/40 hover:shadow-md group/map h-36 w-full max-w-sm lg:max-w-none">
+                                    <iframe
+                                        title={siteInfo?.clinic_name ? `Bản đồ ${siteInfo.clinic_name}` : "Bản đồ vị trí phòng khám"}
+                                        src={`https://maps.google.com/maps?q=${encodeURIComponent(footerContent.address || '106 Lê Đình Thám, Tân Sơn Nhì, Tân Phú, TP HCM')}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                        loading="lazy"
+                                        referrerPolicy="no-referrer-when-downgrade"
+                                        className="h-full w-full border-0 filter contrast-[1.02] dark:opacity-85"
+                                    />
+                                    <a 
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(footerContent.address || '106 Lê Đình Thám, Tân Sơn Nhì, Tân Phú, TP HCM')}`}
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        aria-label="Xem trên Google Maps"
+                                        className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-lg bg-background/90 px-2 py-1 text-[11px] font-medium text-foreground shadow-xs backdrop-blur-md border border-border/60 transition-all hover:bg-primary hover:text-primary-foreground opacity-90 hover:opacity-100"
+                                    >
+                                        <span className="font-semibold text-[10px]">Google Maps</span>
+                                        <ExternalLinkIcon className="h-2.5 w-2.5" />
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div> : null}
                     {footerContent ? (
